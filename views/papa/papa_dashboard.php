@@ -422,16 +422,34 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
             }
         }
 
+        function showAlertSafe(type, message, options = {}) {
+            if (typeof window.showAlert === 'function') {
+                try {
+                    if (window.showAlert.length <= 1) {
+                        window.showAlert(Object.assign({ type, message }, options));
+                    } else {
+                        window.showAlert(type, message, options);
+                    }
+                    return;
+                } catch (err) {
+                    console.warn('showAlert failed, falling back to alert.', err);
+                }
+            }
+            alert(message);
+        }
+
         function renderMensajeSaldo(ok, mensaje, errores) {
             const contenedor = document.getElementById('saldo-mensajes');
             if (!contenedor) return;
             if (ok) {
                 contenedor.innerHTML = `<div class="card" style="border-left: 4px solid #16a34a;"><p>${mensaje}</p></div>`;
+                showAlertSafe('success', mensaje || 'Solicitud enviada correctamente.');
                 return;
             }
             if (errores && errores.length) {
                 const items = errores.map(error => `<li>${error}</li>`).join('');
                 contenedor.innerHTML = `<div class="card" style="border-left: 4px solid #dc2626;"><p><strong>Hubo un problema:</strong></p><ul>${items}</ul></div>`;
+                showAlertSafe('error', errores.join(' | '));
             }
         }
 
@@ -444,7 +462,19 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-                .then(res => res.text())
+                .then(async (res) => {
+                    if (!res.ok) {
+                        const body = await res.text();
+                        console.error('Error cargando modal saldo:', {
+                            status: res.status,
+                            statusText: res.statusText,
+                            body
+                        });
+                        showAlertSafe('error', 'No se pudo cargar el formulario.');
+                        throw new Error('Error cargando modal saldo');
+                    }
+                    return res.text();
+                })
                 .then(html => {
                     body.innerHTML = html;
                     inicializarModalSaldo();
@@ -465,16 +495,33 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                         method: 'POST',
                         body: formData
                     })
-                        .then(res => res.json())
+                        .then(async (res) => {
+                            if (!res.ok) {
+                                const body = await res.text();
+                                console.error('Error en solicitud de saldo:', {
+                                    status: res.status,
+                                    statusText: res.statusText,
+                                    body
+                                });
+                                showAlertSafe('error', 'No se pudo enviar la solicitud.');
+                                throw new Error('Error en solicitud de saldo');
+                            }
+                            return res.json();
+                        })
                         .then(data => {
+                            console.log('Respuesta solicitud saldo:', data);
                             renderMensajeSaldo(data.ok, data.mensaje, data.errores);
                             if (data.ok) {
                                 actualizarSaldoPendiente(data.saldoPendiente);
                                 form.reset();
+                            } else if (data.errores && data.errores.length) {
+                                showAlertSafe('warning', data.errores.join(' | '));
                             }
                         })
-                        .catch(() => {
+                        .catch((err) => {
+                            console.error('Error de conexion en solicitud de saldo:', err);
                             renderMensajeSaldo(false, '', ['Error de conexion. Intenta nuevamente.']);
+                            showAlertSafe('error', 'Error de conexion. Intenta nuevamente.');
                         });
                 });
             }
@@ -485,7 +532,10 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                     const cbu = document.getElementById('cbu')?.innerText || '';
                     if (!cbu) return;
                     navigator.clipboard.writeText(cbu).then(() => {
-                        alert('CBU copiado al portapapeles');
+                        showAlertSafe('success', 'CBU copiado al portapapeles');
+                    }).catch((err) => {
+                        console.error('Error al copiar CBU:', err);
+                        showAlertSafe('error', 'No se pudo copiar el CBU.');
                     });
                 });
             }
@@ -502,8 +552,3 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
 </body>
 
 </html>
-
-
-
-
-
