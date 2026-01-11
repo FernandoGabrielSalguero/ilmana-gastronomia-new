@@ -340,7 +340,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                                 </td>
                                                 <td class="max-40">
                                                     <?php if (!empty($saldo['Comprobante'])): ?>
-                                                        <a href="/sistema/uploads/tax_invoices/<?= urlencode($saldo['Comprobante']) ?>"
+                                                        <a href="/uploads/<?= urlencode($saldo['Comprobante']) ?>"
                                                             target="_blank"
                                                             title="Ver comprobante"
                                                             style="display: inline-block; padding: 0; margin: 0; text-decoration: none;">
