@@ -204,7 +204,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                     <li onclick="abrirModalSaldo()">
                         <span class="material-icons" style="color: #5b21b6;">attach_money</span><span class="link-text">Cargar Saldo</span>
                     </li>
-                    <li onclick="location.href='admin_altaUsuarios.php'">
+                    <li onclick="abrirModalVianda()">
                         <span class="material-icons" style="color: #5b21b6;">restaurant</span><span class="link-text">Viandas</span>
                     </li>
                     <li onclick="location.href='admin_importarUsuarios.php'">
@@ -274,6 +274,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                 <p><strong>Preferencias alimenticias:</strong> <?= $preferencias !== '' ? htmlspecialchars($preferencias) : 'Sin preferencias' ?></p>
                                 <p><strong>Nombre del colegio:</strong> <?= $colegio !== '' ? htmlspecialchars($colegio) : 'Sin colegio' ?></p>
                                 <p><strong>Curso:</strong> <?= $curso !== '' ? htmlspecialchars($curso) : 'Sin curso' ?></p>
+                                <button class="btn btn-aceptar" type="button" onclick="abrirModalVianda('<?= htmlspecialchars($hijo['Nombre']) ?>')">Pedir vianda</button>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -295,7 +296,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                         <th>#</th>
                                         <th>AcciÃ³n</th>
                                         <th class="max-150">Alumno</th>
-                                        <th class="max-150">MenÃº</th>
+                                        <th class="max-150">Manú</th>
                                         <th>Fecha de entrega</th>
                                         <th>Estado</th>
                                     </tr>
@@ -399,6 +400,19 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         </div>
     </div>
 
+    <!-- Modal pedir vianda -->
+    <div class="modal-overlay" id="vianda-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="vianda-modal-title">Pedir vianda</h3>
+                <button class="btn btn-small btn-cancelar" type="button" onclick="cerrarModalVianda()">Cerrar</button>
+            </div>
+            <div class="modal-body" id="vianda-modal-body">
+                <p>Cargando...</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Spinner Global -->
     <script src="../partials/spinner-global.js"></script>
 
@@ -411,6 +425,21 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
 
         function cerrarModalSaldo() {
             const modal = document.getElementById('saldo-modal');
+            modal.style.display = 'none';
+        }
+
+        function abrirModalVianda(nombreHijo = '') {
+            const modal = document.getElementById('vianda-modal');
+            const title = document.getElementById('vianda-modal-title');
+            if (title) {
+                title.textContent = nombreHijo ? `Pedir vianda - ${nombreHijo}` : 'Pedir vianda';
+            }
+            modal.style.display = 'flex';
+            cargarModalVianda();
+        }
+
+        function cerrarModalVianda() {
+            const modal = document.getElementById('vianda-modal');
             modal.style.display = 'none';
         }
 
@@ -497,6 +526,36 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                 });
         }
 
+        function cargarModalVianda() {
+            const body = document.getElementById('vianda-modal-body');
+            body.innerHTML = '<p>Cargando...</p>';
+
+            fetch('papa_menu_view.php?modal=1', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(async (res) => {
+                    if (!res.ok) {
+                        const body = await res.text();
+                        console.error('Error cargando modal vianda:', {
+                            status: res.status,
+                            statusText: res.statusText,
+                            body
+                        });
+                        showAlertSafe('error', 'No se pudo cargar el formulario.');
+                        throw new Error('Error cargando modal vianda');
+                    }
+                    return res.text();
+                })
+                .then(html => {
+                    body.innerHTML = html || '<p>Contenido disponible proximamente.</p>';
+                })
+                .catch(() => {
+                    body.innerHTML = '<p>Error al cargar el formulario.</p>';
+                });
+        }
+
         function inicializarModalSaldo() {
             const form = document.getElementById('saldo-form');
             if (form) {
@@ -558,6 +617,12 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         document.getElementById('saldo-modal').addEventListener('click', (event) => {
             if (event.target.id === 'saldo-modal') {
                 cerrarModalSaldo();
+            }
+        });
+
+        document.getElementById('vianda-modal').addEventListener('click', (event) => {
+            if (event.target.id === 'vianda-modal') {
+                cerrarModalVianda();
             }
         });
 
