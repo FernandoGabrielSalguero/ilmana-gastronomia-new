@@ -1,0 +1,1 @@
+En esta carpeta, vamos a cargar las imagenes de los productos y vamos a insertar el link de las mismas en la base de datos
