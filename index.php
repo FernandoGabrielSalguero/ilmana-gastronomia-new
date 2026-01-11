@@ -178,7 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="password" name="contrasena" id="contrasena" required>
             </div>
             <div class="form-group">
-                <button type="submit">INGRESAR</button>
+                <button type="submit">INGRExbxbSAR</button>
             </div>
         </form>
     </div>
