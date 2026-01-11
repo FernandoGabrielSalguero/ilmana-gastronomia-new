@@ -139,6 +139,11 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        text-decoration: none;
+    }
+
+    .estado-cell {
+        min-width: 110px;
     }
 
     .badge {
@@ -330,8 +335,8 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                     <tr>
                                         <th>#</th>
                                         <th class="max-80">Saldo</th>
-                                        <th class="max-80">Estado</th>
-                                        <th>Observacioens</th>
+                                        <th class="estado-cell">Estado</th>
+                                        <th>Observaciones</th>
                                         <th>Comprobante</th>
                                     </tr>
                                 </thead>
@@ -341,7 +346,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                             <tr>
                                                 <td class="max-80"><?= $saldo['Id'] ?></td>
                                                 <td>$<?= number_format($saldo['Saldo'], 2, ',', '.') ?></td>
-                                                <td class="max-80">
+                                                <td class="estado-cell">
                                                     <span class="badge <?= $saldo['Estado'] === 'Aprobado' ? 'success' : ($saldo['Estado'] === 'Cancelado' ? 'danger' : 'warning') ?>">
                                                         <?= $saldo['Estado'] ?>
                                                     </span>
@@ -355,8 +360,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                                         ?>
                                                         <a href="<?= $comprobanteUrl ?>"
                                                             target="_blank"
-                                                            title="Ver comprobante"
-                                                            style="display: inline-block; padding: 0; margin: 0; text-decoration: none;">
+                                                            title="Ver comprobante">
                                                             <span class="material-icons" style="font-size: 20px; color: #5b21b6;">visibility</span>
                                                         </a>
                                                     <?php else: ?>

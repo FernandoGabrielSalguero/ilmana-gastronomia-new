@@ -46,14 +46,27 @@ foreach ($pedidosComida as $pedido): ?>
                     <?= $saldo['Estado'] ?>
                 </span>
             </td>
-            <td><?= $saldo['Fecha_pedido'] ?></td>
+            <td><?= htmlspecialchars($saldo['Observaciones'] ?? '') ?></td>
+            <td>
+                <?php if (!empty($saldo['Comprobante'])): ?>
+                    <?php
+                    $comprobanteFile = basename((string) $saldo['Comprobante']);
+                    $comprobanteUrl = '/uploads/comprobantes_inbox/' . rawurlencode($comprobanteFile);
+                    ?>
+                    <a href="<?= $comprobanteUrl ?>" target="_blank" title="Ver comprobante">
+                        <span class="material-icons" style="font-size: 20px; color: #5b21b6;">visibility</span>
+                    </a>
+                <?php else: ?>
+                    <span class="text-muted">-</span>
+                <?php endif; ?>
+            </td>
         </tr>
     <?php endforeach;
     $tablaSaldo = ob_get_clean();
 
     echo json_encode([
         'comida' => $tablaComida ?: '<tr><td colspan="4">No hay pedidos de comida.</td></tr>',
-        'saldo' => $tablaSaldo ?: '<tr><td colspan="4">No hay pedidos de saldo.</td></tr>'
+        'saldo' => $tablaSaldo ?: '<tr><td colspan="5">No hay pedidos de saldo.</td></tr>'
     ]);
     exit;
 }

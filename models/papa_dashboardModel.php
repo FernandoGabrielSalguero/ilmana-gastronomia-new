@@ -42,7 +42,7 @@ class PapaDashboardModel
 
     public function obtenerPedidosSaldo($usuarioId, $desde = null, $hasta = null)
     {
-        $sql = "SELECT Id, Saldo, Estado, Comprobante 
+        $sql = "SELECT Id, Saldo, Estado, Comprobante, Observaciones
             FROM Pedidos_Saldo 
             WHERE Usuario_Id = :usuarioId";
 
