@@ -135,6 +135,12 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         text-align: center;
     }
 
+    .comprobante-cell a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
     .badge {
         display: inline-block;
         max-width: 100%;
@@ -325,6 +331,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                         <th>#</th>
                                         <th class="max-80">Saldo</th>
                                         <th class="max-80">Estado</th>
+                                        <th>Observacioens</th>
                                         <th>Comprobante</th>
                                     </tr>
                                 </thead>
@@ -339,7 +346,8 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                                         <?= $saldo['Estado'] ?>
                                                     </span>
                                                 </td>
-                                                <td class="max-40">
+                                                <td class="breakable"><?= htmlspecialchars($saldo['Observaciones'] ?? '') ?></td>
+                                                <td class="max-40 comprobante-cell">
                                                     <?php if (!empty($saldo['Comprobante'])): ?>
                                                         <?php
                                                         $comprobanteFile = basename((string) $saldo['Comprobante']);
@@ -359,7 +367,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                         <?php endforeach; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="4">No hay pedidos de saldo.</td>
+                                            <td colspan="5">No hay pedidos de saldo.</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
