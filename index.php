@@ -3,7 +3,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Configurar duración de sesión en 20 minutos
+// Configurar duración de sesión en 20 minutos 
 ini_set('session.gc_maxlifetime', 1200); // 20 minutos
 session_set_cookie_params([
     'lifetime' => 1200,
