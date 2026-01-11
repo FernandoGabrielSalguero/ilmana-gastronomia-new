@@ -9,162 +9,106 @@ if (!isset($_SESSION['usuario_id']) || ($_SESSION['rol'] ?? '') !== 'papas') {
 }
 
 $hijoSeleccionadoId = $hijoSeleccionado['Id'] ?? null;
+
+$menusPorNivel = [];
+$fechasMap = [];
+foreach ($menus as $menu) {
+    $nivel = $menu['Nivel_Educativo'] ?? 'Sin Curso Asignado';
+    $fechaKey = $menu['Fecha_entrega'] ?: 'sin_fecha';
+    if (!isset($fechasMap[$fechaKey])) {
+        $fechasMap[$fechaKey] = $menu['Fecha_entrega']
+            ? (new DateTime($menu['Fecha_entrega']))->format('d/m/Y')
+            : 'Sin fecha';
+    }
+    $menusPorNivel[$nivel][$fechaKey][] = $menu;
+}
+
+$fechasOrdenadas = [];
+$fechasConFecha = array_filter(array_keys($fechasMap), function ($fechaKey) {
+    return $fechaKey !== 'sin_fecha';
+});
+sort($fechasConFecha);
+foreach ($fechasConFecha as $fechaKey) {
+    $fechasOrdenadas[$fechaKey] = $fechasMap[$fechaKey];
+}
+if (isset($fechasMap['sin_fecha'])) {
+    $fechasOrdenadas['sin_fecha'] = $fechasMap['sin_fecha'];
+}
 ?>
 
 <style>
-    .vianda-layout {
-        display: flex;
-        gap: 16px;
-        flex-wrap: wrap;
-    }
-
-    .vianda-hijos {
-        flex: 1 1 220px;
-        max-width: 260px;
-    }
-
-    .vianda-hijos-list {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .vianda-menu {
-        flex: 3 1 480px;
-        min-width: 320px;
-    }
-
-    .vianda-menu select {
+    .vianda-table {
         width: 100%;
+    }
+
+    .vianda-table select {
+        width: 100%;
+    }
+
+    .vianda-selected-row {
+        background-color: #eef2ff;
     }
 </style>
 
-<div class="vianda-layout">
-    <div class="vianda-hijos">
-        <h4>Hijos</h4>
-        <?php if (empty($hijos)): ?>
+<div>
+    <h4>Menu por dia y alumno</h4>
+    <?php if (empty($hijos)): ?>
+        <div class="card">
             <p>No hay hijos asociados.</p>
-        <?php else: ?>
-            <div class="vianda-hijos-list">
-                <?php foreach ($hijos as $hijo): ?>
-                    <?php $esSeleccionado = $hijoSeleccionadoId && (int)$hijo['Id'] === (int)$hijoSeleccionadoId; ?>
-                    <button
-                        type="button"
-                        class="btn btn-small <?= $esSeleccionado ? 'btn-aceptar' : 'btn-cancelar' ?>"
-                        data-hijo-id="<?= (int) $hijo['Id'] ?>"
-                        data-hijo-nombre="<?= htmlspecialchars($hijo['Nombre']) ?>">
-                        <?= htmlspecialchars($hijo['Nombre']) ?>
-                    </button>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
-    </div>
-
-    <div class="vianda-menu">
-        <h4>Menu por dia</h4>
-        <?php if (!$hijoSeleccionado): ?>
-            <div class="card">
-                <p>Selecciona un hijo para ver el menu disponible.</p>
-            </div>
-        <?php else: ?>
-            <p class="text-muted">Nivel educativo: <?= htmlspecialchars($nivelEducativo ?? 'Sin curso asignado') ?></p>
-            <?php if (empty($menus)): ?>
-                <div class="card">
-                    <p>No hay menu disponible para el nivel educativo seleccionado.</p>
-                </div>
-            <?php else: ?>
-                <?php
-                $menusPorDia = [];
-                foreach ($menus as $menu) {
-                    $fecha = $menu['Fecha_entrega'] ?: 'Sin fecha';
-                    $menusPorDia[$fecha][] = $menu;
-                }
-                ?>
-                <form id="vianda-form">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Menu</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($menusPorDia as $fecha => $listaMenus): ?>
-                                <?php
-                                $fechaLabel = $fecha !== 'Sin fecha'
-                                    ? (new DateTime($fecha))->format('d/m/Y')
-                                    : 'Sin fecha';
-                                ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($fechaLabel) ?></td>
-                                    <td>
-                                        <select name="menu_por_dia[<?= htmlspecialchars($fecha) ?>]">
+        </div>
+    <?php elseif (empty($fechasOrdenadas)): ?>
+        <div class="card">
+            <p>No hay menu disponible para los niveles educativos asociados.</p>
+        </div>
+    <?php else: ?>
+        <form id="vianda-form">
+            <table class="data-table vianda-table">
+                <thead>
+                    <tr>
+                        <th>Alumno</th>
+                        <?php foreach ($fechasOrdenadas as $fechaLabel): ?>
+                            <th><?= htmlspecialchars($fechaLabel) ?></th>
+                        <?php endforeach; ?>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($hijos as $hijo): ?>
+                        <?php
+                        $nivel = $hijo['Nivel_Educativo'] ?? 'Sin Curso Asignado';
+                        $menusPorFecha = $menusPorNivel[$nivel] ?? [];
+                        $esSeleccionado = $hijoSeleccionadoId && (int)$hijo['Id'] === (int)$hijoSeleccionadoId;
+                        ?>
+                        <tr class="<?= $esSeleccionado ? 'vianda-selected-row' : '' ?>">
+                            <td><?= htmlspecialchars($hijo['Nombre']) ?></td>
+                            <?php foreach ($fechasOrdenadas as $fechaKey => $fechaLabel): ?>
+                                <?php $listaMenus = $menusPorFecha[$fechaKey] ?? []; ?>
+                                <td>
+                                    <?php if (empty($listaMenus)): ?>
+                                        <span class="text-muted">-</span>
+                                    <?php else: ?>
+                                        <select name="menu_por_dia[<?= (int) $hijo['Id'] ?>][<?= htmlspecialchars($fechaKey) ?>]">
                                             <option value="">Seleccionar menu</option>
                                             <?php foreach ($listaMenus as $menu): ?>
                                                 <?php
                                                 $precio = $menu['Precio'] !== null
                                                     ? '$' . number_format((float)$menu['Precio'], 2, ',', '.')
                                                     : 'Sin precio';
-                                                $label = $menu['Nombre'] ? $menu['Nombre'] . ' (' . $precio . ')' : $precio;
+                                                $label = $menu['Nombre']
+                                                    ? $menu['Nombre'] . ' (' . $precio . ')'
+                                                    : $precio;
                                                 ?>
                                                 <option value="<?= (int) $menu['Id'] ?>">
                                                     <?= htmlspecialchars($label) ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
-                                    </td>
-                                </tr>
+                                    <?php endif; ?>
+                                </td>
                             <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </form>
-            <?php endif; ?>
-        <?php endif; ?>
-    </div>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </form>
+    <?php endif; ?>
 </div>
-
-<script>
-    (function () {
-        const body = document.getElementById('vianda-modal-body');
-        if (!body) return;
-
-        body.querySelectorAll('[data-hijo-id]').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                const hijoId = btn.getAttribute('data-hijo-id');
-                const hijoNombre = btn.getAttribute('data-hijo-nombre') || '';
-                if (!hijoId) return;
-
-                const title = document.getElementById('vianda-modal-title');
-                if (title) {
-                    title.textContent = hijoNombre ? `Pedir vianda - ${hijoNombre}` : 'Pedir vianda';
-                }
-
-                window.selectedHijoId = parseInt(hijoId, 10) || 0;
-                body.innerHTML = '<p>Cargando...</p>';
-
-                const params = new URLSearchParams({ modal: '1', hijo_id: hijoId });
-                fetch(`papa_menu_view.php?${params.toString()}`, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                    .then(async (res) => {
-                        if (!res.ok) {
-                            const bodyText = await res.text();
-                            console.error('Error cargando menu:', {
-                                status: res.status,
-                                statusText: res.statusText,
-                                body: bodyText
-                            });
-                            throw new Error('Error cargando menu');
-                        }
-                        return res.text();
-                    })
-                    .then((html) => {
-                        body.innerHTML = html;
-                    })
-                    .catch(() => {
-                        body.innerHTML = '<p>Error al cargar el menu.</p>';
-                    });
-            });
-        });
-    })();
-</script>

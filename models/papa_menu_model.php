@@ -39,13 +39,30 @@ class PapaMenuModel
 
     public function obtenerMenusPorNivelEducativo($nivelEducativo)
     {
-        $sql = "SELECT Id, Nombre, Fecha_entrega, Precio, Estado
+        $sql = "SELECT Id, Nombre, Fecha_entrega, Precio, Estado, Nivel_Educativo
                 FROM Menú
                 WHERE Estado = 'En venta'
                 AND Nivel_Educativo = :nivel
                 ORDER BY Fecha_entrega ASC, Nombre ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['nivel' => $nivelEducativo]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerMenusPorNivelesEducativos(array $niveles)
+    {
+        if (empty($niveles)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($niveles), '?'));
+        $sql = "SELECT Id, Nombre, Fecha_entrega, Precio, Estado, Nivel_Educativo
+                FROM Menú
+                WHERE Estado = 'En venta'
+                AND Nivel_Educativo IN ($placeholders)
+                ORDER BY Fecha_entrega ASC, Nombre ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(array_values($niveles));
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
