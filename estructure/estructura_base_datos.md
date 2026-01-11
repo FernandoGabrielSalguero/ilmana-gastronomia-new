@@ -54,7 +54,7 @@ Fecha_entrega	date	YES
 Preferencias_alimenticias	text	YES			
 Hijo_Id	int(11)	YES	MUL		
 Fecha_pedido	datetime	NO			
-Estado	enum('Procesando','Cancelado')	NO			
+Estado	enum('Procesando','Cancelado','Entregado')	NO			
 Menú_Id	int(11)	NO	MUL		
 
 🔗 Relaciones:
@@ -74,9 +74,10 @@ Columna	Tipo	Nulo	Clave	Default	Extra
 Id	int(11)	NO	PRI		auto_increment
 Usuario_Id	int(11)	YES	MUL		
 Saldo	decimal(10,2)	YES			
-Estado	enum('Pendiente de aprobación','Cancelado','Aprobado')	YES			
+Estado	enum('Pendiente de aprobacion','Cancelado','Aprobado')	YES			
 Comprobante	varchar(255)	YES			
 Fecha_pedido	datetime	YES			
+Observaciones	text	NO		'Sin observaciones'	
 
 🔗 Relaciones:
 Columna Usuario_Id referencia a Usuarios.Id

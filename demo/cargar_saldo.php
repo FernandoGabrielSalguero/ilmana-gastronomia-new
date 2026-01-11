@@ -26,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $target_file = $target_dir . $comprobante_nombre;
         if (move_uploaded_file($comprobante["tmp_name"], $target_file)) {
             // Insertar el pedido de saldo
-            $stmt = $pdo->prepare("INSERT INTO Pedidos_Saldo (Usuario_Id, Saldo, Estado, Comprobante, Fecha_pedido) VALUES (?, ?, 'Pendiente de aprobaci�n', ?, NOW())");
+            $stmt = $pdo->prepare("INSERT INTO Pedidos_Saldo (Usuario_Id, Saldo, Estado, Comprobante, Fecha_pedido) VALUES (?, ?, 'Pendiente de aprobacion', ?, NOW())");
             if ($stmt->execute([$usuario_id, $monto, $comprobante_nombre])) {
                 $mostrarPopup = true;  // Esto indica que se debe mostrar el pop-up
             } else {
@@ -40,6 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Cargar Saldo</title>
@@ -50,20 +51,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             display: flex;
             flex-direction: column;
         }
+
         .bank-info-item {
             display: flex;
             align-items: center;
         }
+
         .bank-info-label {
             margin-right: 10px;
         }
+
         .copy-button {
             margin-left: 10px;
             cursor: pointer;
         }
+
         /* Estilos del pop-up */
         .popup {
-            display: none; /* Por defecto está oculto */
+            display: none;
+            /* Por defecto está oculto */
             position: fixed;
             left: 50%;
             top: 50%;
@@ -75,6 +81,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             border-radius: 10px;
             text-align: center;
         }
+
         .popup button {
             margin-top: 20px;
             padding: 10px 20px;
@@ -86,6 +93,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     </style>
 </head>
+
 <body>
     <h1>Cargar Saldo</h1>
     <?php
@@ -150,9 +158,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         <?php if ($mostrarPopup) : ?>
-        document.getElementById('popup').style.display = 'block';
+            document.getElementById('popup').style.display = 'block';
         <?php endif; ?>
     </script>
 </body>
-</html>
 
+</html>

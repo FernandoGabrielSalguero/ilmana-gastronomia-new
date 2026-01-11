@@ -164,7 +164,10 @@ if ($esModal) {
             if (typeof window.showAlert === 'function') {
                 try {
                     if (window.showAlert.length <= 1) {
-                        window.showAlert(Object.assign({ type, message }, options));
+                        window.showAlert(Object.assign({
+                            type,
+                            message
+                        }, options));
                     } else {
                         window.showAlert(type, message, options);
                     }
@@ -195,9 +198,9 @@ if ($esModal) {
             const formData = new FormData(form);
             formData.append('ajax', '1');
             fetch(form.action, {
-                method: 'POST',
-                body: formData
-            })
+                    method: 'POST',
+                    body: formData
+                })
                 .then(async (res) => {
                     if (!res.ok) {
                         const body = await res.text();
@@ -241,7 +244,7 @@ if ($esModal) {
 
         const saldoForm = document.getElementById('saldo-form');
         if (saldoForm) {
-            saldoForm.addEventListener('submit', function (event) {
+            saldoForm.addEventListener('submit', function(event) {
                 event.preventDefault();
                 handleSaldoSubmit(saldoForm);
             });
