@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errores[] = 'Formato de comprobante no valido. Usa JPG, PNG o PDF.';
         }
 
-        $targetDir = __DIR__ . '/../uploads/tax_invoices/';
+        $targetDir = __DIR__ . '/../uploads/comprobantes_inbox/';
         if (!is_dir($targetDir)) {
             $errores[] = 'No existe la carpeta de comprobantes.';
         }

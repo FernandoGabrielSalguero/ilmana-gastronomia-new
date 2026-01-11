@@ -97,10 +97,11 @@ class PapaDashboardModel
         $sql = "SELECT COALESCE(SUM(Saldo), 0) AS TotalPendiente
             FROM Pedidos_Saldo
             WHERE Usuario_Id = :usuarioId
-            AND Estado = 'Pendiente de aprobaciÃ³n'";
+            AND Estado = 'Pendiente de aprobación'";
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['usuarioId' => $usuarioId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ? (float)$row['TotalPendiente'] : 0.0;
     }
 }
+

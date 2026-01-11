@@ -22,11 +22,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         // Validar y mover el archivo de comprobante
         $comprobante_nombre = $usuario_id . "_" . time() . "_" . basename($comprobante["name"]);
-        $target_dir = "../uploads/";
+        $target_dir = "../uploads/comprobantes_inbox/";
         $target_file = $target_dir . $comprobante_nombre;
         if (move_uploaded_file($comprobante["tmp_name"], $target_file)) {
             // Insertar el pedido de saldo
-            $stmt = $pdo->prepare("INSERT INTO Pedidos_Saldo (Usuario_Id, Saldo, Estado, Comprobante, Fecha_pedido) VALUES (?, ?, 'Pendiente de aprobaciÃ³n', ?, NOW())");
+            $stmt = $pdo->prepare("INSERT INTO Pedidos_Saldo (Usuario_Id, Saldo, Estado, Comprobante, Fecha_pedido) VALUES (?, ?, 'Pendiente de aprobación', ?, NOW())");
             if ($stmt->execute([$usuario_id, $monto, $comprobante_nombre])) {
                 $mostrarPopup = true;  // Esto indica que se debe mostrar el pop-up
             } else {
@@ -103,7 +103,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </select>
         <br>
         <label for="comprobante">Comprobante:</label>
-        <input type="file" id="comprobante" name="comprobante" accept=".jpg, .png" required>
+        <input type="file" id="comprobante" name="comprobante" accept=".jpg,.jpeg,.png,.pdf" required>
         <br>
         <button type="submit">Cargar Saldo</button>
     </form>
@@ -155,3 +155,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </script>
 </body>
 </html>
+
