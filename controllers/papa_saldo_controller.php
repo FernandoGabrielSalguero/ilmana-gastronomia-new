@@ -6,6 +6,7 @@ $model = new PapaSaldoModel($pdo);
 $usuarioId = $_SESSION['usuario_id'] ?? null;
 $errores = [];
 $exito = false;
+$saldoPendiente = 0.0;
 
 $montosValidos = [3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 12000, 15000, 17000, 20000, 25000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 120000, 150000, 200000];
 
@@ -49,8 +50,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errores)) {
         if ($model->crearSolicitudSaldo($usuarioId, $monto, $comprobanteNombre)) {
             $exito = true;
+            $saldoPendiente = $model->obtenerSaldoPendiente($usuarioId);
         } else {
             $errores[] = 'Error al realizar el pedido de saldo.';
         }
     }
+}
+
+$esAjax = isset($_POST['ajax']) || (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+
+if ($esAjax && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $saldoPendiente = $model->obtenerSaldoPendiente($usuarioId);
+    header('Content-Type: application/json');
+    echo json_encode([
+        'ok' => $exito && empty($errores),
+        'errores' => $errores,
+        'saldoPendiente' => $saldoPendiente,
+        'mensaje' => $exito ? 'Pedido de saldo realizado con exito. La acreditacion puede demorar hasta 72hs.' : ''
+    ]);
+    exit;
 }

@@ -91,4 +91,16 @@ class PapaDashboardModel
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function obtenerSaldoPendiente($usuarioId)
+    {
+        $sql = "SELECT COALESCE(SUM(Saldo), 0) AS TotalPendiente
+            FROM Pedidos_Saldo
+            WHERE Usuario_Id = :usuarioId
+            AND Estado = 'Pendiente de aprobación'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['usuarioId' => $usuarioId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? (float)$row['TotalPendiente'] : 0.0;
+    }
 }

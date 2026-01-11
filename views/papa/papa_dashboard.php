@@ -142,6 +142,35 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         word-break: break-word;
         white-space: normal;
     }
+
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        padding: 16px;
+    }
+
+    .modal-content {
+        background: #fff;
+        width: 100%;
+        max-width: 980px;
+        max-height: 90vh;
+        overflow-y: auto;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
 </style>
 
 <body>
@@ -167,8 +196,8 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                     <li onclick="location.href='admin_importarUsuarios.php'">
                         <span class="material-icons" style="color: #5b21b6;">upload_file</span><span class="link-text">Carga Masiva</span>
                     </li>
-                    <li onclick="location.href='admin_pagoFacturas.php'">
-                        <span class="material-icons" style="color: #5b21b6;">attach_money</span><span class="link-text">Pago Facturas</span>
+                    <li onclick="abrirModalSaldo()">
+                        <span class="material-icons" style="color: #5b21b6;">attach_money</span><span class="link-text">Cargar Saldo</span>
                     </li>
                     <li onclick="location.href='../../../logout.php'">
                         <span class="material-icons" style="color: red;">logout</span><span class="link-text">Salir</span>
@@ -211,12 +240,15 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
 
                 <!-- Tarjetas de hijos y saldo -->
                 <div class="card-grid grid-3">
-                    <div class="card">
-                        <h3>Saldo disponible</h3>
-                        <p style="color: <?= $saldoColor ?>;">
-                            $<?= number_format($saldoValor, 2, ',', '.') ?>
+                    <div class="card" id="saldo-card">
+                        <h3>Saldo</h3>
+                        <p id="saldo-disponible" style="color: <?= $saldoColor ?>;">
+                            <strong>Saldo disponible:</strong> $<?= number_format($saldoValor, 2, ',', '.') ?>
                         </p>
-                        <a class="btn" href="papa_saldo_view.php">Cargar saldo</a>
+                        <p id="saldo-pendiente" style="color: #f59e0b; <?= $saldoPendiente > 0 ? '' : 'display: none;' ?>">
+                            <strong>Saldo a confirmar:</strong> $<span id="saldo-pendiente-valor"><?= number_format($saldoPendiente, 2, ',', '.') ?></span>
+                        </p>
+                        <button class="btn" type="button" onclick="abrirModalSaldo()">Cargar saldo</button>
                     </div>
                     <?php if (!empty($hijosDetalle)): ?>
                         <?php foreach ($hijosDetalle as $hijo): ?>
@@ -337,10 +369,130 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         </div>
     </div>
 
+    <!-- Modal cargar saldo -->
+    <div class="modal-overlay" id="saldo-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Cargar saldo</h3>
+                <button class="btn btn-small" type="button" onclick="cerrarModalSaldo()">Cerrar</button>
+            </div>
+            <div class="modal-body" id="saldo-modal-body">
+                <p>Cargando...</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Spinner Global -->
     <script src="../partials/spinner-global.js"></script>
 
     <script>
+        function abrirModalSaldo() {
+            const modal = document.getElementById('saldo-modal');
+            modal.style.display = 'flex';
+            cargarModalSaldo();
+        }
+
+        function cerrarModalSaldo() {
+            const modal = document.getElementById('saldo-modal');
+            modal.style.display = 'none';
+        }
+
+        function formatearMonto(valor) {
+            const numero = Number(valor) || 0;
+            return new Intl.NumberFormat('es-AR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(numero);
+        }
+
+        function actualizarSaldoPendiente(valor) {
+            const pendiente = document.getElementById('saldo-pendiente');
+            const valorSpan = document.getElementById('saldo-pendiente-valor');
+            if (!pendiente || !valorSpan) return;
+            if (valor > 0) {
+                pendiente.style.display = 'block';
+                valorSpan.textContent = formatearMonto(valor);
+            } else {
+                pendiente.style.display = 'none';
+                valorSpan.textContent = '0,00';
+            }
+        }
+
+        function renderMensajeSaldo(ok, mensaje, errores) {
+            const contenedor = document.getElementById('saldo-mensajes');
+            if (!contenedor) return;
+            if (ok) {
+                contenedor.innerHTML = `<div class="card" style="border-left: 4px solid #16a34a;"><p>${mensaje}</p></div>`;
+                return;
+            }
+            if (errores && errores.length) {
+                const items = errores.map(error => `<li>${error}</li>`).join('');
+                contenedor.innerHTML = `<div class="card" style="border-left: 4px solid #dc2626;"><p><strong>Hubo un problema:</strong></p><ul>${items}</ul></div>`;
+            }
+        }
+
+        function cargarModalSaldo() {
+            const body = document.getElementById('saldo-modal-body');
+            body.innerHTML = '<p>Cargando...</p>';
+
+            fetch('papa_saldo_view.php?modal=1', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(res => res.text())
+                .then(html => {
+                    body.innerHTML = html;
+                    inicializarModalSaldo();
+                })
+                .catch(() => {
+                    body.innerHTML = '<p>Error al cargar el formulario.</p>';
+                });
+        }
+
+        function inicializarModalSaldo() {
+            const form = document.getElementById('saldo-form');
+            if (form) {
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    const formData = new FormData(form);
+                    formData.append('ajax', '1');
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            renderMensajeSaldo(data.ok, data.mensaje, data.errores);
+                            if (data.ok) {
+                                actualizarSaldoPendiente(data.saldoPendiente);
+                                form.reset();
+                            }
+                        })
+                        .catch(() => {
+                            renderMensajeSaldo(false, '', ['Error de conexion. Intenta nuevamente.']);
+                        });
+                });
+            }
+
+            const copyBtn = document.querySelector('[data-copy-cbu]');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', () => {
+                    const cbu = document.getElementById('cbu')?.innerText || '';
+                    if (!cbu) return;
+                    navigator.clipboard.writeText(cbu).then(() => {
+                        alert('CBU copiado al portapapeles');
+                    });
+                });
+            }
+        }
+
+        document.getElementById('saldo-modal').addEventListener('click', (event) => {
+            if (event.target.id === 'saldo-modal') {
+                cerrarModalSaldo();
+            }
+        });
+
         console.log(<?php echo json_encode($_SESSION); ?>);
     </script>
 </body>

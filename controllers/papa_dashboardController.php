@@ -10,6 +10,7 @@ $hasta = $_GET['hasta'] ?? null;
 $hijosDetalle = $model->obtenerHijosDetallePorUsuario($usuarioId);
 $pedidosSaldo = $model->obtenerPedidosSaldo($usuarioId, $desde, $hasta);
 $pedidosComida = $model->obtenerPedidosComida($usuarioId, $hijoSeleccionado, $desde, $hasta);
+$saldoPendiente = $model->obtenerSaldoPendiente($usuarioId);
 
 // cargamos los datos dinamicamente con ajax
 if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {

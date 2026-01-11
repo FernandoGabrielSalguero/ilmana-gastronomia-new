@@ -29,6 +29,72 @@ if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'papas') {
 }
 
 $nombre = $_SESSION['nombre'] ?? 'Sin nombre';
+$esModal = isset($_GET['modal']) && $_GET['modal'] == '1';
+
+ob_start();
+?>
+
+<div id="saldo-mensajes"></div>
+
+<?php if (!empty($errores)): ?>
+    <div class="card" style="border-left: 4px solid #dc2626;">
+        <p><strong>Hubo un problema:</strong></p>
+        <ul>
+            <?php foreach ($errores as $error): ?>
+                <li><?= htmlspecialchars($error) ?></li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+<?php endif; ?>
+
+<?php if ($exito): ?>
+    <div class="card" style="border-left: 4px solid #16a34a;">
+        <p>Pedido de saldo realizado con exito. La acreditacion puede demorar hasta 72hs.</p>
+        <a class="btn" href="papa_dashboard.php">Volver al dashboard</a>
+    </div>
+<?php endif; ?>
+
+<div class="card-grid grid-2">
+    <div class="card">
+        <h3>Solicitud de saldo</h3>
+        <form method="post" action="papa_saldo_view.php" enctype="multipart/form-data" class="form-modern" id="saldo-form">
+            <div class="input-group">
+                <label for="monto">Monto a recargar</label>
+                <select id="monto" name="monto" required>
+                    <option value="">Selecciona un monto</option>
+                    <?php foreach ($montosValidos as $monto): ?>
+                        <option value="<?= $monto ?>">$<?= number_format($monto, 2, ',', '.') ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="comprobante">Comprobante</label>
+                <input type="file" id="comprobante" name="comprobante" accept=".jpg,.jpeg,.png,.pdf" required>
+            </div>
+
+            <button class="btn" type="submit">Cargar saldo</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3>Datos bancarios</h3>
+        <p><strong>CUIT:</strong> 20273627651</p>
+        <p><strong>CBU:</strong> <span id="cbu">0340300408300313721004</span>
+            <button class="btn btn-small" type="button" data-copy-cbu>Copiar</button>
+        </p>
+        <p><strong>Banco:</strong> BANCO PATAGONIA</p>
+        <p><strong>Titular de la cuenta:</strong> Federico Figueroa</p>
+        <p><strong>Alias:</strong> ROJO.GENIO.CASINO</p>
+    </div>
+</div>
+<?php
+$saldoContenido = ob_get_clean();
+
+if ($esModal) {
+    echo $saldoContenido;
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -88,67 +154,58 @@ $nombre = $_SESSION['nombre'] ?? 'Sin nombre';
                     <p>Completa la solicitud de saldo y adjunta el comprobante de transferencia.</p>
                 </div>
 
-                <?php if (!empty($errores)): ?>
-                    <div class="card" style="border-left: 4px solid #dc2626;">
-                        <p><strong>Hubo un problema:</strong></p>
-                        <ul>
-                            <?php foreach ($errores as $error): ?>
-                                <li><?= htmlspecialchars($error) ?></li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </div>
-                <?php endif; ?>
-
-                <?php if ($exito): ?>
-                    <div class="card" style="border-left: 4px solid #16a34a;">
-                        <p>Pedido de saldo realizado con exito. La acreditacion puede demorar hasta 72hs.</p>
-                        <a class="btn" href="papa_dashboard.php">Volver al dashboard</a>
-                    </div>
-                <?php endif; ?>
-
-                <div class="card-grid grid-2">
-                    <div class="card">
-                        <h3>Solicitud de saldo</h3>
-                        <form method="post" enctype="multipart/form-data" class="form-modern">
-                            <div class="input-group">
-                                <label for="monto">Monto a recargar</label>
-                                <select id="monto" name="monto" required>
-                                    <option value="">Selecciona un monto</option>
-                                    <?php foreach ($montosValidos as $monto): ?>
-                                        <option value="<?= $monto ?>">$<?= number_format($monto, 2, ',', '.') ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-
-                            <div class="input-group">
-                                <label for="comprobante">Comprobante</label>
-                                <input type="file" id="comprobante" name="comprobante" accept=".jpg,.jpeg,.png,.pdf" required>
-                            </div>
-
-                            <button class="btn" type="submit">Cargar saldo</button>
-                        </form>
-                    </div>
-
-                    <div class="card">
-                        <h3>Datos bancarios</h3>
-                        <p><strong>CUIT:</strong> 20273627651</p>
-                        <p><strong>CBU:</strong> <span id="cbu">0340300408300313721004</span>
-                            <button class="btn btn-small" type="button" onclick="copiarCBU()">Copiar</button>
-                        </p>
-                        <p><strong>Banco:</strong> BANCO PATAGONIA</p>
-                        <p><strong>Titular de la cuenta:</strong> Federico Figueroa</p>
-                        <p><strong>Alias:</strong> ROJO.GENIO.CASINO</p>
-                    </div>
-                </div>
+                <?= $saldoContenido ?>
             </section>
         </div>
     </div>
 
     <script>
-        function copiarCBU() {
-            const cbu = document.getElementById('cbu').innerText;
-            navigator.clipboard.writeText(cbu).then(() => {
-                alert('CBU copiado al portapapeles');
+        function renderMensajeSaldo(ok, mensaje, errores) {
+            const contenedor = document.getElementById('saldo-mensajes');
+            if (!contenedor) return;
+            if (ok) {
+                contenedor.innerHTML = `<div class="card" style="border-left: 4px solid #16a34a;"><p>${mensaje}</p></div>`;
+                return;
+            }
+            if (errores && errores.length) {
+                const items = errores.map(error => `<li>${error}</li>`).join('');
+                contenedor.innerHTML = `<div class="card" style="border-left: 4px solid #dc2626;"><p><strong>Hubo un problema:</strong></p><ul>${items}</ul></div>`;
+            }
+        }
+
+        function handleSaldoSubmit(form) {
+            const formData = new FormData(form);
+            formData.append('ajax', '1');
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    renderMensajeSaldo(data.ok, data.mensaje, data.errores);
+                    if (data.ok) {
+                        form.reset();
+                    }
+                })
+                .catch(() => {
+                    renderMensajeSaldo(false, '', ['Error de conexion. Intenta nuevamente.']);
+                });
+        }
+
+        document.addEventListener('click', (event) => {
+            if (event.target && event.target.matches('[data-copy-cbu]')) {
+                const cbu = document.getElementById('cbu').innerText;
+                navigator.clipboard.writeText(cbu).then(() => {
+                    alert('CBU copiado al portapapeles');
+                });
+            }
+        });
+
+        const saldoForm = document.getElementById('saldo-form');
+        if (saldoForm) {
+            saldoForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                handleSaldoSubmit(saldoForm);
             });
         }
     </script>
