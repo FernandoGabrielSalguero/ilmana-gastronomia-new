@@ -50,7 +50,7 @@ ob_start();
 <?php if ($exito): ?>
     <div class="card" style="border-left: 4px solid #16a34a;">
         <p>Pedido de saldo realizado con exito. La acreditacion puede demorar hasta 72hs.</p>
-        <a class="btn" href="papa_dashboard.php">Volver al dashboard</a>
+        <a class="btn btn-aceptar" href="papa_dashboard.php">Volver al dashboard</a>
     </div>
 <?php endif; ?>
 
@@ -73,7 +73,7 @@ ob_start();
                 <input type="file" id="comprobante" name="comprobante" accept=".jpg,.jpeg,.png,.pdf" required>
             </div>
 
-            <button class="btn" type="submit">Cargar saldo</button>
+            <button class="btn btn-aceptar" type="submit">Solicitar autorización de saldo</button>
         </form>
     </div>
 
@@ -81,7 +81,7 @@ ob_start();
         <h3>Datos bancarios</h3>
         <p><strong>CUIT:</strong> 20273627651</p>
         <p><strong>CBU:</strong> <span id="cbu">0340300408300313721004</span>
-            <button class="btn btn-small" type="button" data-copy-cbu>Copiar</button>
+            <button class="btn btn-small btn-info" type="button" data-copy-cbu>Copiar</button>
         </p>
         <p><strong>Banco:</strong> BANCO PATAGONIA</p>
         <p><strong>Titular de la cuenta:</strong> Federico Figueroa</p>

@@ -248,7 +248,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                         <p id="saldo-pendiente" style="color: #f59e0b; <?= $saldoPendiente > 0 ? '' : 'display: none;' ?>">
                             <strong>Saldo a confirmar:</strong> $<span id="saldo-pendiente-valor"><?= number_format($saldoPendiente, 2, ',', '.') ?></span>
                         </p>
-                        <button class="btn" type="button" onclick="abrirModalSaldo()">Cargar saldo</button>
+                        <button class="btn btn-aceptar" type="button" onclick="abrirModalSaldo()">Cargar saldo</button>
                     </div>
                     <?php if (!empty($hijosDetalle)): ?>
                         <?php foreach ($hijosDetalle as $hijo): ?>
@@ -374,7 +374,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Cargar saldo</h3>
-                <button class="btn btn-small" type="button" onclick="cerrarModalSaldo()">Cerrar</button>
+                <button class="btn btn-small btn-cancelar" type="button" onclick="cerrarModalSaldo()">Cerrar</button>
             </div>
             <div class="modal-body" id="saldo-modal-body">
                 <p>Cargando...</p>
