@@ -274,7 +274,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                 <p><strong>Preferencias alimenticias:</strong> <?= $preferencias !== '' ? htmlspecialchars($preferencias) : 'Sin preferencias' ?></p>
                                 <p><strong>Nombre del colegio:</strong> <?= $colegio !== '' ? htmlspecialchars($colegio) : 'Sin colegio' ?></p>
                                 <p><strong>Curso:</strong> <?= $curso !== '' ? htmlspecialchars($curso) : 'Sin curso' ?></p>
-                                <button class="btn btn-aceptar" type="button" onclick="abrirModalVianda('<?= htmlspecialchars($hijo['Nombre']) ?>')">Pedir vianda</button>
+                                <button class="btn btn-aceptar" type="button" onclick="abrirModalVianda(<?= (int)($hijo['Id'] ?? 0) ?>, '<?= htmlspecialchars($hijo['Nombre']) ?>')">Pedir vianda</button>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -428,12 +428,13 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
             modal.style.display = 'none';
         }
 
-        function abrirModalVianda(nombreHijo = '') {
+        function abrirModalVianda(hijoId = 0, nombreHijo = '') {
             const modal = document.getElementById('vianda-modal');
             const title = document.getElementById('vianda-modal-title');
             if (title) {
                 title.textContent = nombreHijo ? `Pedir vianda - ${nombreHijo}` : 'Pedir vianda';
             }
+            window.selectedHijoId = hijoId || 0;
             modal.style.display = 'flex';
             cargarModalVianda();
         }
@@ -530,7 +531,11 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
             const body = document.getElementById('vianda-modal-body');
             body.innerHTML = '<p>Cargando...</p>';
 
-            fetch('papa_menu_view.php?modal=1', {
+            const params = new URLSearchParams({ modal: '1' });
+            if (window.selectedHijoId) {
+                params.append('hijo_id', window.selectedHijoId);
+            }
+            fetch(`papa_menu_view.php?${params.toString()}`, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
