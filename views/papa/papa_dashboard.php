@@ -194,7 +194,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                         <span class="material-icons" style="color: #5b21b6;">attach_money</span><span class="link-text">Cargar Saldo</span>
                     </li>
                     <li onclick="location.href='admin_altaUsuarios.php'">
-                        <span class="material-icons" style="color: #5b21b6;">fastfood</span><span class="link-text">Viandas</span>
+                        <span class="material-icons" style="color: #5b21b6;">lunch_dining</span><span class="link-text">Viandas</span>
                     </li>
                     <li onclick="location.href='admin_importarUsuarios.php'">
                         <span class="material-icons" style="color: #5b21b6;">calendar_month</span><span class="link-text">Calendario</span>
