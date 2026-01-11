@@ -515,6 +515,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                             if (data.ok) {
                                 actualizarSaldoPendiente(data.saldoPendiente);
                                 form.reset();
+                                cerrarModalSaldo();
                             } else if (data.errores && data.errores.length) {
                                 showAlertSafe('warning', data.errores.join(' | '));
                             }
