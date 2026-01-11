@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../models/papa_saldo_model.php';
 
 $model = new PapaSaldoModel($pdo);
