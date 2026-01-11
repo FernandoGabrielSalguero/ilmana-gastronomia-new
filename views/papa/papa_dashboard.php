@@ -209,17 +209,15 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                 $saldoColor = $saldoValor < 0 ? 'red' : 'green';
                 ?>
 
-                <!-- Tarjeta de saldo -->
-                <div class="card">
-                    <h3>Saldo disponible</h3>
-                    <p style="color: <?= $saldoColor ?>;">
-                        $<?= number_format($saldoValor, 2, ',', '.') ?>
-                    </p>
-                    <button class="btn">Cargar saldo</button>
-                </div>
-
-                <!-- Tarjetas de hijos -->
+                <!-- Tarjetas de hijos y saldo -->
                 <div class="card-grid grid-3">
+                    <div class="card">
+                        <h3>Saldo disponible</h3>
+                        <p style="color: <?= $saldoColor ?>;">
+                            $<?= number_format($saldoValor, 2, ',', '.') ?>
+                        </p>
+                        <a class="btn" href="papa_saldo_view.php">Cargar saldo</a>
+                    </div>
                     <?php if (!empty($hijosDetalle)): ?>
                         <?php foreach ($hijosDetalle as $hijo): ?>
                             <?php
@@ -348,3 +346,8 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
 </body>
 
 </html>
+
+
+
+
+
