@@ -16,8 +16,23 @@ function loadEnv($path) {
 loadEnv(__DIR__ . '/.env');
 
 try {
+    $dbHost = getenv('DB_HOST');
+    $dbPort = getenv('DB_PORT');
+
+    if (strpos($dbHost, ':') !== false) {
+        list($hostOnly, $hostPort) = explode(':', $dbHost, 2);
+        $dbHost = $hostOnly;
+        if (!$dbPort) {
+            $dbPort = $hostPort;
+        }
+    }
+
+    if (!$dbPort) {
+        $dbPort = '3306';
+    }
+
     $pdo = new PDO(
-        'mysql:host=' . getenv('DB_HOST') . ';port=' . (getenv('DB_PORT') ?: '3306') . ';dbname=' . getenv('DB_NAME'),
+        'mysql:host=' . $dbHost . ';port=' . $dbPort . ';dbname=' . getenv('DB_NAME'),
         getenv('DB_USER'),
         getenv('DB_PASS')
     );
@@ -25,4 +40,5 @@ try {
 } catch (PDOException $e) {
     die('Error de conexión: ' . $e->getMessage());
 }
+
 
