@@ -17,7 +17,7 @@ loadEnv(__DIR__ . '/.env');
 
 try {
     $pdo = new PDO(
-        'mysql:host=' . getenv('DB_HOST') . ';dbname=' . getenv('DB_NAME'),
+        'mysql:host=' . getenv('DB_HOST') . ';port=' . (getenv('DB_PORT') ?: '3306') . ';dbname=' . getenv('DB_NAME'),
         getenv('DB_USER'),
         getenv('DB_PASS')
     );
@@ -25,3 +25,4 @@ try {
 } catch (PDOException $e) {
     die('Error de conexión: ' . $e->getMessage());
 }
+
