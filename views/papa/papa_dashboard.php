@@ -204,12 +204,26 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                     <p>En esta pagina, vas a poder visualizar el nombre de tus hijos junto con su informacion, los pedidos de saldo y de comida</p>
                 </div>
 
+                <?php
+                $saldoValor = (float)str_replace(',', '.', preg_replace('/[^0-9,\.\-]/', '', (string)$saldo));
+                $saldoColor = $saldoValor < 0 ? 'red' : 'green';
+                ?>
+
+                <!-- Tarjeta de saldo -->
+                <div class="card">
+                    <h3>Saldo disponible</h3>
+                    <p style="color: <?= $saldoColor ?>;">
+                        $<?= number_format($saldoValor, 2, ',', '.') ?>
+                    </p>
+                    <button class="btn">Cargar saldo</button>
+                </div>
+
                 <!-- Tarjetas de hijos -->
-                <div class="card-grid grid-2">
+                <div class="card-grid grid-3">
                     <?php if (!empty($hijosDetalle)): ?>
                         <?php foreach ($hijosDetalle as $hijo): ?>
                             <?php
-                            $preferencias = trim($hijo['Preferencias_Alimenticias'] ?? '');
+                            $preferencias = trim($hijo['Preferencia'] ?? '');
                             $colegio = trim($hijo['Colegio'] ?? '');
                             $curso = trim($hijo['Curso'] ?? '');
                             ?>
@@ -228,7 +242,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                 </div>
 
                 <!-- Tablas de resultados -->
-                <div class="card-grid grid-2">
+                <div>
                     <!-- Pedidos de Comida -->
                     <div class="card tabla-card">
                         <h2>Pedidos de comida</h2>
@@ -271,7 +285,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                     </div>
 
                     <!-- Pedidos de Saldo -->
-                    <div class="card tabla-card">
+                    <div class="card tabla-card" style="margin-top: 16px;">
                         <h2>Pedidos de saldo</h2>
                         <div class="tabla-wrapper">
                             <table class="data-table">

@@ -26,11 +26,12 @@ class PapaDashboardModel
         $sql = "SELECT 
                 h.Id,
                 h.Nombre,
-                h.Preferencias_Alimenticias,
+                COALESCE(pa.Nombre, h.Preferencias_Alimenticias) AS Preferencia,
                 c.Nombre AS Colegio,
                 cu.Nombre AS Curso
             FROM Usuarios_Hijos uh
             JOIN Hijos h ON h.Id = uh.Hijo_Id
+            LEFT JOIN Preferencias_Alimenticias pa ON pa.Id = h.Preferencias_Alimenticias
             LEFT JOIN Colegios c ON c.Id = h.Colegio_Id
             LEFT JOIN Cursos cu ON cu.Id = h.Curso_Id
             WHERE uh.Usuario_Id = :usuarioId";
