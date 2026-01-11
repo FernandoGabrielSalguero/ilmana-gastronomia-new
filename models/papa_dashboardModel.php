@@ -21,6 +21,24 @@ class PapaDashboardModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function obtenerHijosDetallePorUsuario($usuarioId)
+    {
+        $sql = "SELECT 
+                h.Id,
+                h.Nombre,
+                h.Preferencias_Alimenticias,
+                c.Nombre AS Colegio,
+                cu.Nombre AS Curso
+            FROM Usuarios_Hijos uh
+            JOIN Hijos h ON h.Id = uh.Hijo_Id
+            LEFT JOIN Colegios c ON c.Id = h.Colegio_Id
+            LEFT JOIN Cursos cu ON cu.Id = h.Curso_Id
+            WHERE uh.Usuario_Id = :usuarioId";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['usuarioId' => $usuarioId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function obtenerPedidosSaldo($usuarioId, $desde = null, $hasta = null)
     {
         $sql = "SELECT Id, Saldo, Estado, Comprobante 

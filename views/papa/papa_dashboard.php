@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Mostrar errores
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -8,7 +8,7 @@ session_start();
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../controllers/papa_dashboardController.php';
 
-// ⚠️ Expiración por inactividad (20 minutos)
+// âš ï¸ ExpiraciÃ³n por inactividad (20 minutos)
 if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 1200)) {
     session_unset();
     session_destroy();
@@ -19,23 +19,23 @@ $_SESSION['LAST_ACTIVITY'] = time(); // Actualiza el tiempo de actividad
 
 
 
-// 🧿 Control de sesión activa
+// ðŸ§¿ Control de sesiÃ³n activa
 if (!isset($_SESSION['usuario_id']) || empty($_SESSION['nombre'])) {
     header("Location: /index.php?expired=1");
     exit;
 }
 
-// 🔐 Validación estricta por rol
+// ðŸ” ValidaciÃ³n estricta por rol
 if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'papas') {
-    die("🚫 Acceso restringido: esta sección es solo para el rol 'papas'.");
+    die("ðŸš« Acceso restringido: esta secciÃ³n es solo para el rol 'papas'.");
 }
 
-// 📦 Asignación de datos desde sesión
+// ðŸ“¦ AsignaciÃ³n de datos desde sesiÃ³n
 $usuario_id = $_SESSION['usuario_id'];
 $usuario = $_SESSION['usuario'] ?? 'Sin usuario';
 $nombre = $_SESSION['nombre'] ?? 'Sin nombre';
 $correo = $_SESSION['correo'] ?? 'Sin correo';
-$telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
+$telefono = $_SESSION['telefono'] ?? 'Sin telÃ©fono';
 $saldo = $_SESSION['saldo'] ?? '0.00';
 
 
@@ -49,7 +49,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>IlMana Gastronomia</title>
 
-    <!-- Íconos de Material Design -->
+    <!-- Ãconos de Material Design -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
@@ -58,16 +58,16 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
     <link rel="stylesheet" href="https://framework.impulsagroup.com/assets/css/framework.css">
     <script src="https://framework.impulsagroup.com/assets/javascript/framework.js" defer></script>
 
-    <!-- Descarga de consolidado (no se usa directamente aquí, pero se deja por consistencia) -->
+    <!-- Descarga de consolidado (no se usa directamente aquÃ­, pero se deja por consistencia) -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
     <!-- PDF: html2canvas + jsPDF (CDN gratuitos) -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    <!-- Tablas con saltos de página prolijos (autoTable) -->
+    <!-- Tablas con saltos de pÃ¡gina prolijos (autoTable) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    
+
 </head>
 <style>
     /* Contenedor de tabla con scroll vertical */
@@ -76,12 +76,12 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         overflow-y: auto;
     }
 
-    /* Tabla con ajuste dinámico de columnas */
+    /* Tabla con ajuste dinÃ¡mico de columnas */
     .tabla-wrapper table {
         border-collapse: collapse;
         width: 100%;
         table-layout: auto;
-        /* ⚠️ CLAVE: que se adapte al contenido */
+        /* âš ï¸ CLAVE: que se adapte al contenido */
     }
 
     /* Cabecera fija */
@@ -105,13 +105,13 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         overflow: hidden;
     }
 
-    /* Si querés permitir quiebre de línea en algunas columnas */
+    /* Si querÃ©s permitir quiebre de lÃ­nea en algunas columnas */
     .breakable {
         white-space: normal !important;
         word-wrap: break-word;
     }
 
-    /* ✅ Clase opcional para limitar ancho máximo (solo si se aplica explícitamente) */
+    /* âœ… Clase opcional para limitar ancho mÃ¡ximo (solo si se aplica explÃ­citamente) */
     .max-150 {
         max-width: 150px;
         white-space: normal;
@@ -121,7 +121,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
 
     .max-80 {
         width: 80px;
-        /* ✅ Lo fuerza como sugerencia */
+        /* âœ… Lo fuerza como sugerencia */
         max-width: 80px;
         white-space: normal;
         overflow-wrap: break-word;
@@ -146,10 +146,10 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
 
 <body>
 
-    <!-- 🔲 CONTENEDOR PRINCIPAL -->
+    <!-- ðŸ”² CONTENEDOR PRINCIPAL -->
     <div class="layout">
 
-        <!-- 🧭 SIDEBAR -->
+        <!-- ðŸ§­ SIDEBAR -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <span class="material-icons logo-icon">dashboard</span>
@@ -184,10 +184,10 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
             </div>
         </aside>
 
-        <!-- 🧱 MAIN -->
+        <!-- ðŸ§± MAIN -->
         <div class="main">
 
-            <!-- 🟪 NAVBAR -->
+            <!-- ðŸŸª NAVBAR -->
             <header class="navbar">
                 <button class="btn-icon" onclick="toggleSidebar()">
                     <span class="material-icons">menu</span>
@@ -195,54 +195,37 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                 <div class="navbar-title">Inicio</div>
             </header>
 
-            <!-- 📦 CONTENIDO -->
+            <!-- ðŸ“¦ CONTENIDO -->
             <section class="content">
 
-                <!-- Bienvenida -->
+                                <!-- Bienvenida -->
                 <div class="card">
-                    <h2>Hola 👋</h2>
-                    <p>En esta página, vamos a tener KPI.</p>
+                    <h2>Hola <?= htmlspecialchars($nombre) ?></h2>
+                    <p>En esta pagina, vas a poder visualizar el nombre de tus hijos junto con su informacion, los pedidos de saldo y de comida</p>
                 </div>
 
-                <!-- Filtros -->
-                <div class="card">
-                    <form method="GET" class="form-modern" id="filtros-form">
-                        <div class="grid-3">
-                            <!-- Filtro: Hijo -->
-                            <div class="input-group">
-                                <label for="hijo_id">Nombre del alumno</label>
-                                <div class="input-icon input-icon-user">
-                                    <select id="hijo_id" name="hijo_id">
-                                        <option value="">Todos</option>
-                                        <?php foreach ($hijos as $hijo): ?>
-                                            <option value="<?= $hijo['Id'] ?>" <?= $hijoSeleccionado == $hijo['Id'] ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars($hijo['Nombre']) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
+                <!-- Tarjetas de hijos -->
+                <div class="card-grid grid-2">
+                    <?php if (!empty($hijosDetalle)): ?>
+                        <?php foreach ($hijosDetalle as $hijo): ?>
+                            <?php
+                            $preferencias = trim($hijo['Preferencias_Alimenticias'] ?? '');
+                            $colegio = trim($hijo['Colegio'] ?? '');
+                            $curso = trim($hijo['Curso'] ?? '');
+                            ?>
+                            <div class="card">
+                                <h3><?= htmlspecialchars($hijo['Nombre']) ?></h3>
+                                <p><strong>Preferencias alimenticias:</strong> <?= $preferencias !== '' ? htmlspecialchars($preferencias) : 'Sin preferencias' ?></p>
+                                <p><strong>Nombre del colegio:</strong> <?= $colegio !== '' ? htmlspecialchars($colegio) : 'Sin colegio' ?></p>
+                                <p><strong>Curso:</strong> <?= $curso !== '' ? htmlspecialchars($curso) : 'Sin curso' ?></p>
                             </div>
-
-                            <!-- Filtro: Desde -->
-                            <div class="input-group">
-                                <label for="desde">Desde</label>
-                                <div class="input-icon input-icon-date">
-                                    <input type="date" id="desde" name="desde" value="<?= isset($desde) && $desde !== null ? htmlspecialchars($desde) : '' ?>">
-                                </div>
-                            </div>
-
-                            <!-- Filtro: Hasta -->
-                            <div class="input-group">
-                                <label for="hasta">Hasta</label>
-                                <div class="input-icon input-icon-date">
-                                    <input type="date" id="hasta" name="hasta" value="<?= isset($hasta) && $hasta !== null ? htmlspecialchars($hasta) : '' ?>"
->
-                                </div>
-                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="card">
+                            <p>No hay hijos asociados a este usuario.</p>
                         </div>
-                    </form>
+                    <?php endif; ?>
                 </div>
-
 
                 <!-- Tablas de resultados -->
                 <div class="card-grid grid-2">
@@ -254,9 +237,9 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>Acción</th>
+                                        <th>AcciÃ³n</th>
                                         <th class="max-150">Alumno</th>
-                                        <th class="max-150">Menú</th>
+                                        <th class="max-150">MenÃº</th>
                                         <th>Fecha de entrega</th>
                                         <th>Estado</th>
                                     </tr>
@@ -320,7 +303,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                                             <span class="material-icons" style="font-size: 20px; color: #5b21b6;">visibility</span>
                                                         </a>
                                                     <?php else: ?>
-                                                        <span class="text-muted">—</span>
+                                                        <span class="text-muted">â€”</span>
                                                     <?php endif; ?>
                                                 </td>
                                             </tr>
@@ -341,28 +324,6 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
             </section>
         </div>
     </div>
-
-    <!-- filtros dinamicos -->
-    <script>
-        function cargarDatosConAjax() {
-            const form = document.getElementById('filtros-form');
-            const params = new URLSearchParams(new FormData(form)).toString();
-
-            fetch('papa_dashboard.php?' + params + '&ajax=1')
-                .then(res => res.json())
-                .then(data => {
-                    if (data.error) return alert(data.error);
-                    document.querySelectorAll('table.data-table tbody')[0].innerHTML = data.comida;
-                    document.querySelectorAll('table.data-table tbody')[1].innerHTML = data.saldo;
-                })
-                .catch(err => console.error('Error AJAX:', err));
-        }
-
-        // Detectar cambios automáticamente
-        document.querySelectorAll('#filtros-form input, #filtros-form select').forEach(elem => {
-            elem.addEventListener('change', cargarDatosConAjax);
-        });
-    </script>
 
     <!-- Spinner Global -->
     <script src="../partials/spinner-global.js"></script>

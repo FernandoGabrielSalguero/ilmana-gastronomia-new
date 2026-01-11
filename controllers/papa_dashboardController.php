@@ -7,7 +7,7 @@ $hijoSeleccionado = $_GET['hijo_id'] ?? null;
 $desde = $_GET['desde'] ?? null;
 $hasta = $_GET['hasta'] ?? null;
 
-$hijos = $model->obtenerHijosPorUsuario($usuarioId);
+$hijosDetalle = $model->obtenerHijosDetallePorUsuario($usuarioId);
 $pedidosSaldo = $model->obtenerPedidosSaldo($usuarioId, $desde, $hasta);
 $pedidosComida = $model->obtenerPedidosComida($usuarioId, $hijoSeleccionado, $desde, $hasta);
 
