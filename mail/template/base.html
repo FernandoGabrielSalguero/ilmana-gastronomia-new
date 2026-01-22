@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <title>{{title}}</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+            background: #f6f7fb;
+            color: #111;
+            margin: 0;
+            padding: 24px
+        }
+
+        .card {
+            max-width: 640px;
+            margin: auto;
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #eee
+        }
+
+        h1 {
+            font-size: 18px;
+            margin: 0 0 10px;
+            color: #5b21b6
+        }
+
+        p {
+            margin: 8px 0
+        }
+
+        .muted {
+            color: #6b7280
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid #5b21b6;
+            text-decoration: none
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        {{content}}
+        <p class="muted">Este es un correo automático de SVE.</p>
+    </div>
+</body>
+
+</html>

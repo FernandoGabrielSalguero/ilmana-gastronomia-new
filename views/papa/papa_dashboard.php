@@ -166,7 +166,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
     }
 
     .modal-content {
-        background: #fff;
+        background: #f1f1f1;
         width: 100%;
         max-width: 980px;
         max-height: 90vh;
@@ -294,7 +294,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>AcciÃ³n</th>
+                                        <th>Acciones</th>
                                         <th class="max-150">Alumno</th>
                                         <th class="max-150">Manú</th>
                                         <th>Fecha de entrega</th>
