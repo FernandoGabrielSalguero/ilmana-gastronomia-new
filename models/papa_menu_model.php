@@ -116,9 +116,9 @@ class PapaMenuModel
         }
 
         $stmtHijo = $this->db->prepare("SELECT 1 FROM Usuarios_Hijos WHERE Usuario_Id = :usuarioId AND Hijo_Id = :hijoId");
-        $stmtMenu = $this->db->prepare("SELECT Id, Fecha_entrega, Precio FROM Menǧ WHERE Id = :menuId AND Estado = 'En venta' LIMIT 1");
+        $stmtMenu = $this->db->prepare("SELECT Id, Fecha_entrega, Precio FROM Menú WHERE Id = :menuId AND Estado = 'En venta' LIMIT 1");
         $stmtPref = $this->db->prepare("SELECT Preferencias_Alimenticias FROM Hijos WHERE Id = :hijoId LIMIT 1");
-        $stmtInsert = $this->db->prepare("INSERT INTO Pedidos_Comida (Fecha_entrega, Preferencias_alimenticias, Hijo_Id, Fecha_pedido, Estado, Menǧ_Id)
+        $stmtInsert = $this->db->prepare("INSERT INTO Pedidos_Comida (Fecha_entrega, Preferencias_alimenticias, Hijo_Id, Fecha_pedido, Estado, Menú_Id)
             VALUES (:fecha_entrega, :preferencias, :hijo_id, NOW(), 'Procesando', :menu_id)");
 
         $menuCache = [];
