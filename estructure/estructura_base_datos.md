@@ -47,7 +47,7 @@ Precio	decimal(10,2)	YES
 Estado	enum('En venta','Sin stock')	YES			
 Nivel_Educativo	enum('Inicial','Primaria','Secundaria','Sin Curso Asignado')	NO		Sin Curso Asignado	
 
-📄  Tabla: Pedidos_Comida
+📄 Tabla: Pedidos_Comida
 Columna	Tipo	Nulo	Clave	Default	Extra
 Id	int(11)	NO	PRI		auto_increment
 Fecha_entrega	date	YES			
