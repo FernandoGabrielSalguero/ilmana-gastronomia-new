@@ -26,7 +26,7 @@ class PapaCalendarModel
             FROM Pedidos_Comida pc
             JOIN Usuarios_Hijos uh ON pc.Hijo_Id = uh.Hijo_Id
             JOIN Hijos h ON h.Id = pc.Hijo_Id
-            JOIN Menǧ m ON m.Id = pc.Menǧ_Id
+            JOIN Menú m ON m.Id = pc.Menú_Id
             WHERE uh.Usuario_Id = :usuarioId
             AND pc.Fecha_entrega BETWEEN :desde AND :hasta
             ORDER BY pc.Fecha_entrega ASC, pc.Id ASC";
