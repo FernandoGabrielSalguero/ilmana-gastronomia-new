@@ -214,7 +214,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                     <li onclick="abrirModalVianda()">
                         <span class="material-icons" style="color: #5b21b6;">restaurant</span><span class="link-text">Viandas</span>
                     </li>
-                    <li onclick="location.href='admin_importarUsuarios.php'">
+                    <li onclick="abrirModalCalendario()">
                         <span class="material-icons" style="color: #5b21b6;">calendar_month</span><span class="link-text">Calendario</span>
                     </li>
 
@@ -428,6 +428,19 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         </div>
     </div>
 
+    <!-- Modal calendario -->
+    <div class="modal-overlay" id="calendario-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Calendario de pedidos</h3>
+                <button class="btn btn-small btn-cancelar" type="button" onclick="cerrarModalCalendario()">Cerrar</button>
+            </div>
+            <div class="modal-body" id="calendario-modal-body">
+                <p>Cargando...</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal cancelar pedido -->
     <div class="modal-overlay" id="cancelar-modal">
         <div class="modal-content">
@@ -479,6 +492,18 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
 
         function cerrarModalVianda() {
             const modal = document.getElementById('vianda-modal');
+            modal.style.display = 'none';
+        }
+
+        function abrirModalCalendario() {
+            const modal = document.getElementById('calendario-modal');
+            modal.style.display = 'flex';
+            const now = new Date();
+            cargarModalCalendario(now.getMonth() + 1, now.getFullYear());
+        }
+
+        function cerrarModalCalendario() {
+            const modal = document.getElementById('calendario-modal');
             modal.style.display = 'none';
         }
 
@@ -589,6 +614,71 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                 .catch(() => {
                     body.innerHTML = '<p>Error al cargar el formulario.</p>';
                 });
+        }
+
+        function cargarModalCalendario(mes, anio) {
+            const body = document.getElementById('calendario-modal-body');
+            if (!body) return;
+            body.innerHTML = '<p>Cargando...</p>';
+
+            const params = new URLSearchParams({ modal: '1', mes: String(mes), anio: String(anio) });
+            fetch(`papa_calendar.php?${params.toString()}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(async (res) => {
+                    if (!res.ok) {
+                        const body = await res.text();
+                        console.error('Error cargando calendario:', {
+                            status: res.status,
+                            statusText: res.statusText,
+                            body
+                        });
+                        showAlertSafe('error', 'No se pudo cargar el calendario.');
+                        throw new Error('Error cargando calendario');
+                    }
+                    return res.text();
+                })
+                .then(html => {
+                    body.innerHTML = html;
+                    inicializarModalCalendario();
+                })
+                .catch(() => {
+                    body.innerHTML = '<p>Error al cargar el calendario.</p>';
+                });
+        }
+
+        function inicializarModalCalendario() {
+            const body = document.getElementById('calendario-modal-body');
+            if (!body || body.dataset.calendarBound === '1') return;
+            body.dataset.calendarBound = '1';
+
+            body.addEventListener('click', (event) => {
+                const btn = event.target.closest('[data-cal-nav]');
+                if (!btn) return;
+                const wrapper = body.querySelector('.calendar-wrapper');
+                if (!wrapper) return;
+
+                let mes = parseInt(wrapper.dataset.calMes || '0', 10);
+                let anio = parseInt(wrapper.dataset.calAnio || '0', 10);
+                if (!mes || !anio) return;
+
+                if (btn.dataset.calNav === 'prev') {
+                    mes -= 1;
+                    if (mes < 1) {
+                        mes = 12;
+                        anio -= 1;
+                    }
+                } else {
+                    mes += 1;
+                    if (mes > 12) {
+                        mes = 1;
+                        anio += 1;
+                    }
+                }
+                cargarModalCalendario(mes, anio);
+            });
         }
 
         function recargarTablasDashboard() {
@@ -929,6 +1019,12 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         document.getElementById('vianda-modal').addEventListener('click', (event) => {
             if (event.target.id === 'vianda-modal') {
                 cerrarModalVianda();
+            }
+        });
+
+        document.getElementById('calendario-modal').addEventListener('click', (event) => {
+            if (event.target.id === 'calendario-modal') {
+                cerrarModalCalendario();
             }
         });
 
