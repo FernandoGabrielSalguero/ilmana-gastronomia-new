@@ -123,6 +123,34 @@ for ($fila = 0; $fila < 6; $fila++) {
         gap: 8px;
         flex-wrap: wrap;
     }
+
+    .calendar-icon-btn {
+        border: none;
+        background: transparent;
+        padding: 6px;
+        border-radius: 999px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .calendar-icon-btn:hover {
+        background: #e5e7eb;
+    }
+
+    .calendar-icon-btn .material-icons {
+        font-size: 20px;
+        color: #374151;
+    }
+
+    .calendar-icon-btn.is-active {
+        background: #e0e7ff;
+    }
+
+    .calendar-icon-btn.is-active .material-icons {
+        color: #3730a3;
+    }
 </style>
 
 <div class="calendar-wrapper"
@@ -131,7 +159,9 @@ for ($fila = 0; $fila < 6; $fila++) {
     data-cal-vista="<?= htmlspecialchars($vistaSeleccionada ?? 'mes') ?>"
     data-cal-fecha-base="<?= htmlspecialchars($fechaBaseStr ?? '') ?>">
     <div class="calendar-header">
-        <button class="btn btn-aceptar" type="button" data-cal-nav="prev">Anterior</button>
+        <button class="calendar-icon-btn" type="button" data-cal-nav="prev" title="Semana anterior / Mes anterior">
+            <span class="material-icons">chevron_left</span>
+        </button>
         <div class="calendar-title">
             <?php if (($vistaSeleccionada ?? 'mes') === 'semana'): ?>
                 <?php
@@ -143,10 +173,16 @@ for ($fila = 0; $fila < 6; $fila++) {
                 <?= htmlspecialchars($meses[$mesSeleccionado] ?? 'Mes') ?> <?= (int) $anioSeleccionado ?>
             <?php endif; ?>
         </div>
-        <button class="btn btn-aceptar" type="button" data-cal-nav="next">Siguiente</button>
+        <button class="calendar-icon-btn" type="button" data-cal-nav="next" title="Semana siguiente / Mes siguiente">
+            <span class="material-icons">chevron_right</span>
+        </button>
         <div class="calendar-view-toggle">
-            <button class="btn btn-small <?= ($vistaSeleccionada ?? 'mes') === 'mes' ? 'btn-aceptar' : '' ?>" type="button" data-cal-view="mes">Mes</button>
-            <button class="btn btn-small <?= ($vistaSeleccionada ?? 'mes') === 'semana' ? 'btn-aceptar' : '' ?>" type="button" data-cal-view="semana">Semana</button>
+            <button class="calendar-icon-btn <?= ($vistaSeleccionada ?? 'mes') === 'mes' ? 'is-active' : '' ?>" type="button" data-cal-view="mes" title="Vista mensual">
+                <span class="material-icons">calendar_month</span>
+            </button>
+            <button class="calendar-icon-btn <?= ($vistaSeleccionada ?? 'mes') === 'semana' ? 'is-active' : '' ?>" type="button" data-cal-view="semana" title="Vista semanal">
+                <span class="material-icons">view_week</span>
+            </button>
         </div>
     </div>
 
