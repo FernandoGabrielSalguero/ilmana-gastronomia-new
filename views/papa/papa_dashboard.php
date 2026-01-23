@@ -306,7 +306,8 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                 <div class="card" id="tutorial-intro">
                     <h2>Hola <?= htmlspecialchars($nombre) ?></h2>
                     <p>En esta pagina, vas a poder visualizar el nombre de tus hijos junto con su informacion, los pedidos de saldo y de comida</p>
-                    <button class="btn btn-aceptar btn-small" type="button" id="tutorial-start-btn">Ver tutorial</button>
+                    <br>
+                    <button class="btn btn-información btn-small" type="button" id="tutorial-start-btn">Ver tutorial</button>
                 </div>
 
                 <?php
