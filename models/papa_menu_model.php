@@ -153,8 +153,27 @@ class PapaMenuModel
             ];
         }
 
+        foreach ($items as $item) {
+            $menuData = $menuCache[$item['menuId']];
+            $total += $menuData['Precio'] !== null ? (float)$menuData['Precio'] : 0.0;
+        }
+
         try {
             $this->db->beginTransaction();
+
+            $stmtSaldoActual = $this->db->prepare("SELECT Saldo FROM Usuarios WHERE Id = :usuarioId LIMIT 1 FOR UPDATE");
+            $stmtSaldoActual->execute(['usuarioId' => $usuarioId]);
+            $saldoDisponible = (float)($stmtSaldoActual->fetchColumn() ?: 0.0);
+
+            if ($saldoDisponible <= 0 || $saldoDisponible < $total) {
+                $this->db->rollBack();
+                return [
+                    'ok' => false,
+                    'errores' => ['Saldo insuficiente para completar el pedido.'],
+                    'pedidoIds' => [],
+                    'total' => 0.0
+                ];
+            }
 
             foreach ($items as $item) {
                 $menuData = $menuCache[$item['menuId']];
@@ -172,7 +191,6 @@ class PapaMenuModel
                 ]);
 
                 $pedidoIds[] = (int)$this->db->lastInsertId();
-                $total += $menuData['Precio'] !== null ? (float)$menuData['Precio'] : 0.0;
             }
 
             $stmtSaldo = $this->db->prepare("UPDATE Usuarios

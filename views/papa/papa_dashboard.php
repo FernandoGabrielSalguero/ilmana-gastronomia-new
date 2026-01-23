@@ -676,6 +676,8 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
             const saldoActual = parseFloat(form.dataset.saldoActual || '0') || 0;
             const totalEl = document.getElementById('vianda-total');
             const saldoRestanteEl = document.getElementById('vianda-saldo-restante');
+            const submitBtn = document.getElementById('vianda-submit');
+            const warningEl = document.getElementById('vianda-saldo-warning');
 
             const formatearMonto = (valor) => {
                 const numero = Number(valor) || 0;
@@ -683,6 +685,25 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 }).format(numero);
+            };
+
+            const actualizarEstadoSubmit = (total) => {
+                const saldoInsuficiente = saldoActual <= 0 || total > saldoActual;
+                if (submitBtn) {
+                    submitBtn.disabled = saldoInsuficiente;
+                    submitBtn.classList.toggle('btn-disabled', saldoInsuficiente);
+                }
+                if (warningEl) {
+                    if (saldoInsuficiente) {
+                        warningEl.textContent = saldoActual <= 0
+                            ? 'No tienes saldo disponible para realizar pedidos.'
+                            : 'El total del pedido supera el saldo disponible.';
+                        warningEl.style.display = 'block';
+                    } else {
+                        warningEl.textContent = '';
+                        warningEl.style.display = 'none';
+                    }
+                }
             };
 
             const recalcularTotales = () => {
@@ -701,6 +722,8 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                 if (saldoRestanteEl) {
                     saldoRestanteEl.textContent = formatearMonto(saldoActual - total);
                 }
+                actualizarEstadoSubmit(total);
+                return total;
             };
 
             const showAlert = (type, message) => {
@@ -727,6 +750,13 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
 
             form.addEventListener('submit', (event) => {
                 event.preventDefault();
+                const total = recalcularTotales();
+                if (saldoActual <= 0 || total > saldoActual) {
+                    showAlert('warning', saldoActual <= 0
+                        ? 'No tienes saldo disponible para realizar pedidos.'
+                        : 'El total del pedido supera el saldo disponible.');
+                    return;
+                }
                 const formData = new FormData(form);
                 formData.append('ajax', '1');
 

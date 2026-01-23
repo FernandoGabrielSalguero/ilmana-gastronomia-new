@@ -63,6 +63,20 @@ if (isset($fechasMap['sin_fecha'])) {
         display: flex;
         justify-content: flex-end;
     }
+
+    .vianda-actions .btn-disabled {
+        background-color: #cbd5e1;
+        color: #64748b;
+        cursor: not-allowed;
+        opacity: 0.9;
+    }
+
+    .vianda-warning {
+        color: #dc2626;
+        font-weight: 600;
+        margin-top: 8px;
+        display: none;
+    }
 </style>
 
 <div>
@@ -143,6 +157,7 @@ if (isset($fechasMap['sin_fecha'])) {
             <div class="vianda-actions">
                 <button class="btn btn-aceptar" type="submit" id="vianda-submit">Guardar Pedido</button>
             </div>
+            <div id="vianda-saldo-warning" class="vianda-warning"></div>
         </form>
     <?php endif; ?>
 </div>
