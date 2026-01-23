@@ -4,7 +4,7 @@
     let currentIndex = 0;
     let active = false;
 
-    let steps = [];
+    let steps = []; 
     const mobileBreakpoint = 768;
 
     const getSpotlight = () => document.getElementById(spotlightId);
