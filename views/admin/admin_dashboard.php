@@ -28,9 +28,6 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
     <!-- Tablas con saltos de pagina prolijos (autoTable) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
-    <!-- Graficos (Chart.js) -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
     <style>
         .kpi-group-card {
             padding: 22px;
@@ -57,7 +54,7 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
             position: absolute;
             right: 0;
             top: 38px;
-            min-width: 170px;
+            min-width: 260px;
             background: #ffffff;
             border: 1px solid #e5e7eb;
             border-radius: 12px;
@@ -83,6 +80,20 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
 
         .kpi-menu-panel button:hover {
             background: #f8fafc;
+        }
+
+        .kpi-menu-panel .form-modern {
+            padding: 10px 14px 4px;
+        }
+
+        .kpi-menu-panel .input-group {
+            margin-bottom: 12px;
+        }
+
+        .kpi-menu-panel .form-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
         }
 
         .kpi-grid {
@@ -207,61 +218,6 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                     <p>En esta pagina, vamos a tener KPI.</p>
                 </div>
 
-                <div class="card">
-                    <form class="form-modern" method="get">
-                        <div class="input-group">
-                            <label>Colegio</label>
-                            <div class="input-icon">
-                                <span class="material-icons">school</span>
-                                <select name="colegio">
-                                    <option value="">Todos</option>
-                                    <?php foreach ($colegios as $colegio): ?>
-                                        <option value="<?= (int) $colegio['Id'] ?>" <?= $colegioId === (int) $colegio['Id'] ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($colegio['Nombre'] ?? '') ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="input-group">
-                            <label>Curso</label>
-                            <div class="input-icon">
-                                <span class="material-icons">class</span>
-                                <select name="curso">
-                                    <option value="">Todos</option>
-                                    <?php foreach ($cursos as $curso): ?>
-                                        <option value="<?= (int) $curso['Id'] ?>" <?= $cursoId === (int) $curso['Id'] ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($curso['Nombre'] ?? '') ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="input-group">
-                            <label>Fecha desde</label>
-                            <div class="input-icon">
-                                <span class="material-icons">event</span>
-                                <input type="date" name="fecha_desde" value="<?= htmlspecialchars($fechaDesde) ?>">
-                            </div>
-                        </div>
-
-                        <div class="input-group">
-                            <label>Fecha hasta</label>
-                            <div class="input-icon">
-                                <span class="material-icons">event</span>
-                                <input type="date" name="fecha_hasta" value="<?= htmlspecialchars($fechaHasta) ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-buttons">
-                            <button class="btn btn-aceptar" type="submit">Filtrar</button>
-                            <a class="btn btn-cancelar" href="admin_dashboard.php">Limpiar</a>
-                        </div>
-                    </form>
-                </div>
-
                 <div class="card kpi-group-card">
                     <div class="kpi-group-header">
                         <h3 class="kpi-group-title">Resumen general</h3>
@@ -270,8 +226,58 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                                 <span class="material-icons">more_horiz</span>
                             </button>
                             <div class="kpi-menu-panel" role="menu">
-                                <button type="button" role="menuitem">Texto 1</button>
-                                <button type="button" role="menuitem">Texto 2</button>
+                                <form class="form-modern" id="kpi-filters-form">
+                                    <div class="input-group">
+                                        <label>Colegio</label>
+                                        <div class="input-icon">
+                                            <span class="material-icons">school</span>
+                                            <select name="colegio" id="kpi-colegio">
+                                                <option value="">Todos</option>
+                                                <?php foreach ($colegios as $colegio): ?>
+                                                    <option value="<?= (int) $colegio['Id'] ?>" <?= $colegioId === (int) $colegio['Id'] ? 'selected' : '' ?>>
+                                                        <?= htmlspecialchars($colegio['Nombre'] ?? '') ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="input-group">
+                                        <label>Curso</label>
+                                        <div class="input-icon">
+                                            <span class="material-icons">class</span>
+                                            <select name="curso" id="kpi-curso">
+                                                <option value="">Todos</option>
+                                                <?php foreach ($cursos as $curso): ?>
+                                                    <option value="<?= (int) $curso['Id'] ?>" <?= $cursoId === (int) $curso['Id'] ? 'selected' : '' ?>>
+                                                        <?= htmlspecialchars($curso['Nombre'] ?? '') ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="input-group">
+                                        <label>Fecha desde</label>
+                                        <div class="input-icon">
+                                            <span class="material-icons">event</span>
+                                            <input type="date" name="fecha_desde" value="<?= htmlspecialchars($fechaDesde) ?>">
+                                        </div>
+                                    </div>
+
+                                    <div class="input-group">
+                                        <label>Fecha hasta</label>
+                                        <div class="input-icon">
+                                            <span class="material-icons">event</span>
+                                            <input type="date" name="fecha_hasta" value="<?= htmlspecialchars($fechaHasta) ?>">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-buttons">
+                                        <button class="btn btn-aceptar" type="submit">Aplicar</button>
+                                        <button class="btn btn-cancelar" type="button" id="kpi-clear">Limpiar</button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -283,7 +289,7 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                             </div>
                             <div>
                                 <div class="kpi-label">Saldo aprobado</div>
-                                <div class="kpi-value">$<?= number_format($totalSaldoAprobado, 2, ',', '.') ?></div>
+                                <div class="kpi-value" data-kpi="totalSaldoAprobado" data-type="currency">$<?= number_format($totalSaldoAprobado, 2, ',', '.') ?></div>
                             </div>
                         </div>
 
@@ -293,7 +299,7 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                             </div>
                             <div>
                                 <div class="kpi-label">Saldo pendiente para aprobar</div>
-                                <div class="kpi-value">$<?= number_format($saldoPendiente, 2, ',', '.') ?></div>
+                                <div class="kpi-value" data-kpi="saldoPendiente" data-type="currency">$<?= number_format($saldoPendiente, 2, ',', '.') ?></div>
                             </div>
                         </div>
 
@@ -303,7 +309,7 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                             </div>
                             <div>
                                 <div class="kpi-label">Pedidos de saldo</div>
-                                <div class="kpi-value"><?= number_format($totalPedidosSaldo, 0, ',', '.') ?></div>
+                                <div class="kpi-value" data-kpi="totalPedidosSaldo" data-type="count"><?= number_format($totalPedidosSaldo, 0, ',', '.') ?></div>
                             </div>
                         </div>
 
@@ -313,7 +319,7 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                             </div>
                             <div>
                                 <div class="kpi-label">Pedidos de comida</div>
-                                <div class="kpi-value"><?= number_format($totalPedidosComida, 0, ',', '.') ?></div>
+                                <div class="kpi-value" data-kpi="totalPedidosComida" data-type="count"><?= number_format($totalPedidosComida, 0, ',', '.') ?></div>
                             </div>
                         </div>
 
@@ -323,7 +329,7 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                             </div>
                             <div>
                                 <div class="kpi-label">Usuarios rol "papas"</div>
-                                <div class="kpi-value"><?= number_format($totalPapas, 0, ',', '.') ?></div>
+                                <div class="kpi-value" data-kpi="totalPapas" data-type="count"><?= number_format($totalPapas, 0, ',', '.') ?></div>
                             </div>
                         </div>
 
@@ -333,15 +339,10 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                             </div>
                             <div>
                                 <div class="kpi-label">Hijos registrados</div>
-                                <div class="kpi-value"><?= number_format($totalHijos, 0, ',', '.') ?></div>
+                                <div class="kpi-value" data-kpi="totalHijos" data-type="count"><?= number_format($totalHijos, 0, ',', '.') ?></div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="card">
-                    <h3>Resumen de KPI</h3>
-                    <canvas id="kpi-chart" height="110"></canvas>
                 </div>
 
             </section>
@@ -355,54 +356,12 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
         console.log(<?php echo json_encode($_SESSION); ?>);
     </script>
     <script>
-        const kpiChartEl = document.getElementById("kpi-chart");
-        if (kpiChartEl) {
-            const kpiData = {
-                labels: [
-                    "Saldo aprobado",
-                    "Saldo pendiente",
-                    "Pedidos de saldo",
-                    "Pedidos de comida",
-                    "Papas",
-                    "Hijos"
-                ],
-                datasets: [{
-                    label: "Totales",
-                    data: [
-                        <?= json_encode(round($totalSaldoAprobado, 2)) ?>,
-                        <?= json_encode(round($saldoPendiente, 2)) ?>,
-                        <?= (int) $totalPedidosSaldo ?>,
-                        <?= (int) $totalPedidosComida ?>,
-                        <?= (int) $totalPapas ?>,
-                        <?= (int) $totalHijos ?>
-                    ],
-                    backgroundColor: ["#16a34a", "#f59e0b", "#64748b", "#0f766e", "#6366f1", "#334155"],
-                    borderRadius: 6
-                }]
-            };
-
-            new Chart(kpiChartEl, {
-                type: "bar",
-                data: kpiData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { precision: 0 }
-                        }
-                    }
-                }
-            });
-        }
-    </script>
-    <script>
         const kpiMenuToggle = document.querySelector(".kpi-menu-toggle");
         const kpiMenuPanel = document.querySelector(".kpi-menu-panel");
+        const kpiFiltersForm = document.getElementById("kpi-filters-form");
+        const kpiClearBtn = document.getElementById("kpi-clear");
+        const kpiColegioSelect = document.getElementById("kpi-colegio");
+        const kpiCursoSelect = document.getElementById("kpi-curso");
 
         if (kpiMenuToggle && kpiMenuPanel) {
             kpiMenuToggle.addEventListener("click", (event) => {
@@ -411,11 +370,107 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                 kpiMenuToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
             });
 
+            kpiMenuPanel.addEventListener("click", (event) => {
+                event.stopPropagation();
+            });
+
             document.addEventListener("click", () => {
                 if (kpiMenuPanel.classList.contains("is-open")) {
                     kpiMenuPanel.classList.remove("is-open");
                     kpiMenuToggle.setAttribute("aria-expanded", "false");
                 }
+            });
+        }
+    </script>
+    <script>
+        const kpiFields = document.querySelectorAll("[data-kpi]");
+
+        const formatValue = (value, type) => {
+            if (type === "currency") {
+                return `$${value.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
+            return value.toLocaleString("es-AR");
+        };
+
+        const animateValue = (element, start, end, type) => {
+            const duration = 700;
+            const startTime = performance.now();
+
+            const tick = (now) => {
+                const progress = Math.min((now - startTime) / duration, 1);
+                const current = start + (end - start) * progress;
+                const displayValue = type === "currency" ? Number(current.toFixed(2)) : Math.round(current);
+                element.textContent = formatValue(displayValue, type);
+                if (progress < 1) {
+                    requestAnimationFrame(tick);
+                }
+            };
+
+            requestAnimationFrame(tick);
+        };
+
+        const updateKpiCards = (data) => {
+            kpiFields.forEach((field) => {
+                const key = field.dataset.kpi;
+                if (!(key in data)) {
+                    return;
+                }
+                const type = field.dataset.type || "count";
+                const currentText = field.textContent.replace(/[^0-9.,-]/g, "");
+                const currentValue = currentText ? Number(currentText.replace(/\./g, "").replace(",", ".")) : 0;
+                const nextValue = Number(data[key]) || 0;
+                animateValue(field, currentValue, nextValue, type);
+            });
+        };
+
+        const renderCursos = (cursos, selectedId) => {
+            if (!kpiCursoSelect) {
+                return;
+            }
+            const selectedValue = selectedId ? String(selectedId) : "";
+            const options = [`<option value="">Todos</option>`];
+            cursos.forEach((curso) => {
+                const value = String(curso.Id);
+                const isSelected = value === selectedValue ? "selected" : "";
+                options.push(`<option value="${value}" ${isSelected}>${curso.Nombre ?? ""}</option>`);
+            });
+            kpiCursoSelect.innerHTML = options.join("");
+        };
+
+        const fetchKpiData = async (formData) => {
+            const params = new URLSearchParams(formData);
+            params.set("ajax", "1");
+            const response = await fetch(`admin_dashboard.php?${params.toString()}`, {
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            });
+            if (!response.ok) {
+                return;
+            }
+            const data = await response.json();
+            updateKpiCards(data);
+            if (Array.isArray(data.cursos)) {
+                renderCursos(data.cursos, data.cursoId);
+            }
+        };
+
+        if (kpiFiltersForm) {
+            kpiFiltersForm.addEventListener("submit", (event) => {
+                event.preventDefault();
+                fetchKpiData(new FormData(kpiFiltersForm));
+            });
+        }
+
+        if (kpiClearBtn && kpiFiltersForm) {
+            kpiClearBtn.addEventListener("click", () => {
+                kpiFiltersForm.reset();
+                fetchKpiData(new FormData(kpiFiltersForm));
+            });
+        }
+
+        if (kpiColegioSelect && kpiFiltersForm) {
+            kpiColegioSelect.addEventListener("change", () => {
+                kpiCursoSelect.value = "";
+                fetchKpiData(new FormData(kpiFiltersForm));
             });
         }
     </script>

@@ -51,3 +51,18 @@ $saldoPendiente = $model->obtenerSaldoPendiente($colegioId, $cursoId, $fechaDesd
 $totalSaldoAprobado = $model->obtenerTotalSaldoAprobado($colegioId, $cursoId, $fechaDesde, $fechaHasta);
 $totalPapas = $model->obtenerTotalPapas($colegioId, $cursoId);
 $totalHijos = $model->obtenerTotalHijos($colegioId, $cursoId);
+
+if (isset($_GET['ajax'])) {
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'totalSaldoAprobado' => round($totalSaldoAprobado, 2),
+        'saldoPendiente' => round($saldoPendiente, 2),
+        'totalPedidosSaldo' => $totalPedidosSaldo,
+        'totalPedidosComida' => $totalPedidosComida,
+        'totalPapas' => $totalPapas,
+        'totalHijos' => $totalHijos,
+        'cursos' => $cursos,
+        'cursoId' => $cursoId,
+    ]);
+    exit;
+}
