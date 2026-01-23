@@ -301,7 +301,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                         <th>Estado</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="pedidos-comida-body">
                                     <?php if (!empty($pedidosComida)): ?>
                                         <?php foreach ($pedidosComida as $pedido): ?>
                                             <tr>
@@ -342,7 +342,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                         <th>Comprobante</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="pedidos-saldo-body">
                                     <?php if (!empty($pedidosSaldo)): ?>
                                         <?php foreach ($pedidosSaldo as $saldo): ?>
                                             <tr>
@@ -529,6 +529,41 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                 });
         }
 
+        function recargarTablasDashboard() {
+            const comidaBody = document.getElementById('pedidos-comida-body');
+            const saldoBody = document.getElementById('pedidos-saldo-body');
+            if (!comidaBody && !saldoBody) return;
+
+            fetch('papa_dashboard.php?ajax=1', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(async (res) => {
+                    if (!res.ok) {
+                        const body = await res.text();
+                        console.error('Error actualizando tablas:', {
+                            status: res.status,
+                            statusText: res.statusText,
+                            body
+                        });
+                        throw new Error('Error actualizando tablas');
+                    }
+                    return res.json();
+                })
+                .then((data) => {
+                    if (comidaBody && typeof data.comida === 'string') {
+                        comidaBody.innerHTML = data.comida;
+                    }
+                    if (saldoBody && typeof data.saldo === 'string') {
+                        saldoBody.innerHTML = data.saldo;
+                    }
+                })
+                .catch((err) => {
+                    console.error('Error de conexion actualizando tablas:', err);
+                });
+        }
+
         function cargarModalVianda() {
             const body = document.getElementById('vianda-modal-body');
             body.innerHTML = '<p>Cargando...</p>';
@@ -654,6 +689,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                             }
                             form.reset();
                             recalcularTotales();
+                            recargarTablasDashboard();
                             return;
                         }
                         const errores = Array.isArray(data.errores) && data.errores.length
@@ -701,6 +737,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                 actualizarSaldoPendiente(data.saldoPendiente);
                                 form.reset();
                                 cerrarModalSaldo();
+                                recargarTablasDashboard();
                             } else if (data.errores && data.errores.length) {
                                 showAlertSafe('warning', data.errores.join(' | '));
                             }

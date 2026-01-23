@@ -66,7 +66,7 @@ foreach ($pedidosComida as $pedido): ?>
     $tablaSaldo = ob_get_clean();
 
     echo json_encode([
-        'comida' => $tablaComida ?: '<tr><td colspan="4">No hay pedidos de comida.</td></tr>',
+        'comida' => $tablaComida ?: '<tr><td colspan="6">No hay pedidos de comida.</td></tr>',
         'saldo' => $tablaSaldo ?: '<tr><td colspan="6">No hay pedidos de saldo.</td></tr>'
     ]);
     exit;
