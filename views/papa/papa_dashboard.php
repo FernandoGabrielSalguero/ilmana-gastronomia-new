@@ -627,7 +627,8 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
 
                 fetch('papa_menu_view.php', {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    credentials: 'same-origin'
                 })
                     .then(async (res) => {
                         if (!res.ok) {
