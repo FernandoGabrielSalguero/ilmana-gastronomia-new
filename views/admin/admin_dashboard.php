@@ -31,6 +31,8 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
     <style>
         .kpi-group-card {
             padding: 22px;
+            overflow: visible;
+            position: relative;
         }
 
         .kpi-group-header {
@@ -53,7 +55,7 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
         .kpi-menu-panel {
             position: absolute;
             right: 0;
-            top: 38px;
+            top: calc(100% + 8px);
             min-width: 260px;
             background: #ffffff;
             border: 1px solid #e5e7eb;
@@ -61,7 +63,7 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
             box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
             padding: 8px 0;
             display: none;
-            z-index: 10;
+            z-index: 1000;
         }
 
         .kpi-menu-panel.is-open {
@@ -453,26 +455,40 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
             }
         };
 
+        const scheduleFetch = () => {
+            if (!kpiFiltersForm) {
+                return;
+            }
+            if (window.kpiFetchTimer) {
+                clearTimeout(window.kpiFetchTimer);
+            }
+            window.kpiFetchTimer = setTimeout(() => {
+                fetchKpiData(new FormData(kpiFiltersForm));
+            }, 150);
+        };
+
         if (kpiFiltersForm) {
             kpiFiltersForm.addEventListener("submit", (event) => {
                 event.preventDefault();
-                fetchKpiData(new FormData(kpiFiltersForm));
+                scheduleFetch();
+            });
+
+            kpiFiltersForm.addEventListener("change", (event) => {
+                if (event.target === kpiColegioSelect && kpiCursoSelect) {
+                    kpiCursoSelect.value = "";
+                }
+                scheduleFetch();
             });
         }
 
         if (kpiClearBtn && kpiFiltersForm) {
             kpiClearBtn.addEventListener("click", () => {
                 kpiFiltersForm.reset();
-                fetchKpiData(new FormData(kpiFiltersForm));
+                scheduleFetch();
             });
         }
 
-        if (kpiColegioSelect && kpiFiltersForm) {
-            kpiColegioSelect.addEventListener("change", () => {
-                kpiCursoSelect.value = "";
-                fetchKpiData(new FormData(kpiFiltersForm));
-            });
-        }
+        
     </script>
 </body>
 
