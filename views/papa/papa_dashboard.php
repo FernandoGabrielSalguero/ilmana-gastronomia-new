@@ -154,6 +154,13 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         white-space: normal;
     }
 
+    .btn-disabled {
+        background-color: #cbd5e1;
+        color: #64748b;
+        cursor: not-allowed;
+        opacity: 0.9;
+    }
+
     .modal-overlay {
         position: fixed;
         inset: 0;
@@ -306,7 +313,13 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                         <?php foreach ($pedidosComida as $pedido): ?>
                                             <tr>
                                                 <td><?= $pedido['Id'] ?></td>
-                                                <td><button class="btn btn-small">Cancelar</button></td>
+                                                <td>
+                                                    <?php if (!empty($pedido['Puede_cancelar'])): ?>
+                                                        <button class="btn btn-aceptar btn-small" type="button" data-cancelar-pedido data-pedido-id="<?= (int) $pedido['Id'] ?>">Cancelar</button>
+                                                    <?php else: ?>
+                                                        <button class="btn btn-small btn-disabled" type="button" disabled>Cancelar</button>
+                                                    <?php endif; ?>
+                                                </td>
                                                 <td class="max-150 breakable"><?= htmlspecialchars($pedido['Alumno']) ?></td>
                                                 <td class="max-150 breakable"><?= htmlspecialchars($pedido['Menu']) ?></td>
                                                 <td><?= $pedido['Fecha_entrega'] ?></td>
@@ -415,6 +428,26 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         </div>
     </div>
 
+    <!-- Modal cancelar pedido -->
+    <div class="modal-overlay" id="cancelar-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Cancelar pedido</h3>
+                <button class="btn btn-small btn-cancelar" type="button" onclick="cerrarModalCancelacion()">Cerrar</button>
+            </div>
+            <div class="modal-body">
+                <form id="cancelar-form">
+                    <input type="hidden" id="cancelar-pedido-id" name="pedido_id" value="">
+                    <div class="input-group">
+                        <label for="motivo-cancelacion">Motivo de cancelacion</label>
+                        <textarea id="motivo-cancelacion" name="motivo" rows="4" required></textarea>
+                    </div>
+                    <button class="btn btn-aceptar" type="submit">Confirmar cancelacion</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Spinner Global -->
     <script src="../partials/spinner-global.js"></script>
 
@@ -443,6 +476,24 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
 
         function cerrarModalVianda() {
             const modal = document.getElementById('vianda-modal');
+            modal.style.display = 'none';
+        }
+
+        function abrirModalCancelacion(pedidoId) {
+            const modal = document.getElementById('cancelar-modal');
+            const inputId = document.getElementById('cancelar-pedido-id');
+            const motivo = document.getElementById('motivo-cancelacion');
+            if (inputId) {
+                inputId.value = pedidoId || '';
+            }
+            if (motivo) {
+                motivo.value = '';
+            }
+            modal.style.display = 'flex';
+        }
+
+        function cerrarModalCancelacion() {
+            const modal = document.getElementById('cancelar-modal');
             modal.style.display = 'none';
         }
 
@@ -765,6 +816,63 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
             }
         }
 
+        document.addEventListener('click', (event) => {
+            const btn = event.target.closest('[data-cancelar-pedido]');
+            if (!btn) return;
+            const pedidoId = btn.getAttribute('data-pedido-id');
+            abrirModalCancelacion(pedidoId);
+        });
+
+        const cancelarForm = document.getElementById('cancelar-form');
+        if (cancelarForm) {
+            cancelarForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const pedidoId = document.getElementById('cancelar-pedido-id')?.value || '';
+                const motivo = document.getElementById('motivo-cancelacion')?.value.trim() || '';
+                if (!pedidoId || !motivo) {
+                    showAlertSafe('warning', 'Debes indicar un motivo de cancelacion.');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('ajax', '1');
+                formData.append('accion', 'cancelar_pedido');
+                formData.append('pedido_id', pedidoId);
+                formData.append('motivo', motivo);
+
+                fetch('papa_dashboard.php', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin'
+                })
+                    .then(async (res) => {
+                        if (!res.ok) {
+                            const body = await res.text();
+                            console.error('Error cancelando pedido:', {
+                                status: res.status,
+                                statusText: res.statusText,
+                                body
+                            });
+                            throw new Error('Error cancelando pedido');
+                        }
+                        return res.json();
+                    })
+                    .then((data) => {
+                        if (data.ok) {
+                            showAlertSafe('success', 'Pedido cancelado correctamente.');
+                            cerrarModalCancelacion();
+                            recargarTablasDashboard();
+                            return;
+                        }
+                        showAlertSafe('error', data.error || 'No se pudo cancelar el pedido.');
+                    })
+                    .catch((err) => {
+                        console.error('Error de conexion cancelando pedido:', err);
+                        showAlertSafe('error', 'Error de conexion. Intenta nuevamente.');
+                    });
+            });
+        }
+
         document.getElementById('saldo-modal').addEventListener('click', (event) => {
             if (event.target.id === 'saldo-modal') {
                 cerrarModalSaldo();
@@ -774,6 +882,12 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         document.getElementById('vianda-modal').addEventListener('click', (event) => {
             if (event.target.id === 'vianda-modal') {
                 cerrarModalVianda();
+            }
+        });
+
+        document.getElementById('cancelar-modal').addEventListener('click', (event) => {
+            if (event.target.id === 'cancelar-modal') {
+                cerrarModalCancelacion();
             }
         });
 

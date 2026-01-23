@@ -69,7 +69,14 @@ class PapaDashboardModel
                 h.Nombre AS Alumno,
                 m.Nombre AS Menu,
                 pc.Fecha_entrega,
-                pc.Estado
+                pc.Estado,
+                m.Fecha_hora_cancelacion,
+                CASE
+                    WHEN pc.Estado = 'Procesando'
+                        AND (m.Fecha_hora_cancelacion IS NULL OR m.Fecha_hora_cancelacion >= NOW())
+                    THEN 1
+                    ELSE 0
+                END AS Puede_cancelar
             FROM Pedidos_Comida pc
             JOIN Usuarios_Hijos uh ON pc.Hijo_Id = uh.Hijo_Id
             JOIN Hijos h ON h.Id = pc.Hijo_Id
@@ -106,5 +113,53 @@ class PapaDashboardModel
         $stmt->execute(['usuarioId' => $usuarioId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ? (float)$row['TotalPendiente'] : 0.0;
+    }
+
+    public function cancelarPedidoComida($usuarioId, $pedidoId, $motivo)
+    {
+        if (!$usuarioId || !$pedidoId) {
+            return ['ok' => false, 'error' => 'Datos invalidos.'];
+        }
+
+        $sql = "SELECT pc.Id, pc.Estado, m.Fecha_hora_cancelacion
+            FROM Pedidos_Comida pc
+            JOIN Usuarios_Hijos uh ON pc.Hijo_Id = uh.Hijo_Id
+            JOIN Menǧ m ON m.Id = pc.Menǧ_Id
+            WHERE pc.Id = :pedidoId
+            AND uh.Usuario_Id = :usuarioId
+            LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'pedidoId' => $pedidoId,
+            'usuarioId' => $usuarioId
+        ]);
+        $pedido = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$pedido) {
+            return ['ok' => false, 'error' => 'Pedido no encontrado.'];
+        }
+
+        if ($pedido['Estado'] !== 'Procesando') {
+            return ['ok' => false, 'error' => 'El pedido ya no puede cancelarse.'];
+        }
+
+        if (!empty($pedido['Fecha_hora_cancelacion'])) {
+            $stmt = $this->db->prepare("SELECT CASE WHEN :limite >= NOW() THEN 1 ELSE 0 END");
+            $stmt->execute(['limite' => $pedido['Fecha_hora_cancelacion']]);
+            $puede = (int) $stmt->fetchColumn();
+            if ($puede !== 1) {
+                return ['ok' => false, 'error' => 'Se vencio el plazo de cancelacion.'];
+            }
+        }
+
+        $stmt = $this->db->prepare("UPDATE Pedidos_Comida
+            SET Estado = 'Cancelado', motivo_cancelacion = :motivo
+            WHERE Id = :pedidoId");
+        $stmt->execute([
+            'motivo' => $motivo,
+            'pedidoId' => $pedidoId
+        ]);
+
+        return ['ok' => true];
     }
 }

@@ -7,6 +7,30 @@ $hijoSeleccionado = $_GET['hijo_id'] ?? null;
 $desde = $_GET['desde'] ?? null;
 $hasta = $_GET['hasta'] ?? null;
 
+$esAjax = isset($_POST['ajax']) || (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $esAjax && ($_POST['accion'] ?? '') === 'cancelar_pedido') {
+    header('Content-Type: application/json');
+
+    $pedidoId = isset($_POST['pedido_id']) ? (int) $_POST['pedido_id'] : 0;
+    $motivo = trim((string) ($_POST['motivo'] ?? ''));
+
+    if ($pedidoId <= 0 || $motivo === '') {
+        echo json_encode([
+            'ok' => false,
+            'error' => 'Debes indicar un motivo de cancelacion.'
+        ]);
+        exit;
+    }
+
+    $resultado = $model->cancelarPedidoComida($usuarioId, $pedidoId, $motivo);
+    echo json_encode([
+        'ok' => $resultado['ok'],
+        'error' => $resultado['error'] ?? ''
+    ]);
+    exit;
+}
+
 $hijosDetalle = $model->obtenerHijosDetallePorUsuario($usuarioId);
 $pedidosSaldo = $model->obtenerPedidosSaldo($usuarioId, $desde, $hasta);
 $pedidosComida = $model->obtenerPedidosComida($usuarioId, $hijoSeleccionado, $desde, $hasta);
@@ -21,7 +45,11 @@ foreach ($pedidosComida as $pedido): ?>
     <tr>
         <td><?= $pedido['Id'] ?></td>
         <td>
-            <button class="btn btn-editar btn-xs">🔍</button>
+            <?php if (!empty($pedido['Puede_cancelar'])): ?>
+                <button class="btn btn-aceptar btn-small" type="button" data-cancelar-pedido data-pedido-id="<?= (int) $pedido['Id'] ?>">Cancelar</button>
+            <?php else: ?>
+                <button class="btn btn-small btn-disabled" type="button" disabled>Cancelar</button>
+            <?php endif; ?>
         </td>
         <td><?= htmlspecialchars($pedido['Alumno']) ?></td>
         <td><?= htmlspecialchars($pedido['Menu']) ?></td>

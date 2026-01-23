@@ -43,6 +43,7 @@ class PapaMenuModel
                 FROM Menú
                 WHERE Estado = 'En venta'
                 AND Nivel_Educativo = :nivel
+                AND (Fecha_hora_compra IS NULL OR Fecha_hora_compra >= NOW())
                 ORDER BY Fecha_entrega ASC, Nombre ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['nivel' => $nivelEducativo]);
@@ -60,6 +61,7 @@ class PapaMenuModel
                 FROM Menú
                 WHERE Estado = 'En venta'
                 AND Nivel_Educativo IN ($placeholders)
+                AND (Fecha_hora_compra IS NULL OR Fecha_hora_compra >= NOW())
                 ORDER BY Fecha_entrega ASC, Nombre ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute(array_values($niveles));
@@ -116,7 +118,7 @@ class PapaMenuModel
         }
 
         $stmtHijo = $this->db->prepare("SELECT 1 FROM Usuarios_Hijos WHERE Usuario_Id = :usuarioId AND Hijo_Id = :hijoId");
-        $stmtMenu = $this->db->prepare("SELECT Id, Fecha_entrega, Precio FROM Menú WHERE Id = :menuId AND Estado = 'En venta' LIMIT 1");
+        $stmtMenu = $this->db->prepare("SELECT Id, Fecha_entrega, Precio FROM Menú WHERE Id = :menuId AND Estado = 'En venta' AND (Fecha_hora_compra IS NULL OR Fecha_hora_compra >= NOW()) LIMIT 1");
         $stmtPref = $this->db->prepare("SELECT Preferencias_Alimenticias FROM Hijos WHERE Id = :hijoId LIMIT 1");
         $stmtInsert = $this->db->prepare("INSERT INTO Pedidos_Comida (Fecha_entrega, Preferencias_alimenticias, Hijo_Id, Fecha_pedido, Estado, Menú_Id)
             VALUES (:fecha_entrega, :preferencias, :hijo_id, NOW(), 'Procesando', :menu_id)");
