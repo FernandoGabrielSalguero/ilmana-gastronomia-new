@@ -444,6 +444,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                             <textarea id="motivo-cancelacion" name="motivo" rows="4" required></textarea>
                         </div>
                     </div>
+                    <br>
                     <button class="btn btn-aceptar" type="submit">Confirmar cancelacion</button>
                 </form>
             </div>
