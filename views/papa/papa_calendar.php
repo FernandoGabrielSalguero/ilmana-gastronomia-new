@@ -121,11 +121,11 @@ for ($fila = 0; $fila < 6; $fila++) {
 
 <div class="calendar-wrapper" data-cal-mes="<?= (int) $mesSeleccionado ?>" data-cal-anio="<?= (int) $anioSeleccionado ?>">
     <div class="calendar-header">
-        <button class="btn btn-small" type="button" data-cal-nav="prev">Mes anterior</button>
+        <button class="btn btn-aceptar" type="button" data-cal-nav="prev">Mes anterior</button>
         <div class="calendar-title">
             <?= htmlspecialchars($meses[$mesSeleccionado] ?? 'Mes') ?> <?= (int) $anioSeleccionado ?>
         </div>
-        <button class="btn btn-small" type="button" data-cal-nav="next">Mes siguiente</button>
+        <button class="btn btn-aceptar" type="button" data-cal-nav="next">Mes siguiente</button>
     </div>
 
     <table class="calendar-grid">
