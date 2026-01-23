@@ -115,6 +115,15 @@ class PapaDashboardModel
         return $row ? (float)$row['TotalPendiente'] : 0.0;
     }
 
+    public function obtenerSaldoUsuario($usuarioId)
+    {
+        $sql = "SELECT Saldo FROM Usuarios WHERE Id = :usuarioId LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['usuarioId' => $usuarioId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? (float)$row['Saldo'] : 0.0;
+    }
+
     public function cancelarPedidoComida($usuarioId, $pedidoId, $motivo)
     {
         if (!$usuarioId || !$pedidoId) {
@@ -122,7 +131,7 @@ class PapaDashboardModel
         }
 
         try {
-            $sql = "SELECT pc.Id, pc.Estado, m.Fecha_hora_cancelacion
+            $sql = "SELECT pc.Id, pc.Estado, m.Fecha_hora_cancelacion, m.Precio
                 FROM Pedidos_Comida pc
                 JOIN Usuarios_Hijos uh ON pc.Hijo_Id = uh.Hijo_Id
                 JOIN Menú m ON m.Id = pc.Menú_Id
@@ -153,6 +162,10 @@ class PapaDashboardModel
                 }
             }
 
+            $reintegro = $pedido["Precio"] !== null ? (float)$pedido["Precio"] : 0.0;
+
+            $this->db->beginTransaction();
+
             $stmt = $this->db->prepare("UPDATE Pedidos_Comida
                 SET Estado = 'Cancelado', motivo_cancelacion = :motivo
                 WHERE Id = :pedidoId");
@@ -161,8 +174,21 @@ class PapaDashboardModel
                 "pedidoId" => $pedidoId
             ]);
 
+            $stmt = $this->db->prepare("UPDATE Usuarios
+                SET Saldo = Saldo + :reintegro
+                WHERE Id = :usuarioId");
+            $stmt->execute([
+                "reintegro" => $reintegro,
+                "usuarioId" => $usuarioId
+            ]);
+
+            $this->db->commit();
+
             return ["ok" => true];
         } catch (Exception $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
             $mensaje = $e->getMessage();
             if (stripos($mensaje, "motivo_cancelacion") !== false) {
                 return [

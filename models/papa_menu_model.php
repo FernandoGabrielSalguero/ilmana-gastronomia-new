@@ -175,6 +175,14 @@ class PapaMenuModel
                 $total += $menuData['Precio'] !== null ? (float)$menuData['Precio'] : 0.0;
             }
 
+            $stmtSaldo = $this->db->prepare("UPDATE Usuarios
+                SET Saldo = Saldo - :total
+                WHERE Id = :usuarioId");
+            $stmtSaldo->execute([
+                'total' => $total,
+                'usuarioId' => $usuarioId
+            ]);
+
             $this->db->commit();
         } catch (Exception $e) {
             $this->db->rollBack();

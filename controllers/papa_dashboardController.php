@@ -24,9 +24,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $esAjax && ($_POST['accion'] ?? '')
     }
 
     $resultado = $model->cancelarPedidoComida($usuarioId, $pedidoId, $motivo);
+    $saldoActual = $resultado['ok'] ? $model->obtenerSaldoUsuario($usuarioId) : null;
+    if ($resultado['ok'] && $usuarioId) {
+        $_SESSION['saldo'] = $saldoActual;
+    }
+    $saldoPendiente = $resultado['ok'] ? $model->obtenerSaldoPendiente($usuarioId) : null;
     echo json_encode([
         'ok' => $resultado['ok'],
-        'error' => $resultado['error'] ?? ''
+        'error' => $resultado['error'] ?? '',
+        'saldoActual' => $saldoActual,
+        'saldoPendiente' => $saldoPendiente
     ]);
     exit;
 }
@@ -35,6 +42,10 @@ $hijosDetalle = $model->obtenerHijosDetallePorUsuario($usuarioId);
 $pedidosSaldo = $model->obtenerPedidosSaldo($usuarioId, $desde, $hasta);
 $pedidosComida = $model->obtenerPedidosComida($usuarioId, $hijoSeleccionado, $desde, $hasta);
 $saldoPendiente = $model->obtenerSaldoPendiente($usuarioId);
+$saldoActual = $model->obtenerSaldoUsuario($usuarioId);
+if ($usuarioId) {
+    $_SESSION['saldo'] = $saldoActual;
+}
 
 // cargamos los datos dinamicamente con ajax
 if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
@@ -95,7 +106,9 @@ foreach ($pedidosComida as $pedido): ?>
 
     echo json_encode([
         'comida' => $tablaComida ?: '<tr><td colspan="6">No hay pedidos de comida.</td></tr>',
-        'saldo' => $tablaSaldo ?: '<tr><td colspan="6">No hay pedidos de saldo.</td></tr>'
+        'saldo' => $tablaSaldo ?: '<tr><td colspan="6">No hay pedidos de saldo.</td></tr>',
+        'saldoActual' => $saldoActual,
+        'saldoPendiente' => $saldoPendiente
     ]);
     exit;
 }

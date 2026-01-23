@@ -508,6 +508,14 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
             }).format(numero);
         }
 
+        function actualizarSaldoDisponible(valor) {
+            const disponible = document.getElementById('saldo-disponible');
+            if (!disponible) return;
+            const numero = Number(valor) || 0;
+            disponible.style.color = numero < 0 ? 'red' : 'green';
+            disponible.innerHTML = `<strong>Saldo disponible:</strong> $${formatearMonto(numero)}`;
+        }
+
         function actualizarSaldoPendiente(valor) {
             const pendiente = document.getElementById('saldo-pendiente');
             const valorSpan = document.getElementById('saldo-pendiente-valor');
@@ -611,6 +619,12 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                     }
                     if (saldoBody && typeof data.saldo === 'string') {
                         saldoBody.innerHTML = data.saldo;
+                    }
+                    if (typeof data.saldoActual !== 'undefined' && data.saldoActual !== null) {
+                        actualizarSaldoDisponible(parseFloat(data.saldoActual) || 0);
+                    }
+                    if (typeof data.saldoPendiente !== 'undefined' && data.saldoPendiente !== null) {
+                        actualizarSaldoPendiente(parseFloat(data.saldoPendiente) || 0);
                     }
                 })
                 .catch((err) => {
