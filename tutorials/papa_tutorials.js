@@ -81,13 +81,14 @@
         document.body.appendChild(spotlight);
     };
 
-    const createTooltip = (step, isLast, hasPrev) => {
+    const createTooltip = (step, index, totalSteps, isLast, hasPrev) => {
         const existing = getTooltip();
         if (existing) existing.remove();
         const tooltip = document.createElement('div');
         tooltip.id = tooltipId;
         tooltip.className = 'papa-tour-tooltip';
         tooltip.innerHTML = `
+            <div class="papa-tour-step-count">Paso ${index + 1} de ${totalSteps}</div>
             <h4>${step.title}</h4>
             <p>${step.message}</p>
             <div class="papa-tour-actions">
@@ -153,6 +154,8 @@
         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
     const isVisible = (el) => {
         if (!el) return false;
         const style = window.getComputedStyle(el);
@@ -165,6 +168,30 @@
     const findStepTarget = (step) => {
         const target = document.querySelector(step.element);
         return isVisible(target) ? target : null;
+    };
+
+    const waitForTarget = async (step) => {
+        let target = findStepTarget(step);
+        if (target) return target;
+
+        for (let i = 0; i < 12; i += 1) {
+            await sleep(120);
+            target = findStepTarget(step);
+            if (target) return target;
+        }
+
+        return null;
+    };
+
+    const openCancelModal = () => {
+        const btn = document.querySelector('[data-cancelar-pedido]');
+        if (!btn) return;
+        const pedidoId = btn.getAttribute('data-pedido-id') || '';
+        if (typeof window.abrirModalCancelacion === 'function') {
+            window.abrirModalCancelacion(pedidoId);
+            return;
+        }
+        btn.click();
     };
 
     const buildSteps = (variant) => {
@@ -243,13 +270,7 @@
                 message: 'Indica el motivo y confirma para registrar la cancelacion.',
                 position: 'right',
                 optional: true,
-                onEnter: () => {
-                    const modal = document.getElementById('cancelar-modal');
-                    if (modal && modal.style.display !== 'flex') {
-                        const firstCancel = document.querySelector('[data-cancelar-pedido]');
-                        if (firstCancel) firstCancel.click();
-                    }
-                },
+                onEnter: () => openCancelModal(),
                 onExit: () => closeCancelModal()
             },
             {
@@ -285,7 +306,7 @@
             step.onEnter();
         }
 
-        let target = findStepTarget(step);
+        let target = await waitForTarget(step);
         if (!target && step.optional) {
             return nextStep();
         }
@@ -294,7 +315,7 @@
 
         scrollIntoView(target);
         createSpotlight();
-        createTooltip(step, index === steps.length - 1, index > 0);
+        createTooltip(step, index, steps.length, index === steps.length - 1, index > 0);
 
         requestAnimationFrame(() => {
             positionSpotlight(target);
