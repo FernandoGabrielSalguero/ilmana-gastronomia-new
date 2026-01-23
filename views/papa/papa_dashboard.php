@@ -440,7 +440,9 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                     <input type="hidden" id="cancelar-pedido-id" name="pedido_id" value="">
                     <div class="input-group">
                         <label for="motivo-cancelacion">Motivo de cancelacion</label>
-                        <textarea id="motivo-cancelacion" name="motivo" rows="4" required></textarea>
+                        <div class="input-icon input-icon-comment">
+                            <textarea id="motivo-cancelacion" name="motivo" rows="4" required></textarea>
+                        </div>
                     </div>
                     <button class="btn btn-aceptar" type="submit">Confirmar cancelacion</button>
                 </form>
