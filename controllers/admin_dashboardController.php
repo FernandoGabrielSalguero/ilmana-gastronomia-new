@@ -45,7 +45,9 @@ $model = new AdminDashboardModel($pdo);
 $colegios = $model->obtenerColegios();
 $cursos = $model->obtenerCursos($colegioId);
 
-$totalPedidos = $model->obtenerTotalPedidos($colegioId, $cursoId, $fechaDesde, $fechaHasta);
-$totalUsuarios = $model->obtenerTotalUsuarios($colegioId, $cursoId);
-$totalSaldoPendiente = $model->obtenerTotalSaldoPendiente($colegioId, $cursoId, $fechaDesde, $fechaHasta);
+$totalPedidosComida = $model->obtenerTotalPedidos($colegioId, $cursoId, $fechaDesde, $fechaHasta);
+$totalPedidosSaldo = $model->obtenerTotalPedidosSaldo($colegioId, $cursoId, $fechaDesde, $fechaHasta);
+$saldoPendiente = $model->obtenerSaldoPendiente($colegioId, $cursoId, $fechaDesde, $fechaHasta);
 $totalSaldoAprobado = $model->obtenerTotalSaldoAprobado($colegioId, $cursoId, $fechaDesde, $fechaHasta);
+$totalPapas = $model->obtenerTotalPapas($colegioId, $cursoId);
+$totalHijos = $model->obtenerTotalHijos($colegioId, $cursoId);

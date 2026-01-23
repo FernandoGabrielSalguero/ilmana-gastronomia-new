@@ -105,6 +105,29 @@ class AdminDashboardModel
         return (int) $stmt->fetchColumn();
     }
 
+    public function obtenerSaldoPendiente($colegioId, $cursoId, $fechaDesde, $fechaHasta)
+    {
+        $params = [];
+        $where = ["ps.Estado = 'Pendiente de aprobacion'"];
+        $usuarioFilter = $this->buildUsuarioFilter('ps.Usuario_Id', $colegioId, $cursoId, $params, 'spm_');
+        if ($usuarioFilter) {
+            $where[] = $usuarioFilter;
+        }
+        if ($fechaDesde) {
+            $where[] = "ps.Fecha_pedido >= :spm_fechaDesde";
+            $params['spm_fechaDesde'] = $fechaDesde . ' 00:00:00';
+        }
+        if ($fechaHasta) {
+            $where[] = "ps.Fecha_pedido <= :spm_fechaHasta";
+            $params['spm_fechaHasta'] = $fechaHasta . ' 23:59:59';
+        }
+
+        $sql = "SELECT COALESCE(SUM(ps.Saldo), 0) FROM Pedidos_Saldo ps WHERE " . implode(' AND ', $where);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return (float) $stmt->fetchColumn();
+    }
+
     public function obtenerTotalSaldoAprobado($colegioId, $cursoId, $fechaDesde, $fechaHasta)
     {
         $params = [];
@@ -126,6 +149,70 @@ class AdminDashboardModel
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
         return (float) $stmt->fetchColumn();
+    }
+
+    public function obtenerTotalPedidosSaldo($colegioId, $cursoId, $fechaDesde, $fechaHasta)
+    {
+        $params = [];
+        $where = [];
+        $usuarioFilter = $this->buildUsuarioFilter('ps.Usuario_Id', $colegioId, $cursoId, $params, 'ps_');
+        if ($usuarioFilter) {
+            $where[] = $usuarioFilter;
+        }
+        if ($fechaDesde) {
+            $where[] = "ps.Fecha_pedido >= :ps_fechaDesde";
+            $params['ps_fechaDesde'] = $fechaDesde . ' 00:00:00';
+        }
+        if ($fechaHasta) {
+            $where[] = "ps.Fecha_pedido <= :ps_fechaHasta";
+            $params['ps_fechaHasta'] = $fechaHasta . ' 23:59:59';
+        }
+
+        $sql = "SELECT COUNT(*) FROM Pedidos_Saldo ps";
+        if ($where) {
+            $sql .= " WHERE " . implode(' AND ', $where);
+        }
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function obtenerTotalPapas($colegioId, $cursoId)
+    {
+        $params = [];
+        $where = ["u.Rol = 'papas'"];
+        $usuarioFilter = $this->buildUsuarioFilter('u.Id', $colegioId, $cursoId, $params, 'pap_');
+        if ($usuarioFilter) {
+            $where[] = $usuarioFilter;
+        }
+
+        $sql = "SELECT COUNT(DISTINCT u.Id) FROM Usuarios u WHERE " . implode(' AND ', $where);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function obtenerTotalHijos($colegioId, $cursoId)
+    {
+        $params = [];
+        $where = [];
+        if ($colegioId) {
+            $where[] = "h.Colegio_Id = :h_colegio";
+            $params['h_colegio'] = $colegioId;
+        }
+        if ($cursoId) {
+            $where[] = "h.Curso_Id = :h_curso";
+            $params['h_curso'] = $cursoId;
+        }
+
+        $sql = "SELECT COUNT(*) FROM Hijos h";
+        if ($where) {
+            $sql .= " WHERE " . implode(' AND ', $where);
+        }
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
     }
 
     private function buildUsuarioFilter($usuarioField, $colegioId, $cursoId, &$params, $prefix)
