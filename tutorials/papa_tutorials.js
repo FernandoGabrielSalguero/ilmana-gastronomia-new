@@ -4,122 +4,31 @@
     let currentIndex = 0;
     let active = false;
 
-    const steps = [
-        {
-            title: 'Menu lateral',
-            element: '[data-tutorial="sidebar"]',
-            message: 'Desde aca navegas por Inicio, Cargar saldo, Viandas y Calendario.',
-            position: 'right',
-            onEnter: () => ensureSidebarOpen()
-        },
-        {
-            title: 'Contraer menu',
-            element: '#sidebar-collapse-btn',
-            message: 'Usa este boton para mostrar u ocultar el menu lateral.',
-            position: 'right',
-            onEnter: () => ensureSidebarOpen()
-        },
-        {
-            title: 'Saldo prepago',
-            element: '[data-tutorial="saldo-card"]',
-            message: 'Primero carga saldo y espera la aprobacion. Con saldo aprobado podras pedir viandas.',
-            position: 'bottom'
-        },
-        {
-            title: 'Cargar saldo',
-            element: '[data-tutorial="btn-cargar-saldo"]',
-            message: 'Abre el formulario para cargar el comprobante y solicitar la recarga.',
-            position: 'bottom',
-            onEnter: () => openSaldoModal()
-        },
-        {
-            title: 'Formulario de saldo',
-            element: '#saldo-modal .modal-content',
-            message: 'Completa el monto, adjunta comprobante y envia la solicitud.',
-            position: 'right'
-        },
-        {
-            title: 'Pedir vianda',
-            element: '[data-tutorial="btn-pedir-vianda"]',
-            message: 'Con saldo aprobado, selecciona un hijo y arma el pedido de viandas.',
-            position: 'bottom',
-            onEnter: () => {
-                closeSaldoModal();
-                clickFirst('[data-tutorial="btn-pedir-vianda"]');
-            }
-        },
-        {
-            title: 'Detalle del pedido',
-            element: '#vianda-modal .modal-content',
-            message: 'Selecciona menus por dia, revisa el total y confirma el pedido.',
-            position: 'right'
-        },
-        {
-            title: 'Pedidos de comida',
-            element: '#tabla-pedidos-comida',
-            message: 'Aqui ves tus pedidos, la fecha de entrega y el estado.',
-            position: 'top',
-            onEnter: () => closeViandaModal()
-        },
-        {
-            title: 'Cancelar pedido',
-            element: '[data-cancelar-pedido]',
-            message: 'Si el pedido esta habilitado, puedes cancelarlo desde este boton.',
-            position: 'bottom',
-            optional: true,
-            onEnter: () => clickFirst('[data-cancelar-pedido]')
-        },
-        {
-            title: 'Motivo de cancelacion',
-            element: '#cancelar-modal .modal-content',
-            message: 'Indica el motivo y confirma para registrar la cancelacion.',
-            position: 'right',
-            optional: true,
-            onEnter: () => {
-                const modal = document.getElementById('cancelar-modal');
-                if (modal && modal.style.display !== 'flex') {
-                    const firstCancel = document.querySelector('[data-cancelar-pedido]');
-                    if (firstCancel) firstCancel.click();
-                }
-            },
-            onExit: () => closeCancelModal()
-        },
-        {
-            title: 'Pedidos de saldo',
-            element: '#tabla-pedidos-saldo',
-            message: 'Revisa el estado de tus recargas y las observaciones.',
-            position: 'top'
-        },
-        {
-            title: 'Calendario',
-            element: '[data-tutorial="menu-calendario"]',
-            message: 'Abre el calendario para ver pedidos por semana o mes.',
-            position: 'right',
-            onEnter: () => {
-                ensureSidebarOpen();
-                openCalendarModal();
-            }
-        },
-        {
-            title: 'Vista calendario',
-            element: '#calendario-modal .modal-content',
-            message: 'Navega por fechas y cambia la vista mensual o semanal.',
-            position: 'right',
-            onExit: () => closeCalendarModal()
-        }
-    ];
+    let steps = [];
+    const mobileBreakpoint = 768;
 
     const getSpotlight = () => document.getElementById(spotlightId);
     const getTooltip = () => document.getElementById(tooltipId);
 
-    const ensureSidebarOpen = () => {
+    const isMobile = () => window.innerWidth <= mobileBreakpoint;
+
+    const setSidebarOpen = (shouldOpen) => {
         const sidebar = document.getElementById('sidebar');
         const icon = document.getElementById('collapseIcon');
-        if (!sidebar || !icon) return;
-        sidebar.classList.remove('collapsed');
-        sidebar.classList.remove('open');
-        icon.textContent = 'chevron_left';
+        if (!sidebar) return;
+
+        if (isMobile()) {
+            sidebar.classList.toggle('open', Boolean(shouldOpen));
+            return;
+        }
+
+        sidebar.classList.toggle('collapsed', !shouldOpen);
+        if (icon) {
+            icon.textContent = shouldOpen ? 'chevron_left' : 'chevron_right';
+        }
     };
+
+    const ensureSidebarOpen = () => setSidebarOpen(true);
 
     const openSaldoModal = () => {
         if (typeof window.abrirModalSaldo === 'function') {
@@ -258,6 +167,115 @@
         return isVisible(target) ? target : null;
     };
 
+    const buildSteps = (variant) => {
+        const isMobileVariant = variant === 'mobile';
+
+        return [
+            {
+                title: 'Menu lateral',
+                element: '[data-tutorial="sidebar"]',
+                message: 'Desde aca navegas por Inicio, Cargar saldo, Viandas y Calendario.',
+                position: 'right',
+                onEnter: () => ensureSidebarOpen()
+            },
+            {
+                title: 'Contraer menu',
+                element: '#sidebar-collapse-btn',
+                message: 'Usa este boton para mostrar u ocultar el menu lateral.',
+                position: 'right',
+                onEnter: () => ensureSidebarOpen(),
+                onExit: () => {
+                    if (isMobileVariant) {
+                        setSidebarOpen(false);
+                    }
+                }
+            },
+            {
+                title: 'Saldo prepago',
+                element: '[data-tutorial="saldo-card"]',
+                message: 'Primero carga saldo y espera la aprobacion. Con saldo aprobado podras pedir viandas.',
+                position: 'bottom'
+            },
+            {
+                title: 'Cargar saldo',
+                element: '[data-tutorial="btn-cargar-saldo"]',
+                message: 'Abre el formulario para cargar el comprobante y solicitar la recarga.',
+                position: 'bottom'
+            },
+            {
+                title: 'Formulario de saldo',
+                element: '#saldo-modal .modal-content',
+                message: 'Completa el monto, adjunta comprobante y envia la solicitud.',
+                position: 'right',
+                onEnter: () => openSaldoModal()
+            },
+            {
+                title: 'Pedir vianda',
+                element: '[data-tutorial="btn-pedir-vianda"]',
+                message: 'Con saldo aprobado, selecciona un hijo y arma el pedido de viandas.',
+                position: 'bottom',
+                onEnter: () => closeSaldoModal()
+            },
+            {
+                title: 'Detalle del pedido',
+                element: '#vianda-modal .modal-content',
+                message: 'Selecciona menus por dia, revisa el total y confirma el pedido.',
+                position: 'right',
+                onEnter: () => clickFirst('[data-tutorial="btn-pedir-vianda"]')
+            },
+            {
+                title: 'Pedidos de comida',
+                element: '#tabla-pedidos-comida',
+                message: 'Aqui ves tus pedidos, la fecha de entrega y el estado.',
+                position: 'top',
+                onEnter: () => closeViandaModal()
+            },
+            {
+                title: 'Cancelar pedido',
+                element: '[data-cancelar-pedido]',
+                message: 'Si el pedido esta habilitado, puedes cancelarlo desde este boton.',
+                position: 'bottom',
+                optional: true
+            },
+            {
+                title: 'Motivo de cancelacion',
+                element: '#cancelar-modal .modal-content',
+                message: 'Indica el motivo y confirma para registrar la cancelacion.',
+                position: 'right',
+                optional: true,
+                onEnter: () => {
+                    const modal = document.getElementById('cancelar-modal');
+                    if (modal && modal.style.display !== 'flex') {
+                        const firstCancel = document.querySelector('[data-cancelar-pedido]');
+                        if (firstCancel) firstCancel.click();
+                    }
+                },
+                onExit: () => closeCancelModal()
+            },
+            {
+                title: 'Pedidos de saldo',
+                element: '#tabla-pedidos-saldo',
+                message: 'Revisa el estado de tus recargas y las observaciones.',
+                position: 'top'
+            },
+            {
+                title: 'Calendario',
+                element: '[data-tutorial="menu-calendario"]',
+                message: 'Abre el calendario para ver pedidos por semana o mes.',
+                position: 'right',
+                onEnter: () => ensureSidebarOpen()
+            },
+            {
+                title: 'Vista calendario',
+                element: '#calendario-modal .modal-content',
+                message: 'Navega por fechas y cambia la vista mensual o semanal.',
+                position: 'right',
+                onEnter: () => openCalendarModal(),
+                onExit: () => closeCalendarModal()
+            }
+        ];
+    };
+
     const showStep = async (index) => {
         if (!active) return;
         const step = steps[index];
@@ -334,6 +352,7 @@
     const startTour = () => {
         active = true;
         currentIndex = 0;
+        steps = buildSteps(isMobile() ? 'mobile' : 'desktop');
         showStep(currentIndex);
     };
 
