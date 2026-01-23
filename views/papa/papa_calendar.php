@@ -117,15 +117,37 @@ for ($fila = 0; $fila < 6; $fila++) {
         color: #9ca3af;
         font-size: 12px;
     }
+
+    .calendar-view-toggle {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
 </style>
 
-<div class="calendar-wrapper" data-cal-mes="<?= (int) $mesSeleccionado ?>" data-cal-anio="<?= (int) $anioSeleccionado ?>">
+<div class="calendar-wrapper"
+    data-cal-mes="<?= (int) $mesSeleccionado ?>"
+    data-cal-anio="<?= (int) $anioSeleccionado ?>"
+    data-cal-vista="<?= htmlspecialchars($vistaSeleccionada ?? 'mes') ?>"
+    data-cal-fecha-base="<?= htmlspecialchars($fechaBaseStr ?? '') ?>">
     <div class="calendar-header">
-        <button class="btn btn-aceptar" type="button" data-cal-nav="prev">Mes anterior</button>
+        <button class="btn btn-aceptar" type="button" data-cal-nav="prev">Anterior</button>
         <div class="calendar-title">
-            <?= htmlspecialchars($meses[$mesSeleccionado] ?? 'Mes') ?> <?= (int) $anioSeleccionado ?>
+            <?php if (($vistaSeleccionada ?? 'mes') === 'semana'): ?>
+                <?php
+                $inicioSemana = DateTime::createFromFormat('Y-m-d', $desde);
+                $finSemana = DateTime::createFromFormat('Y-m-d', $hasta);
+                ?>
+                Semana <?= $inicioSemana ? $inicioSemana->format('d/m/Y') : $desde ?> al <?= $finSemana ? $finSemana->format('d/m/Y') : $hasta ?>
+            <?php else: ?>
+                <?= htmlspecialchars($meses[$mesSeleccionado] ?? 'Mes') ?> <?= (int) $anioSeleccionado ?>
+            <?php endif; ?>
         </div>
-        <button class="btn btn-aceptar" type="button" data-cal-nav="next">Mes siguiente</button>
+        <button class="btn btn-aceptar" type="button" data-cal-nav="next">Siguiente</button>
+        <div class="calendar-view-toggle">
+            <button class="btn btn-small <?= ($vistaSeleccionada ?? 'mes') === 'mes' ? 'btn-aceptar' : '' ?>" type="button" data-cal-view="mes">Mes</button>
+            <button class="btn btn-small <?= ($vistaSeleccionada ?? 'mes') === 'semana' ? 'btn-aceptar' : '' ?>" type="button" data-cal-view="semana">Semana</button>
+        </div>
     </div>
 
     <table class="calendar-grid">
@@ -141,45 +163,93 @@ for ($fila = 0; $fila < 6; $fila++) {
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($semanas as $semana): ?>
+            <?php if (($vistaSeleccionada ?? 'mes') === 'semana'): ?>
                 <tr>
-                    <?php foreach ($semana as $diaMes): ?>
+                    <?php
+                    $inicioSemana = DateTime::createFromFormat('Y-m-d', $desde);
+                    $fechasSemana = [];
+                    if ($inicioSemana) {
+                        for ($i = 0; $i < 7; $i++) {
+                            $fechasSemana[] = $inicioSemana->format('Y-m-d');
+                            $inicioSemana->modify('+1 day');
+                        }
+                    }
+                    ?>
+                    <?php foreach ($fechasSemana as $fechaKey): ?>
+                        <?php
+                        $fechaDia = DateTime::createFromFormat('Y-m-d', $fechaKey);
+                        $pedidosDia = $pedidosPorFecha[$fechaKey] ?? [];
+                        ?>
                         <td>
-                            <?php if ($diaMes === null): ?>
-                                <div class="calendar-empty">-</div>
+                            <div class="calendar-day">
+                                <?= $fechaDia ? $fechaDia->format('d/m') : $fechaKey ?>
+                            </div>
+                            <?php if (empty($pedidosDia)): ?>
+                                <div class="calendar-empty">Sin pedidos</div>
                             <?php else: ?>
-                                <?php
-                                $fechaKey = sprintf('%04d-%02d-%02d', $anioSeleccionado, $mesSeleccionado, $diaMes);
-                                $pedidosDia = $pedidosPorFecha[$fechaKey] ?? [];
-                                ?>
-                                <div class="calendar-day"><?= (int) $diaMes ?></div>
-                                <?php if (empty($pedidosDia)): ?>
-                                    <div class="calendar-empty">Sin pedidos</div>
-                                <?php else: ?>
-                                    <?php foreach ($pedidosDia as $pedido): ?>
-                                        <div class="calendar-event">
-                                            <div class="calendar-event-title">
-                                                <?= htmlspecialchars($pedido['Alumno'] ?? 'Alumno') ?> - <?= htmlspecialchars($pedido['Menu'] ?? 'Menu') ?>
-                                            </div>
-                                            <div class="calendar-event-meta">
-                                                <span class="badge <?= ($pedido['Estado'] ?? '') === 'Cancelado' ? 'danger' : (($pedido['Estado'] ?? '') === 'Entregado' ? 'success' : 'warning') ?>">
-                                                    <?= htmlspecialchars($pedido['Estado'] ?? '') ?>
-                                                </span>
-                                                <span>#<?= (int) ($pedido['Id'] ?? 0) ?></span>
-                                            </div>
-                                            <?php if (($pedido['Estado'] ?? '') === 'Cancelado' && !empty($pedido['motivo_cancelacion'])): ?>
-                                                <div class="calendar-event-cancel">
-                                                    Motivo: <?= htmlspecialchars($pedido['motivo_cancelacion']) ?>
-                                                </div>
-                                            <?php endif; ?>
+                                <?php foreach ($pedidosDia as $pedido): ?>
+                                    <div class="calendar-event">
+                                        <div class="calendar-event-title">
+                                            <?= htmlspecialchars($pedido['Alumno'] ?? 'Alumno') ?> - <?= htmlspecialchars($pedido['Menu'] ?? 'Menu') ?>
                                         </div>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
+                                        <div class="calendar-event-meta">
+                                            <span class="badge <?= ($pedido['Estado'] ?? '') === 'Cancelado' ? 'danger' : (($pedido['Estado'] ?? '') === 'Entregado' ? 'success' : 'warning') ?>">
+                                                <?= htmlspecialchars($pedido['Estado'] ?? '') ?>
+                                            </span>
+                                            <span>#<?= (int) ($pedido['Id'] ?? 0) ?></span>
+                                        </div>
+                                        <?php if (($pedido['Estado'] ?? '') === 'Cancelado' && !empty($pedido['motivo_cancelacion'])): ?>
+                                            <div class="calendar-event-cancel">
+                                                Motivo: <?= htmlspecialchars($pedido['motivo_cancelacion']) ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endforeach; ?>
                             <?php endif; ?>
                         </td>
                     <?php endforeach; ?>
                 </tr>
-            <?php endforeach; ?>
+            <?php else: ?>
+                <?php foreach ($semanas as $semana): ?>
+                    <tr>
+                        <?php foreach ($semana as $diaMes): ?>
+                            <td>
+                                <?php if ($diaMes === null): ?>
+                                    <div class="calendar-empty">-</div>
+                                <?php else: ?>
+                                    <?php
+                                    $fechaKey = sprintf('%04d-%02d-%02d', $anioSeleccionado, $mesSeleccionado, $diaMes);
+                                    $pedidosDia = $pedidosPorFecha[$fechaKey] ?? [];
+                                    ?>
+                                    <div class="calendar-day"><?= (int) $diaMes ?></div>
+                                    <?php if (empty($pedidosDia)): ?>
+                                        <div class="calendar-empty">Sin pedidos</div>
+                                    <?php else: ?>
+                                        <?php foreach ($pedidosDia as $pedido): ?>
+                                            <div class="calendar-event">
+                                                <div class="calendar-event-title">
+                                                    <?= htmlspecialchars($pedido['Alumno'] ?? 'Alumno') ?> - <?= htmlspecialchars($pedido['Menu'] ?? 'Menu') ?>
+                                                </div>
+                                                <div class="calendar-event-meta">
+                                                    <span class="badge <?= ($pedido['Estado'] ?? '') === 'Cancelado' ? 'danger' : (($pedido['Estado'] ?? '') === 'Entregado' ? 'success' : 'warning') ?>">
+                                                        <?= htmlspecialchars($pedido['Estado'] ?? '') ?>
+                                                    </span>
+                                                    <span>#<?= (int) ($pedido['Id'] ?? 0) ?></span>
+                                                </div>
+                                                <?php if (($pedido['Estado'] ?? '') === 'Cancelado' && !empty($pedido['motivo_cancelacion'])): ?>
+                                                    <div class="calendar-event-cancel">
+                                                        Motivo: <?= htmlspecialchars($pedido['motivo_cancelacion']) ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                <?php endif; ?>
+                            </td>
+                        <?php endforeach; ?>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </tbody>
     </table>
 </div>

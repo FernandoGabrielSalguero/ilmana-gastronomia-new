@@ -499,7 +499,11 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
             const modal = document.getElementById('calendario-modal');
             modal.style.display = 'flex';
             const now = new Date();
-            cargarModalCalendario(now.getMonth() + 1, now.getFullYear());
+            cargarModalCalendario({
+                vista: 'mes',
+                mes: now.getMonth() + 1,
+                anio: now.getFullYear()
+            });
         }
 
         function cerrarModalCalendario() {
@@ -616,12 +620,30 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                 });
         }
 
-        function cargarModalCalendario(mes, anio) {
+        function formatDateISO(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function cargarModalCalendario(options = {}) {
             const body = document.getElementById('calendario-modal-body');
             if (!body) return;
             body.innerHTML = '<p>Cargando...</p>';
 
-            const params = new URLSearchParams({ modal: '1', mes: String(mes), anio: String(anio) });
+            const vista = options.vista === 'semana' ? 'semana' : 'mes';
+            const now = new Date();
+            const params = new URLSearchParams({ modal: '1', vista });
+            if (vista === 'semana') {
+                const fechaBase = options.fecha || formatDateISO(now);
+                params.set('fecha', fechaBase);
+            } else {
+                const mes = options.mes || (now.getMonth() + 1);
+                const anio = options.anio || now.getFullYear();
+                params.set('mes', String(mes));
+                params.set('anio', String(anio));
+            }
             fetch(`papa_calendar.php?${params.toString()}`, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
@@ -655,16 +677,43 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
             body.dataset.calendarBound = '1';
 
             body.addEventListener('click', (event) => {
-                const btn = event.target.closest('[data-cal-nav]');
-                if (!btn) return;
                 const wrapper = body.querySelector('.calendar-wrapper');
                 if (!wrapper) return;
+
+                const viewBtn = event.target.closest('[data-cal-view]');
+                const navBtn = event.target.closest('[data-cal-nav]');
+                const vista = wrapper.dataset.calVista || 'mes';
+
+                if (viewBtn) {
+                    const nuevaVista = viewBtn.dataset.calView || 'mes';
+                    if (nuevaVista === vista) return;
+                    if (nuevaVista === 'semana') {
+                        const fechaBase = wrapper.dataset.calFechaBase || formatDateISO(new Date());
+                        cargarModalCalendario({ vista: 'semana', fecha: fechaBase });
+                    } else {
+                        const mes = parseInt(wrapper.dataset.calMes || '0', 10) || (new Date().getMonth() + 1);
+                        const anio = parseInt(wrapper.dataset.calAnio || '0', 10) || new Date().getFullYear();
+                        cargarModalCalendario({ vista: 'mes', mes, anio });
+                    }
+                    return;
+                }
+
+                if (!navBtn) return;
+
+                if (vista === 'semana') {
+                    const fechaBase = wrapper.dataset.calFechaBase || formatDateISO(new Date());
+                    const base = new Date(`${fechaBase}T00:00:00`);
+                    const delta = navBtn.dataset.calNav === 'prev' ? -7 : 7;
+                    base.setDate(base.getDate() + delta);
+                    cargarModalCalendario({ vista: 'semana', fecha: formatDateISO(base) });
+                    return;
+                }
 
                 let mes = parseInt(wrapper.dataset.calMes || '0', 10);
                 let anio = parseInt(wrapper.dataset.calAnio || '0', 10);
                 if (!mes || !anio) return;
 
-                if (btn.dataset.calNav === 'prev') {
+                if (navBtn.dataset.calNav === 'prev') {
                     mes -= 1;
                     if (mes < 1) {
                         mes = 12;
@@ -677,7 +726,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                         anio += 1;
                     }
                 }
-                cargarModalCalendario(mes, anio);
+                cargarModalCalendario({ vista: 'mes', mes, anio });
             });
         }
 
