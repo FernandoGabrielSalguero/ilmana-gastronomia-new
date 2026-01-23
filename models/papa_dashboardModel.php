@@ -42,7 +42,7 @@ class PapaDashboardModel
 
     public function obtenerPedidosSaldo($usuarioId, $desde = null, $hasta = null)
     {
-        $sql = "SELECT Id, Saldo, Estado, Comprobante, Observaciones
+        $sql = "SELECT Id, Saldo, Estado, Comprobante, Observaciones, Fecha_pedido
             FROM Pedidos_Saldo 
             WHERE Usuario_Id = :usuarioId";
 
@@ -53,6 +53,8 @@ class PapaDashboardModel
             $params['desde'] = $desde . ' 00:00:00';
             $params['hasta'] = $hasta . ' 23:59:59';
         }
+
+        $sql .= " ORDER BY Id DESC";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
@@ -86,6 +88,8 @@ class PapaDashboardModel
             $params['desde'] = $desde;
             $params['hasta'] = $hasta;
         }
+
+        $sql .= " ORDER BY pc.Id DESC";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);

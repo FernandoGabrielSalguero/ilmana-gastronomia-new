@@ -336,6 +336,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                     <tr>
                                         <th>#</th>
                                         <th class="max-80">Saldo</th>
+                                        <th>Fecha pedido</th>
                                         <th class="estado-cell">Estado</th>
                                         <th>Observaciones</th>
                                         <th>Comprobante</th>
@@ -347,6 +348,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                             <tr>
                                                 <td class="max-80"><?= $saldo['Id'] ?></td>
                                                 <td>$<?= number_format($saldo['Saldo'], 2, ',', '.') ?></td>
+                                                <td><?= htmlspecialchars($saldo['Fecha_pedido'] ?? '') ?></td>
                                                 <td class="estado-cell">
                                                     <span class="badge <?= $saldo['Estado'] === 'Aprobado' ? 'success' : ($saldo['Estado'] === 'Cancelado' ? 'danger' : 'warning') ?>">
                                                         <?= $saldo['Estado'] ?>
@@ -372,7 +374,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                         <?php endforeach; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="5">No hay pedidos de saldo.</td>
+                                            <td colspan="6">No hay pedidos de saldo.</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>

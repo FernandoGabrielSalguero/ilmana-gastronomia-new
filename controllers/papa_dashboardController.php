@@ -41,6 +41,7 @@ foreach ($pedidosComida as $pedido): ?>
         <tr>
             <td><?= $saldo['Id'] ?></td>
             <td>$<?= number_format($saldo['Saldo'], 2, ',', '.') ?></td>
+            <td><?= htmlspecialchars($saldo['Fecha_pedido'] ?? '') ?></td>
             <td>
                 <span class="badge <?= $saldo['Estado'] === 'Aprobado' ? 'success' : ($saldo['Estado'] === 'Cancelado' ? 'danger' : 'warning') ?>">
                     <?= $saldo['Estado'] ?>
@@ -66,7 +67,7 @@ foreach ($pedidosComida as $pedido): ?>
 
     echo json_encode([
         'comida' => $tablaComida ?: '<tr><td colspan="4">No hay pedidos de comida.</td></tr>',
-        'saldo' => $tablaSaldo ?: '<tr><td colspan="5">No hay pedidos de saldo.</td></tr>'
+        'saldo' => $tablaSaldo ?: '<tr><td colspan="6">No hay pedidos de saldo.</td></tr>'
     ]);
     exit;
 }
