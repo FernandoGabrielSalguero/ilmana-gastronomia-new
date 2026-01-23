@@ -189,6 +189,62 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         justify-content: space-between;
         margin-bottom: 12px;
     }
+
+    .papa-tour-spotlight {
+        position: fixed;
+        pointer-events: none;
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+        border-radius: 12px;
+        transition: all 0.2s ease;
+        z-index: 10000;
+    }
+
+    .papa-tour-tooltip {
+        position: fixed;
+        z-index: 10001;
+        max-width: 320px;
+        background: #ffffff;
+        color: #0f172a;
+        padding: 12px 14px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+
+    .papa-tour-tooltip h4 {
+        margin: 0 0 6px;
+        font-size: 1rem;
+    }
+
+    .papa-tour-actions {
+        margin-top: 10px;
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+
+    .papa-tour-actions button {
+        border: none;
+        border-radius: 8px;
+        padding: 6px 10px;
+        cursor: pointer;
+    }
+
+    .papa-tour-actions .papa-tour-prev {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+
+    .papa-tour-actions .papa-tour-next {
+        background: #4f46e5;
+        color: #ffffff;
+    }
+
+    .papa-tour-actions .papa-tour-end {
+        background: #0f172a;
+        color: #ffffff;
+    }
 </style>
 
 <body>
@@ -197,7 +253,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
     <div class="layout">
 
         <!-- ðŸ§­ SIDEBAR -->
-        <aside class="sidebar" id="sidebar">
+        <aside class="sidebar" id="sidebar" data-tutorial="sidebar">
             <div class="sidebar-header">
                 <span class="material-icons logo-icon">dashboard</span>
                 <span class="logo-text">Il'Mana</span>
@@ -205,20 +261,20 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
 
             <nav class="sidebar-menu">
                 <ul>
-                    <li onclick="location.href='admin_dashboard.php'">
+                    <li onclick="location.href='admin_dashboard.php'" data-tutorial="menu-inicio">
                         <span class="material-icons" style="color: #5b21b6;">home</span><span class="link-text">Inicio</span>
                     </li>
-                    <li onclick="abrirModalSaldo()">
+                    <li onclick="abrirModalSaldo()" data-tutorial="menu-saldo">
                         <span class="material-icons" style="color: #5b21b6;">attach_money</span><span class="link-text">Cargar Saldo</span>
                     </li>
-                    <li onclick="abrirModalVianda()">
+                    <li onclick="abrirModalVianda()" data-tutorial="menu-viandas">
                         <span class="material-icons" style="color: #5b21b6;">restaurant</span><span class="link-text">Viandas</span>
                     </li>
-                    <li onclick="abrirModalCalendario()">
+                    <li onclick="abrirModalCalendario()" data-tutorial="menu-calendario">
                         <span class="material-icons" style="color: #5b21b6;">calendar_month</span><span class="link-text">Calendario</span>
                     </li>
 
-                    <li onclick="location.href='../../../logout.php'">
+                    <li onclick="location.href='../../../logout.php'" data-tutorial="menu-salir">
                         <span class="material-icons" style="color: red;">logout</span><span class="link-text">Salir</span>
                     </li>
                 </ul>
@@ -226,7 +282,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
 
 
             <div class="sidebar-footer">
-                <button class="btn-icon" onclick="toggleSidebar()">
+                <button class="btn-icon" onclick="toggleSidebar()" id="sidebar-collapse-btn">
                     <span class="material-icons" id="collapseIcon">chevron_left</span>
                 </button>
             </div>
@@ -237,7 +293,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
 
             <!-- ðŸŸª NAVBAR -->
             <header class="navbar">
-                <button class="btn-icon" onclick="toggleSidebar()">
+                <button class="btn-icon" onclick="toggleSidebar()" id="sidebar-toggle-btn">
                     <span class="material-icons">menu</span>
                 </button>
                 <div class="navbar-title">Inicio</div>
@@ -247,9 +303,10 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
             <section class="content">
 
                                 <!-- Bienvenida -->
-                <div class="card">
+                <div class="card" id="tutorial-intro">
                     <h2>Hola <?= htmlspecialchars($nombre) ?></h2>
                     <p>En esta pagina, vas a poder visualizar el nombre de tus hijos junto con su informacion, los pedidos de saldo y de comida</p>
+                    <button class="btn btn-aceptar btn-small" type="button" id="tutorial-start-btn">Ver tutorial</button>
                 </div>
 
                 <?php
@@ -259,7 +316,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
 
                 <!-- Tarjetas de hijos y saldo -->
                 <div class="card-grid grid-3">
-                    <div class="card" id="saldo-card">
+                    <div class="card" id="saldo-card" data-tutorial="saldo-card">
                         <h3>Saldo</h3>
                         <p id="saldo-disponible" style="color: <?= $saldoColor ?>;">
                             <strong>Saldo disponible:</strong> $<?= number_format($saldoValor, 2, ',', '.') ?>
@@ -267,7 +324,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                         <p id="saldo-pendiente" style="color: #f59e0b; <?= $saldoPendiente > 0 ? '' : 'display: none;' ?>">
                             <strong>Saldo a confirmar:</strong> $<span id="saldo-pendiente-valor"><?= number_format($saldoPendiente, 2, ',', '.') ?></span>
                         </p>
-                        <button class="btn btn-aceptar" type="button" onclick="abrirModalSaldo()">Cargar saldo</button>
+                        <button class="btn btn-aceptar" type="button" onclick="abrirModalSaldo()" data-tutorial="btn-cargar-saldo">Cargar saldo</button>
                     </div>
                     <?php if (!empty($hijosDetalle)): ?>
                         <?php foreach ($hijosDetalle as $hijo): ?>
@@ -281,7 +338,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                 <p><strong>Preferencias alimenticias:</strong> <?= $preferencias !== '' ? htmlspecialchars($preferencias) : 'Sin preferencias' ?></p>
                                 <p><strong>Nombre del colegio:</strong> <?= $colegio !== '' ? htmlspecialchars($colegio) : 'Sin colegio' ?></p>
                                 <p><strong>Curso:</strong> <?= $curso !== '' ? htmlspecialchars($curso) : 'Sin curso' ?></p>
-                                <button class="btn btn-aceptar" type="button" onclick="abrirModalVianda(<?= (int)($hijo['Id'] ?? 0) ?>, '<?= htmlspecialchars($hijo['Nombre']) ?>')">Pedir vianda</button>
+                                <button class="btn btn-aceptar" type="button" onclick="abrirModalVianda(<?= (int)($hijo['Id'] ?? 0) ?>, '<?= htmlspecialchars($hijo['Nombre']) ?>')" data-tutorial="btn-pedir-vianda">Pedir vianda</button>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -294,7 +351,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                 <!-- Tablas de resultados -->
                 <div>
                     <!-- Pedidos de Comida -->
-                    <div class="card tabla-card">
+                    <div class="card tabla-card" id="tabla-pedidos-comida">
                         <h2>Pedidos de comida</h2>
                         <div class="tabla-wrapper">
                             <table class="data-table">
@@ -341,7 +398,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                     </div>
 
                     <!-- Pedidos de Saldo -->
-                    <div class="card tabla-card" style="margin-top: 16px;">
+                    <div class="card tabla-card" style="margin-top: 16px;" id="tabla-pedidos-saldo">
                         <h2>Pedidos de saldo</h2>
                         <div class="tabla-wrapper">
                             <table class="data-table">
@@ -1085,6 +1142,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
 
         console.log(<?php echo json_encode($_SESSION); ?>);
     </script>
+    <script src="/tutorials/papa_tutorials.js"></script>
 </body>
 
 </html>
