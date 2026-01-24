@@ -66,7 +66,7 @@ class AdminSaldoModel
             $sql .= " WHERE " . implode(' AND ', $where);
         }
 
-        $sql .= " ORDER BY ps.Id DESC";
+        $sql .= " ORDER BY ps.Id DESC LIMIT 150";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);

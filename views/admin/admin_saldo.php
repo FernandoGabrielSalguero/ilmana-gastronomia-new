@@ -20,7 +20,7 @@ $estadoLabel = function ($estado) {
     }
     return $estado;
 };
- 
+
 $observacionesLabel = function ($texto) {
     $texto = trim((string) $texto);
     return $texto === '' ? '-' : $texto;
@@ -56,119 +56,6 @@ $observacionesLabel = function ($texto) {
 
     <!-- Graficos (Chart.js) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
-    <style>
-        .saldo-table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 900px;
-        }
-
-        .saldo-table thead th {
-            text-align: left;
-            font-size: 13px;
-            color: #6b7280;
-            padding: 10px 8px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .saldo-table tbody td {
-            padding: 12px 8px;
-            border-bottom: 1px solid #f1f5f9;
-            vertical-align: middle;
-        }
-
-        .saldo-table-wrap {
-            overflow-x: auto;
-        }
-
-        .saldo-actions {
-            display: inline-flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .saldo-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-        }
-
-        .saldo-pill .material-icons {
-            font-size: 18px;
-        }
-
-        .saldo-empty {
-            text-align: center;
-            color: #6b7280;
-            padding: 12px 0;
-        }
-
-        .saldo-user {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .saldo-user small {
-            color: #6b7280;
-        }
-
-        .saldo-icon-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 6px;
-            min-width: 32px;
-        }
-
-        .saldo-icon-btn .material-icons {
-            font-size: 18px;
-        }
-
-        .whatsapp-icon {
-            color: #25D366;
-        }
-
-        .saldo-dialog::backdrop {
-            background: rgba(15, 23, 42, 0.45);
-        }
-
-        .saldo-dialog {
-            border: none;
-            border-radius: 12px;
-            padding: 20px;
-            width: min(420px, 92vw);
-            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
-        }
-
-        .saldo-dialog h3 {
-            margin: 0 0 8px;
-        }
-
-        .saldo-dialog p {
-            margin: 0 0 12px;
-            color: #475569;
-        }
-
-        .saldo-dialog textarea {
-            width: 100%;
-            min-height: 90px;
-            padding: 10px 12px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            font-family: inherit;
-            resize: vertical;
-        }
-
-        .saldo-dialog-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-            margin-top: 14px;
-        }
-    </style>
 </head>
 
 <body>
@@ -247,8 +134,8 @@ $observacionesLabel = function ($texto) {
                         <h3 class="card-title">Solicitudes</h3>
                     </div>
                     <div class="card-body">
-                        <div class="saldo-table-wrap">
-                            <table class="saldo-table">
+                        <div class="tabla-wrapper">
+                            <table class="data-table">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
@@ -293,8 +180,8 @@ $observacionesLabel = function ($texto) {
                                                 <td><?= htmlspecialchars($observacionesLabel($solicitud['Observaciones'] ?? '')) ?></td>
                                                 <td>
                                                     <?php if ($comprobanteFile): ?>
-                                                        <a href="../../uploads/comprobantes_inbox/<?= htmlspecialchars($comprobanteFile) ?>" target="_blank" class="saldo-icon-btn" title="Ver comprobante">
-                                                            <span class="material-icons">receipt</span>
+                                                        <a href="../../uploads/comprobantes_inbox/<?= htmlspecialchars($comprobanteFile) ?>" target="_blank" class="btn btn-info" title="Ver comprobante">
+                                                            <span class="material-icons">visibility</span>
                                                         </a>
                                                     <?php else: ?>
                                                         -
@@ -302,11 +189,11 @@ $observacionesLabel = function ($texto) {
                                                 </td>
                                                 <td>
                                                     <?php if ($estadoActual === 'Pendiente de aprobacion'): ?>
-                                                        <div class="saldo-actions">
-                                                            <button type="button" class="btn btn-small btn-aceptar saldo-icon-btn" data-action="aprobar" title="Aprobar">
-                                                                <span class="material-icons">check_circle</span>
+                                                        <div class="gform-actions">
+                                                            <button type="button" class="btn btn-small btn-aceptar" data-action="aprobar" title="Aprobar">
+                                                                <span class="material-icons">task_alt</span>
                                                             </button>
-                                                            <button type="button" class="btn btn-small btn-cancelar saldo-icon-btn" data-action="cancelar" title="Cancelar">
+                                                            <button type="button" class="btn btn-small btn-cancelar" data-action="cancelar" title="Cancelar">
                                                                 <span class="material-icons">cancel</span>
                                                             </button>
                                                             <?php
@@ -314,8 +201,8 @@ $observacionesLabel = function ($texto) {
                                                             $telefonoWhatsapp = preg_replace('/\D+/', '', (string) $telefonoRaw);
                                                             ?>
                                                             <?php if ($telefonoWhatsapp !== ''): ?>
-                                                                <a class="btn btn-small saldo-icon-btn" href="https://wa.me/<?= htmlspecialchars($telefonoWhatsapp) ?>" target="_blank" title="Enviar WhatsApp">
-                                                                    <span class="material-icons whatsapp-icon">chat</span>
+                                                                <a class="btn btn-small btn-info" href="https://wa.me/<?= htmlspecialchars($telefonoWhatsapp) ?>" target="_blank" title="Enviar WhatsApp">
+                                                                    <span class="material-icons">chat</span>
                                                                 </a>
                                                             <?php endif; ?>
                                                         </div>
@@ -325,8 +212,8 @@ $observacionesLabel = function ($texto) {
                                                         $telefonoWhatsapp = preg_replace('/\D+/', '', (string) $telefonoRaw);
                                                         ?>
                                                         <?php if ($telefonoWhatsapp !== ''): ?>
-                                                            <a class="btn btn-small saldo-icon-btn" href="https://wa.me/<?= htmlspecialchars($telefonoWhatsapp) ?>" target="_blank" title="Enviar WhatsApp">
-                                                                <span class="material-icons whatsapp-icon">chat</span>
+                                                            <a class="btn btn-small btn-info" href="https://wa.me/<?= htmlspecialchars($telefonoWhatsapp) ?>" target="_blank" title="Enviar WhatsApp">
+                                                                <span class="material-icons">chat</span>
                                                             </a>
                                                         <?php else: ?>
                                                             -
@@ -337,7 +224,7 @@ $observacionesLabel = function ($texto) {
                                         <?php endforeach; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="8" class="saldo-empty">Sin solicitudes para mostrar.</td>
+                                            <td colspan="8" class="gform-helper">Sin solicitudes para mostrar.</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
@@ -349,37 +236,45 @@ $observacionesLabel = function ($texto) {
         </div>
     </div>
 
-    <dialog class="saldo-dialog" id="saldo-cancel-dialog">
-        <form method="dialog">
-            <h3>Cancelar solicitud</h3>
+    <div class="modal hidden" id="saldo-cancel-modal" role="dialog" aria-modal="true" aria-labelledby="saldo-cancel-title">
+        <div class="modal-content">
+            <h3 id="saldo-cancel-title">Cancelar solicitud</h3>
             <p>Indicá el motivo de cancelación.</p>
-            <textarea id="saldo-cancel-reason" placeholder="Motivo de cancelación" required></textarea>
-            <div class="saldo-dialog-actions">
-                <button type="button" class="btn btn-cancelar" id="saldo-cancel-close">Cerrar</button>
-                <button type="submit" class="btn btn-aceptar" id="saldo-cancel-confirm">Confirmar</button>
-            </div>
-        </form>
-    </dialog>
+            <form id="saldo-cancel-form">
+                <div class="input-group">
+                    <label for="saldo-cancel-reason">Motivo de cancelación</label>
+                    <div class="input-icon input-icon-comment">
+                        <textarea id="saldo-cancel-reason" required></textarea>
+                    </div>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-cancelar" id="saldo-cancel-close">Cerrar</button>
+                    <button type="submit" class="btn btn-aceptar" id="saldo-cancel-confirm">Confirmar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    <dialog class="saldo-dialog" id="saldo-approve-dialog">
-        <form method="dialog">
-            <h3>Solicitud aprobada</h3>
+    <div class="modal hidden" id="saldo-approve-modal" role="dialog" aria-modal="true" aria-labelledby="saldo-approve-title">
+        <div class="modal-content">
+            <h3 id="saldo-approve-title">Solicitud aprobada</h3>
             <p id="saldo-approve-text">Saldo final del usuario: $0,00</p>
-            <div class="saldo-dialog-actions">
-                <button type="submit" class="btn btn-aceptar">Listo</button>
+            <div class="form-buttons">
+                <button type="button" class="btn btn-aceptar" id="saldo-approve-close">Listo</button>
             </div>
-        </form>
-    </dialog>
+        </div>
+    </div>
 
     <script>
         const saldoEndpoint = 'admin_saldo.php';
         const tableBody = document.getElementById('saldo-table-body');
         const filterForm = document.getElementById('saldo-filter-form');
-        const cancelDialog = document.getElementById('saldo-cancel-dialog');
+        const cancelModal = document.getElementById('saldo-cancel-modal');
         const cancelReasonInput = document.getElementById('saldo-cancel-reason');
         const cancelCloseButton = document.getElementById('saldo-cancel-close');
-        const approveDialog = document.getElementById('saldo-approve-dialog');
+        const approveModal = document.getElementById('saldo-approve-modal');
         const approveText = document.getElementById('saldo-approve-text');
+        const approveCloseButton = document.getElementById('saldo-approve-close');
         let pendingCancelId = null;
         let pendingCancelObservaciones = '';
 
@@ -436,15 +331,15 @@ $observacionesLabel = function ($texto) {
         function whatsappLinkHtml(telefono) {
             const digits = String(telefono || '').replace(/\D+/g, '');
             if (!digits) return '-';
-            return `<a class="btn btn-small saldo-icon-btn" href="https://wa.me/${digits}" target="_blank" title="Enviar WhatsApp">
-                        <span class="material-icons whatsapp-icon">chat</span>
+            return `<a class="btn btn-small btn-info" href="https://wa.me/${digits}" target="_blank" title="Enviar WhatsApp">
+                        <span class="material-icons">chat</span>
                     </a>`;
         }
 
         function renderRows(items) {
             if (!tableBody) return;
             if (!items || items.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="8" class="saldo-empty">Sin solicitudes para mostrar.</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="8" class="gform-helper">Sin solicitudes para mostrar.</td></tr>';
                 return;
             }
             tableBody.innerHTML = items.map((item) => {
@@ -452,16 +347,16 @@ $observacionesLabel = function ($texto) {
                 const comprobante = item.Comprobante ? String(item.Comprobante) : '';
                 const comprobanteFile = comprobante ? comprobante.split(/[\\/]/).pop() : '';
                 const comprobanteHtml = comprobanteFile
-                    ? `<a href="../../uploads/comprobantes_inbox/${escapeHtml(comprobanteFile)}" target="_blank" class="saldo-icon-btn" title="Ver comprobante">
-                            <span class="material-icons">receipt</span>
+                    ? `<a href="../../uploads/comprobantes_inbox/${escapeHtml(comprobanteFile)}" target="_blank" class="btn btn-info" title="Ver comprobante">
+                            <span class="material-icons">visibility</span>
                        </a>`
                     : '-';
                 const acciones = estado === 'Pendiente de aprobacion'
-                    ? `<div class="saldo-actions">
-                            <button type="button" class="btn btn-small btn-aceptar saldo-icon-btn" data-action="aprobar" title="Aprobar">
-                                <span class="material-icons">check_circle</span>
+                    ? `<div class="gform-actions">
+                            <button type="button" class="btn btn-small btn-aceptar" data-action="aprobar" title="Aprobar">
+                                <span class="material-icons">task_alt</span>
                             </button>
-                            <button type="button" class="btn btn-small btn-cancelar saldo-icon-btn" data-action="cancelar" title="Cancelar">
+                            <button type="button" class="btn btn-small btn-cancelar" data-action="cancelar" title="Cancelar">
                                 <span class="material-icons">cancel</span>
                             </button>
                             ${whatsappLinkHtml(item.UsuarioTelefono)}
@@ -522,8 +417,25 @@ $observacionesLabel = function ($texto) {
                 cancelReasonInput.value = pendingCancelObservaciones;
                 cancelReasonInput.focus();
             }
-            if (cancelDialog) {
-                cancelDialog.showModal();
+            if (cancelModal) {
+                cancelModal.classList.remove('hidden');
+            }
+        }
+
+        function closeCancelModal() {
+            if (cancelModal) {
+                cancelModal.classList.add('hidden');
+            }
+        }
+
+        function resetCancelState() {
+            pendingCancelId = null;
+            pendingCancelObservaciones = '';
+        }
+
+        function closeApproveModal() {
+            if (approveModal) {
+                approveModal.classList.add('hidden');
             }
         }
 
@@ -543,11 +455,11 @@ $observacionesLabel = function ($texto) {
                 const data = await response.json();
                 if (data.ok) {
                     showAlertSafe('success', data.mensaje || 'Solicitud actualizada.');
-                    if (action === 'aprobar' && approveDialog && approveText) {
+                    if (action === 'aprobar' && approveModal && approveText) {
                         const saldoFinal = data.saldo_final;
                         if (saldoFinal !== null && saldoFinal !== undefined) {
                             approveText.textContent = `Saldo final del usuario: $${formatMoney(saldoFinal)}`;
-                            approveDialog.showModal();
+                            approveModal.classList.remove('hidden');
                         }
                     }
                     fetchSolicitudes();
@@ -581,18 +493,35 @@ $observacionesLabel = function ($texto) {
             });
         }
 
-        if (cancelCloseButton && cancelDialog) {
-            cancelCloseButton.addEventListener('click', () => cancelDialog.close());
-        }
-
-        if (cancelDialog) {
-            cancelDialog.addEventListener('close', () => {
-                pendingCancelId = null;
-                pendingCancelObservaciones = '';
+        if (cancelCloseButton && cancelModal) {
+            cancelCloseButton.addEventListener('click', () => {
+                closeCancelModal();
+                resetCancelState();
             });
         }
 
-        const cancelForm = cancelDialog ? cancelDialog.querySelector('form') : null;
+        if (cancelModal) {
+            cancelModal.addEventListener('click', (event) => {
+                if (event.target === cancelModal) {
+                    closeCancelModal();
+                    resetCancelState();
+                }
+            });
+        }
+
+        if (approveCloseButton && approveModal) {
+            approveCloseButton.addEventListener('click', closeApproveModal);
+        }
+
+        if (approveModal) {
+            approveModal.addEventListener('click', (event) => {
+                if (event.target === approveModal) {
+                    closeApproveModal();
+                }
+            });
+        }
+
+        const cancelForm = document.getElementById('saldo-cancel-form');
         if (cancelForm) {
             cancelForm.addEventListener('submit', (event) => {
                 event.preventDefault();
@@ -602,8 +531,10 @@ $observacionesLabel = function ($texto) {
                     showAlertSafe('error', 'Debes indicar el motivo de cancelación.');
                     return;
                 }
-                cancelDialog.close();
-                sendAction('cancelar', pendingCancelId, motivo);
+                const pedidoId = pendingCancelId;
+                closeCancelModal();
+                resetCancelState();
+                sendAction('cancelar', pedidoId, motivo);
             });
         }
     </script>
