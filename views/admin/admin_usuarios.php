@@ -113,6 +113,12 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
             cursor: pointer;
         }
 
+        .data-table td.wrap-text,
+        .data-table th.wrap-text {
+            white-space: normal;
+            word-break: break-word;
+        }
+
         #modal-editar .modal-content {
             max-width: 1100px;
             width: 95%;
@@ -364,8 +370,12 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                             <tbody>
                                 <?php if (!empty($usuarios)): ?>
                                     <?php foreach ($usuarios as $usuario): ?>
-                                        <?php
+                                    <?php
                                         $saldoTabla = isset($usuario['Saldo']) ? number_format((float) $usuario['Saldo'], 2, '.', '') : '0.00';
+                                        $nombreWords = preg_split('/\s+/', trim((string) ($usuario['Nombre'] ?? '')));
+                                        $usuarioWords = preg_split('/\s+/', trim((string) ($usuario['Usuario'] ?? '')));
+                                        $nombreWrapped = implode('<br>', array_map('htmlspecialchars', array_filter($nombreWords, 'strlen')));
+                                        $usuarioWrapped = implode('<br>', array_map('htmlspecialchars', array_filter($usuarioWords, 'strlen')));
                                         $usuarioPayload = [
                                             'id' => $usuario['Id'] ?? '',
                                             'nombre' => $usuario['Nombre'] ?? '',
@@ -378,14 +388,14 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                                         $usuarioJson = htmlspecialchars(json_encode($usuarioPayload), ENT_QUOTES, 'UTF-8');
                                         $hijosJson = htmlspecialchars(json_encode($usuario['hijos'] ?? []), ENT_QUOTES, 'UTF-8');
                                         ?>
-                                        <tr>
-                                            <td><?= htmlspecialchars((string) ($usuario['Id'] ?? '')) ?></td>
-                                            <td><?= htmlspecialchars((string) ($usuario['Nombre'] ?? '')) ?></td>
-                                            <td><?= htmlspecialchars((string) ($usuario['Usuario'] ?? '')) ?></td>
-                                            <td><?= htmlspecialchars((string) ($usuario['Telefono'] ?? '')) ?></td>
-                                            <td><?= htmlspecialchars((string) ($usuario['Correo'] ?? '')) ?></td>
-                                            <td><?= htmlspecialchars((string) ($usuario['Rol'] ?? '')) ?></td>
-                                            <td><?= htmlspecialchars($saldoTabla) ?></td>
+                                    <tr>
+                                        <td><?= htmlspecialchars((string) ($usuario['Id'] ?? '')) ?></td>
+                                        <td class="wrap-text"><?= $nombreWrapped !== '' ? $nombreWrapped : htmlspecialchars((string) ($usuario['Nombre'] ?? '')) ?></td>
+                                        <td class="wrap-text"><?= $usuarioWrapped !== '' ? $usuarioWrapped : htmlspecialchars((string) ($usuario['Usuario'] ?? '')) ?></td>
+                                        <td><?= htmlspecialchars((string) ($usuario['Telefono'] ?? '')) ?></td>
+                                        <td><?= htmlspecialchars((string) ($usuario['Correo'] ?? '')) ?></td>
+                                        <td><?= htmlspecialchars((string) ($usuario['Rol'] ?? '')) ?></td>
+                                        <td><?= htmlspecialchars($saldoTabla) ?></td>
                                             <td>
                                                 <div class="action-buttons">
                                                     <button type="button" class="action-btn action-delete" data-usuario="<?= $usuarioJson ?>">
