@@ -162,9 +162,9 @@ $observacionesLabel = function ($texto) {
                                                 <td><?= (int) ($solicitud['Id'] ?? 0) ?></td>
                                                 <td>
                                                     <div class="saldo-user">
-                                                        <span><?= htmlspecialchars($solicitud['UsuarioNombre'] ?? '') ?></span>
-                                                        <small><?= htmlspecialchars($solicitud['UsuarioCorreo'] ?? $solicitud['UsuarioLogin'] ?? '') ?></small>
-                                                        <small>Cel: <?= htmlspecialchars($solicitud['UsuarioTelefono'] ?? '-') ?></small>
+                                                        <div><?= htmlspecialchars($solicitud['UsuarioNombre'] ?? '') ?></div>
+                                                        <div class="gform-helper"><?= htmlspecialchars($solicitud['UsuarioCorreo'] ?? $solicitud['UsuarioLogin'] ?? '') ?></div>
+                                                        <div class="gform-helper">Cel: <?= htmlspecialchars($solicitud['UsuarioTelefono'] ?? '-') ?></div>
                                                     </div>
                                                 </td>
                                                 <td>$<?= number_format((float) ($solicitud['Saldo'] ?? 0), 2, ',', '.') ?></td>
@@ -353,10 +353,10 @@ $observacionesLabel = function ($texto) {
                     : '-';
                 const acciones = estado === 'Pendiente de aprobacion'
                     ? `<div class="gform-actions">
-                            <a href="#" data-action="aprobar" title="Aprobar" style="color: #5b21b6;">
+                            <a href="#" data-action="aprobar" title="Aprobar" style="color: #58b621;">
                                 <span class="material-icons">task_alt</span>
                             </a>
-                            <a href="#" data-action="cancelar" title="Cancelar" style="color: #5b21b6;">
+                            <a href="#" data-action="cancelar" title="Cancelar" style="color: #b62121;">
                                 <span class="material-icons">cancel</span>
                             </a>
                             ${whatsappLinkHtml(item.UsuarioTelefono)}
@@ -370,11 +370,9 @@ $observacionesLabel = function ($texto) {
                         <td>${escapeHtml(item.Id)}</td>
                         <td>
                             <div class="saldo-user">
-                                <span>${escapeHtml(item.UsuarioNombre)}</span>
-                                <br>
-                                <small>${escapeHtml(item.UsuarioCorreo || item.UsuarioLogin || '')}</small>
-                                <br>
-                                <small>Cel: ${escapeHtml(item.UsuarioTelefono || '-')}</small>
+                                <div>${escapeHtml(item.UsuarioNombre)}</div>
+                                <div class="gform-helper">${escapeHtml(item.UsuarioCorreo || item.UsuarioLogin || '')}</div>
+                                <div class="gform-helper">Cel: ${escapeHtml(item.UsuarioTelefono || '-')}</div>
                             </div>
                         </td>
                         <td>$${Number(item.Saldo || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
