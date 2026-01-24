@@ -20,6 +20,11 @@ $estadoLabel = function ($estado) {
     }
     return $estado;
 };
+ 
+$observacionesLabel = function ($texto) {
+    $texto = trim((string) $texto);
+    return $texto === '' ? '-' : $texto;
+};
 ?>
 
 <!DOCTYPE html>
@@ -38,6 +43,19 @@ $estadoLabel = function ($estado) {
     <!-- Framework Success desde CDN -->
     <link rel="stylesheet" href="https://framework.impulsagroup.com/assets/css/framework.css">
     <script src="https://framework.impulsagroup.com/assets/javascript/framework.js" defer></script>
+
+    <!-- Descarga de consolidado (no se usa directamente aqui, pero se deja por consistencia) -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+    <!-- PDF: html2canvas + jsPDF (CDN gratuitos) -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- Tablas con saltos de pagina prolijos (autoTable) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Graficos (Chart.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <style>
         .saldo-table {
@@ -105,7 +123,8 @@ $estadoLabel = function ($estado) {
             min-width: 32px;
         }
 
-        .saldo-icon-btn .material-icons {
+        .saldo-icon-btn .material-icons,
+        .saldo-icon-btn .material-symbols-outlined {
             font-size: 18px;
         }
 
@@ -235,11 +254,11 @@ $estadoLabel = function ($estado) {
                                                     <?php endif; ?>
                                                 </td>
                                                 <td><?= htmlspecialchars($solicitud['Fecha_pedido'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($solicitud['Observaciones'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($observacionesLabel($solicitud['Observaciones'] ?? '')) ?></td>
                                                 <td>
                                                     <?php if ($comprobanteFile): ?>
                                                         <a href="../../uploads/comprobantes_inbox/<?= htmlspecialchars($comprobanteFile) ?>" target="_blank" class="saldo-icon-btn" title="Ver comprobante">
-                                                            <span class="material-icons">receipt_long</span>
+                                                            <span class="material-symbols-outlined">request_quote</span>
                                                         </a>
                                                     <?php else: ?>
                                                         -
@@ -249,10 +268,10 @@ $estadoLabel = function ($estado) {
                                                     <?php if ($estadoActual === 'Pendiente de aprobacion'): ?>
                                                         <div class="saldo-actions">
                                                             <button type="button" class="btn btn-small btn-aceptar saldo-icon-btn" data-action="aprobar" title="Aprobar">
-                                                                <span class="material-icons">check</span>
+                                                                <span class="material-symbols-outlined">task_alt</span>
                                                             </button>
                                                             <button type="button" class="btn btn-small btn-cancelar saldo-icon-btn" data-action="cancelar" title="Cancelar">
-                                                                <span class="material-icons">close</span>
+                                                                <span class="material-symbols-outlined">block</span>
                                                             </button>
                                                             <?php
                                                             $telefonoRaw = $solicitud['UsuarioTelefono'] ?? '';
@@ -348,6 +367,11 @@ $estadoLabel = function ($estado) {
             return estado;
         }
 
+        function observacionesLabel(texto) {
+            const cleaned = String(texto || '').trim();
+            return cleaned === '' ? '-' : cleaned;
+        }
+
         function whatsappLinkHtml(telefono) {
             const digits = String(telefono || '').replace(/\D+/g, '');
             if (!digits) return '-';
@@ -370,16 +394,16 @@ $estadoLabel = function ($estado) {
                 const comprobanteFile = comprobante ? comprobante.split(/[\\/]/).pop() : '';
                 const comprobanteHtml = comprobanteFile
                     ? `<a href="../../uploads/comprobantes_inbox/${escapeHtml(comprobanteFile)}" target="_blank" class="saldo-icon-btn" title="Ver comprobante">
-                            <span class="material-icons">receipt_long</span>
+                            <span class="material-symbols-outlined">request_quote</span>
                        </a>`
                     : '-';
                 const acciones = estado === 'Pendiente de aprobacion'
                     ? `<div class="saldo-actions">
                             <button type="button" class="btn btn-small btn-aceptar saldo-icon-btn" data-action="aprobar" title="Aprobar">
-                                <span class="material-icons">check</span>
+                                <span class="material-symbols-outlined">task_alt</span>
                             </button>
                             <button type="button" class="btn btn-small btn-cancelar saldo-icon-btn" data-action="cancelar" title="Cancelar">
-                                <span class="material-icons">close</span>
+                                <span class="material-symbols-outlined">block</span>
                             </button>
                             ${whatsappLinkHtml(item.UsuarioTelefono)}
                         </div>`
@@ -400,7 +424,7 @@ $estadoLabel = function ($estado) {
                         <td>$${Number(item.Saldo || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                         <td>${estado ? `<span class="badge ${estadoBadge(estado)}">${escapeHtml(estadoLabel(estado))}</span>` : ''}</td>
                         <td>${escapeHtml(item.Fecha_pedido || '')}</td>
-                        <td>${escapeHtml(item.Observaciones || '')}</td>
+                        <td>${escapeHtml(observacionesLabel(item.Observaciones))}</td>
                         <td>${comprobanteHtml}</td>
                         <td>${acciones}</td>
                     </tr>`;
