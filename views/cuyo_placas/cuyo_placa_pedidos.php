@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
+require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
 ?>
 
 <!DOCTYPE html>
@@ -72,7 +72,7 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
                 <button class="btn-icon" onclick="toggleSidebar()">
                     <span class="material-icons">menu</span>
                 </button>
-                <div class="navbar-title">Inicio</div>
+                <div class="navbar-title">Pedidos</div>
             </header>
 
             <!-- 📦 CONTENIDO -->
@@ -101,7 +101,7 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
                                 <span class="material-icons">tune</span>
                             </button>
                             <div class="filtros-panel" id="panelFiltros">
-                                <form class="form-modern" method="get" action="cuyo_placa_dashboard.php">
+                                <form class="form-modern" method="get" action="cuyo_placa_pedidos.php">
                                     <div class="input-group">
                                         <label>Fecha desde</label>
                                         <div class="input-icon">
@@ -137,7 +137,7 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
 
                                     <div class="form-buttons">
                                         <button class="btn btn-aceptar" type="submit">Aplicar</button>
-                                        <a class="btn btn-cancelar" href="cuyo_placa_dashboard.php">Limpiar</a>
+                                        <a class="btn btn-cancelar" href="cuyo_placa_pedidos.php">Limpiar</a>
                                     </div>
                                 </form>
                             </div>
