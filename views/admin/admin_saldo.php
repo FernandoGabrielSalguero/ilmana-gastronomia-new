@@ -1,13 +1,6 @@
 <?php
 require_once __DIR__ . '/../../controllers/admin_saldoController.php';
 
-$estadoOpciones = [
-    '' => 'Todos',
-    'Pendiente de aprobacion' => 'Pendiente de aprobacion',
-    'Aprobado' => 'Aprobado',
-    'Cancelado' => 'Cancelado'
-];
-
 $badgeClass = function ($estado) {
     if ($estado === 'Aprobado') {
         return 'success';
@@ -19,6 +12,13 @@ $badgeClass = function ($estado) {
         return 'warning';
     }
     return '';
+};
+
+$estadoLabel = function ($estado) {
+    if ($estado === 'Pendiente de aprobacion') {
+        return 'Pendiente';
+    }
+    return $estado;
 };
 ?>
 
@@ -96,6 +96,24 @@ $badgeClass = function ($estado) {
         .saldo-user small {
             color: #6b7280;
         }
+
+        .saldo-icon-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+            min-width: 32px;
+        }
+
+        .saldo-icon-btn .material-icons {
+            font-size: 18px;
+        }
+
+        .whatsapp-icon {
+            width: 18px;
+            height: 18px;
+            fill: #25D366;
+        }
     </style>
 </head>
 
@@ -171,77 +189,6 @@ $badgeClass = function ($estado) {
                 <?php endif; ?>
 
                 <div class="card">
-                    <h3>Filtros</h3>
-                    <form class="form-modern" method="get" id="saldo-filter-form">
-                        <div class="form-grid grid-4">
-                            <div class="input-group">
-                                <label>Colegio</label>
-                                <div class="input-icon">
-                                    <span class="material-icons">school</span>
-                                    <select name="colegio" class="saldo-colegio">
-                                        <option value="">Todos</option>
-                                        <?php foreach ($colegios as $colegio): ?>
-                                            <option value="<?= (int) $colegio['Id'] ?>" <?= $colegioId === (int) $colegio['Id'] ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars($colegio['Nombre'] ?? '') ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="input-group">
-                                <label>Curso</label>
-                                <div class="input-icon">
-                                    <span class="material-icons">class</span>
-                                    <select name="curso" class="saldo-curso">
-                                        <option value="">Todos</option>
-                                        <?php foreach ($cursos as $curso): ?>
-                                            <option value="<?= (int) $curso['Id'] ?>" <?= $cursoId === (int) $curso['Id'] ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars($curso['Nombre'] ?? '') ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="input-group">
-                                <label>Estado</label>
-                                <div class="input-icon">
-                                    <span class="material-icons">flag</span>
-                                    <select name="estado" class="saldo-estado">
-                                        <?php foreach ($estadoOpciones as $value => $label): ?>
-                                            <option value="<?= htmlspecialchars($value) ?>" <?= $estado === $value ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars($label) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="input-group">
-                                <label>Fecha desde</label>
-                                <div class="input-icon">
-                                    <span class="material-icons">event</span>
-                                    <input type="date" name="fecha_desde" value="<?= htmlspecialchars($fechaDesde) ?>">
-                                </div>
-                            </div>
-
-                            <div class="input-group">
-                                <label>Fecha hasta</label>
-                                <div class="input-icon">
-                                    <span class="material-icons">event</span>
-                                    <input type="date" name="fecha_hasta" value="<?= htmlspecialchars($fechaHasta) ?>">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-buttons">
-                            <button class="btn btn-aceptar" type="submit">Aplicar filtros</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Solicitudes</h3>
                     </div>
@@ -276,13 +223,14 @@ $badgeClass = function ($estado) {
                                                     <div class="saldo-user">
                                                         <span><?= htmlspecialchars($solicitud['UsuarioNombre'] ?? '') ?></span>
                                                         <small><?= htmlspecialchars($solicitud['UsuarioCorreo'] ?? $solicitud['UsuarioLogin'] ?? '') ?></small>
+                                                        <small><?= htmlspecialchars($solicitud['UsuarioTelefono'] ?? '') ?></small>
                                                     </div>
                                                 </td>
                                                 <td>$<?= number_format((float) ($solicitud['Saldo'] ?? 0), 2, ',', '.') ?></td>
                                                 <td>
                                                     <?php if ($estadoActual !== ''): ?>
                                                         <span class="badge <?= htmlspecialchars($badgeClass($estadoActual)) ?>">
-                                                            <?= htmlspecialchars($estadoActual) ?>
+                                                            <?= htmlspecialchars($estadoLabel($estadoActual)) ?>
                                                         </span>
                                                     <?php endif; ?>
                                                 </td>
@@ -290,7 +238,9 @@ $badgeClass = function ($estado) {
                                                 <td><?= htmlspecialchars($solicitud['Observaciones'] ?? '') ?></td>
                                                 <td>
                                                     <?php if ($comprobanteFile): ?>
-                                                        <a href="../../uploads/comprobantes_inbox/<?= htmlspecialchars($comprobanteFile) ?>" target="_blank">Ver</a>
+                                                        <a href="../../uploads/comprobantes_inbox/<?= htmlspecialchars($comprobanteFile) ?>" target="_blank" class="saldo-icon-btn" title="Ver comprobante">
+                                                            <span class="material-icons">receipt_long</span>
+                                                        </a>
                                                     <?php else: ?>
                                                         -
                                                     <?php endif; ?>
@@ -298,15 +248,38 @@ $badgeClass = function ($estado) {
                                                 <td>
                                                     <?php if ($estadoActual === 'Pendiente de aprobacion'): ?>
                                                         <div class="saldo-actions">
-                                                            <button type="button" class="btn btn-small btn-aceptar" data-action="aprobar">
-                                                                <span class="saldo-pill"><span class="material-icons">check_circle</span>Aprobar</span>
+                                                            <button type="button" class="btn btn-small btn-aceptar saldo-icon-btn" data-action="aprobar" title="Aprobar">
+                                                                <span class="material-icons">check</span>
                                                             </button>
-                                                            <button type="button" class="btn btn-small btn-cancelar" data-action="cancelar">
-                                                                <span class="saldo-pill"><span class="material-icons">cancel</span>Cancelar</span>
+                                                            <button type="button" class="btn btn-small btn-cancelar saldo-icon-btn" data-action="cancelar" title="Cancelar">
+                                                                <span class="material-icons">close</span>
                                                             </button>
+                                                            <?php
+                                                            $telefonoRaw = $solicitud['UsuarioTelefono'] ?? '';
+                                                            $telefonoWhatsapp = preg_replace('/\D+/', '', (string) $telefonoRaw);
+                                                            ?>
+                                                            <?php if ($telefonoWhatsapp !== ''): ?>
+                                                                <a class="btn btn-small saldo-icon-btn" href="https://wa.me/<?= htmlspecialchars($telefonoWhatsapp) ?>" target="_blank" title="Enviar WhatsApp">
+                                                                    <svg class="whatsapp-icon" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+                                                                        <path d="M19.1 17.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-1 .1-.2-.3-.9-1.3-1.7-2.3-.7-.8-1.1-1.8-1.2-2.1 0-.3 0-.4.1-.6.1-.2.3-.5.4-.7.1-.2.2-.3.3-.5.1-.2.1-.3 0-.5-.1-.2-.7-1.7-.9-2.3-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.1 1.1-1.1 2.6s1.1 3 1.3 3.2c.2.3 2.2 3.4 5.4 4.8.8.3 1.4.5 1.8.6.8.2 1.5.2 2.1.1.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.3.1-1.4-.1-.2-.3-.2-.6-.4zM16.1 27c-1.7 0-3.3-.4-4.8-1.1l-5.3 1.4 1.4-5.1c-.8-1.5-1.2-3.2-1.2-5 0-5.7 4.6-10.3 10.3-10.3 2.8 0 5.3 1.1 7.3 3 1.9 1.9 3 4.5 3 7.3 0 5.7-4.6 10.3-10.3 10.3zm0-18.8c-4.7 0-8.5 3.8-8.5 8.5 0 1.6.4 3.1 1.2 4.4l.2.3-.8 3 3.1-.8.3.2c1.3.8 2.8 1.2 4.4 1.2 4.7 0 8.5-3.8 8.5-8.5 0-2.3-.9-4.4-2.5-6-1.6-1.6-3.7-2.5-6-2.5z" />
+                                                                    </svg>
+                                                                </a>
+                                                            <?php endif; ?>
                                                         </div>
                                                     <?php else: ?>
-                                                        -
+                                                        <?php
+                                                        $telefonoRaw = $solicitud['UsuarioTelefono'] ?? '';
+                                                        $telefonoWhatsapp = preg_replace('/\D+/', '', (string) $telefonoRaw);
+                                                        ?>
+                                                        <?php if ($telefonoWhatsapp !== ''): ?>
+                                                            <a class="btn btn-small saldo-icon-btn" href="https://wa.me/<?= htmlspecialchars($telefonoWhatsapp) ?>" target="_blank" title="Enviar WhatsApp">
+                                                                <svg class="whatsapp-icon" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+                                                                    <path d="M19.1 17.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-1 .1-.2-.3-.9-1.3-1.7-2.3-.7-.8-1.1-1.8-1.2-2.1 0-.3 0-.4.1-.6.1-.2.3-.5.4-.7.1-.2.2-.3.3-.5.1-.2.1-.3 0-.5-.1-.2-.7-1.7-.9-2.3-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.1 1.1-1.1 2.6s1.1 3 1.3 3.2c.2.3 2.2 3.4 5.4 4.8.8.3 1.4.5 1.8.6.8.2 1.5.2 2.1.1.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.3.1-1.4-.1-.2-.3-.2-.6-.4zM16.1 27c-1.7 0-3.3-.4-4.8-1.1l-5.3 1.4 1.4-5.1c-.8-1.5-1.2-3.2-1.2-5 0-5.7 4.6-10.3 10.3-10.3 2.8 0 5.3 1.1 7.3 3 1.9 1.9 3 4.5 3 7.3 0 5.7-4.6 10.3-10.3 10.3zm0-18.8c-4.7 0-8.5 3.8-8.5 8.5 0 1.6.4 3.1 1.2 4.4l.2.3-.8 3 3.1-.8.3.2c1.3.8 2.8 1.2 4.4 1.2 4.7 0 8.5-3.8 8.5-8.5 0-2.3-.9-4.4-2.5-6-1.6-1.6-3.7-2.5-6-2.5z" />
+                                                                    </svg>
+                                                                </a>
+                                                        <?php else: ?>
+                                                            -
+                                                        <?php endif; ?>
                                                     <?php endif; ?>
                                                 </td>
                                             </tr>
@@ -368,6 +341,23 @@ $badgeClass = function ($estado) {
             return '';
         }
 
+        function estadoLabel(estado) {
+            if (estado === 'Pendiente de aprobacion') {
+                return 'Pendiente';
+            }
+            return estado;
+        }
+
+        function whatsappLinkHtml(telefono) {
+            const digits = String(telefono || '').replace(/\D+/g, '');
+            if (!digits) return '-';
+            return `<a class="btn btn-small saldo-icon-btn" href="https://wa.me/${digits}" target="_blank" title="Enviar WhatsApp">
+                        <svg class="whatsapp-icon" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+                            <path d="M19.1 17.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-1 .1-.2-.3-.9-1.3-1.7-2.3-.7-.8-1.1-1.8-1.2-2.1 0-.3 0-.4.1-.6.1-.2.3-.5.4-.7.1-.2.2-.3.3-.5.1-.2.1-.3 0-.5-.1-.2-.7-1.7-.9-2.3-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.1 1.1-1.1 2.6s1.1 3 1.3 3.2c.2.3 2.2 3.4 5.4 4.8.8.3 1.4.5 1.8.6.8.2 1.5.2 2.1.1.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.3.1-1.4-.1-.2-.3-.2-.6-.4zM16.1 27c-1.7 0-3.3-.4-4.8-1.1l-5.3 1.4 1.4-5.1c-.8-1.5-1.2-3.2-1.2-5 0-5.7 4.6-10.3 10.3-10.3 2.8 0 5.3 1.1 7.3 3 1.9 1.9 3 4.5 3 7.3 0 5.7-4.6 10.3-10.3 10.3zm0-18.8c-4.7 0-8.5 3.8-8.5 8.5 0 1.6.4 3.1 1.2 4.4l.2.3-.8 3 3.1-.8.3.2c1.3.8 2.8 1.2 4.4 1.2 4.7 0 8.5-3.8 8.5-8.5 0-2.3-.9-4.4-2.5-6-1.6-1.6-3.7-2.5-6-2.5z" />
+                        </svg>
+                    </a>`;
+        }
+
         function renderRows(items) {
             if (!tableBody) return;
             if (!items || items.length === 0) {
@@ -379,18 +369,21 @@ $badgeClass = function ($estado) {
                 const comprobante = item.Comprobante ? String(item.Comprobante) : '';
                 const comprobanteFile = comprobante ? comprobante.split(/[\\/]/).pop() : '';
                 const comprobanteHtml = comprobanteFile
-                    ? `<a href="../../uploads/comprobantes_inbox/${escapeHtml(comprobanteFile)}" target="_blank">Ver</a>`
+                    ? `<a href="../../uploads/comprobantes_inbox/${escapeHtml(comprobanteFile)}" target="_blank" class="saldo-icon-btn" title="Ver comprobante">
+                            <span class="material-icons">receipt_long</span>
+                       </a>`
                     : '-';
                 const acciones = estado === 'Pendiente de aprobacion'
                     ? `<div class="saldo-actions">
-                            <button type="button" class="btn btn-small btn-aceptar" data-action="aprobar">
-                                <span class="saldo-pill"><span class="material-icons">check_circle</span>Aprobar</span>
+                            <button type="button" class="btn btn-small btn-aceptar saldo-icon-btn" data-action="aprobar" title="Aprobar">
+                                <span class="material-icons">check</span>
                             </button>
-                            <button type="button" class="btn btn-small btn-cancelar" data-action="cancelar">
-                                <span class="saldo-pill"><span class="material-icons">cancel</span>Cancelar</span>
+                            <button type="button" class="btn btn-small btn-cancelar saldo-icon-btn" data-action="cancelar" title="Cancelar">
+                                <span class="material-icons">close</span>
                             </button>
+                            ${whatsappLinkHtml(item.UsuarioTelefono)}
                         </div>`
-                    : '-';
+                    : whatsappLinkHtml(item.UsuarioTelefono);
 
                 return `
                     <tr data-id="${escapeHtml(item.Id)}"
@@ -401,10 +394,11 @@ $badgeClass = function ($estado) {
                             <div class="saldo-user">
                                 <span>${escapeHtml(item.UsuarioNombre)}</span>
                                 <small>${escapeHtml(item.UsuarioCorreo || item.UsuarioLogin || '')}</small>
+                                <small>${escapeHtml(item.UsuarioTelefono || '')}</small>
                             </div>
                         </td>
                         <td>$${Number(item.Saldo || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                        <td>${estado ? `<span class="badge ${estadoBadge(estado)}">${escapeHtml(estado)}</span>` : ''}</td>
+                        <td>${estado ? `<span class="badge ${estadoBadge(estado)}">${escapeHtml(estadoLabel(estado))}</span>` : ''}</td>
                         <td>${escapeHtml(item.Fecha_pedido || '')}</td>
                         <td>${escapeHtml(item.Observaciones || '')}</td>
                         <td>${comprobanteHtml}</td>
@@ -414,8 +408,7 @@ $badgeClass = function ($estado) {
         }
 
         async function fetchSolicitudes() {
-            if (!filterForm) return;
-            const params = new URLSearchParams(new FormData(filterForm));
+            const params = filterForm ? new URLSearchParams(new FormData(filterForm)) : new URLSearchParams();
             params.set('action', 'list');
             params.set('ajax', '1');
             const response = await fetch(`${saldoEndpoint}?${params.toString()}`, {
