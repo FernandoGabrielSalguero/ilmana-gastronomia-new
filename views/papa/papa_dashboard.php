@@ -339,6 +339,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                 <p><strong>Preferencias alimenticias:</strong> <?= $preferencias !== '' ? htmlspecialchars($preferencias) : 'Sin preferencias' ?></p>
                                 <p><strong>Nombre del colegio:</strong> <?= $colegio !== '' ? htmlspecialchars($colegio) : 'Sin colegio' ?></p>
                                 <p><strong>Curso:</strong> <?= $curso !== '' ? htmlspecialchars($curso) : 'Sin curso' ?></p>
+                                <br>
                                 <button class="btn btn-aceptar" type="button" onclick="abrirModalVianda(<?= (int)($hijo['Id'] ?? 0) ?>, '<?= htmlspecialchars($hijo['Nombre']) ?>')" data-tutorial="btn-pedir-vianda">Pedir vianda</button>
                             </div>
                         <?php endforeach; ?>
