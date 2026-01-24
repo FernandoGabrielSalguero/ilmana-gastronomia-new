@@ -258,7 +258,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                             if ($mostrarHijos && empty($hijosForm)) {
                                 $hijosForm[] = [
                                     'nombre' => '',
-                                    'preferencias' => '',
+                                    'preferencias' => $preferenciaDefaultId ?? '',
                                     'colegio_id' => '',
                                     'curso_id' => ''
                                 ];
@@ -337,6 +337,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
         const colegioOptionsHtml = <?= json_encode($colegioOptionsHtml) ?>;
         const cursoOptionsHtml = <?= json_encode($cursoOptionsHtml) ?>;
         const preferenciaOptionsHtml = <?= json_encode($preferenciaOptionsHtml) ?>;
+        const defaultPreferenciaId = <?= json_encode($preferenciaDefaultId ?? '') ?>;
 
         let autoUsuario = true;
         let lastAutoUsuario = '';
@@ -390,8 +391,12 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
             }
 
             const preferenciaSelect = row.querySelector('.hijo-preferencia');
-            if (preferenciaSelect && preferenciaSelect.dataset.selected) {
-                preferenciaSelect.value = preferenciaSelect.dataset.selected;
+            if (preferenciaSelect) {
+                if (preferenciaSelect.dataset.selected) {
+                    preferenciaSelect.value = preferenciaSelect.dataset.selected;
+                } else if (defaultPreferenciaId) {
+                    preferenciaSelect.value = defaultPreferenciaId;
+                }
             }
 
             if (removeButton) {

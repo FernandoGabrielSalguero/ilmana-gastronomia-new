@@ -59,6 +59,14 @@ $hijosForm = [];
 $colegios = $model->obtenerColegios();
 $cursos = $model->obtenerCursos();
 $preferencias = $model->obtenerPreferencias();
+$preferenciasLookup = [];
+foreach ($preferencias as $preferencia) {
+    $preferenciasLookup[(string) ($preferencia['Id'] ?? '')] = true;
+}
+$preferenciaDefaultId = '6';
+if (!isset($preferenciasLookup[$preferenciaDefaultId])) {
+    $preferenciaDefaultId = '';
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear') {
     $nombre = trim($_POST['nombre'] ?? '');
@@ -117,11 +125,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
     $hijosColegios = $_POST['hijos_colegio'] ?? [];
     $hijosCursos = $_POST['hijos_curso'] ?? [];
 
-    $preferenciasLookup = [];
-    foreach ($preferencias as $preferencia) {
-        $preferenciasLookup[(string) ($preferencia['Id'] ?? '')] = $preferencia['Nombre'] ?? '';
-    }
-
     $max = max(
         count($hijosNombres),
         count($hijosPreferencias),
@@ -135,12 +138,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
 
     for ($i = 0; $i < $max; $i++) {
         $nombreHijo = trim($hijosNombres[$i] ?? '');
-        $prefId = trim($hijosPreferencias[$i] ?? '');
-        $prefNombre = $prefId !== '' ? ($preferenciasLookup[$prefId] ?? '') : '';
+        $prefIdRaw = trim($hijosPreferencias[$i] ?? '');
+        $prefId = $prefIdRaw;
+        if ($prefId === '' && $preferenciaDefaultId !== '') {
+            $prefId = $preferenciaDefaultId;
+        }
         $colegioRaw = $hijosColegios[$i] ?? '';
         $cursoRaw = $hijosCursos[$i] ?? '';
 
-        $hasAny = $nombreHijo !== '' || $prefId !== '' || $colegioRaw !== '' || $cursoRaw !== '';
+        $hasAny = $nombreHijo !== '' || $prefIdRaw !== '' || $colegioRaw !== '' || $cursoRaw !== '';
         if (!$hasAny) {
             continue;
         }
@@ -170,14 +176,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
             continue;
         }
 
-        if ($prefId !== '' && $prefNombre === '') {
+        if ($prefId !== '' && !isset($preferenciasLookup[$prefId])) {
             $errores[] = 'Selecciona una preferencia alimenticia valida.';
             continue;
         }
 
         $hijos[] = [
             'nombre' => $nombreHijo,
-            'preferencias' => $prefNombre !== '' ? $prefNombre : null,
+            'preferencias_id' => $prefId !== '' ? (int) $prefId : null,
             'colegio_id' => $colegioId ?: null,
             'curso_id' => $cursoId ?: null
         ];

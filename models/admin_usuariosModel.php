@@ -73,7 +73,7 @@ class AdminUsuariosModel
                 foreach ($hijos as $hijo) {
                     $stmtHijo->execute([
                         'nombre' => $hijo['nombre'],
-                        'preferencias' => $hijo['preferencias'],
+                        'preferencias' => $hijo['preferencias_id'],
                         'colegio_id' => $hijo['colegio_id'],
                         'curso_id' => $hijo['curso_id']
                     ]);
