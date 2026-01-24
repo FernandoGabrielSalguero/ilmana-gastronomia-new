@@ -165,7 +165,6 @@ $observacionesLabel = function ($texto) {
                                                         <span><?= htmlspecialchars($solicitud['UsuarioNombre'] ?? '') ?></span>
                                                         <small><?= htmlspecialchars($solicitud['UsuarioCorreo'] ?? $solicitud['UsuarioLogin'] ?? '') ?></small>
                                                         <small>Cel: <?= htmlspecialchars($solicitud['UsuarioTelefono'] ?? '-') ?></small>
-                                                        <small>Saldo: $<?= number_format((float) ($solicitud['UsuarioSaldo'] ?? 0), 2, ',', '.') ?></small>
                                                     </div>
                                                 </td>
                                                 <td>$<?= number_format((float) ($solicitud['Saldo'] ?? 0), 2, ',', '.') ?></td>
@@ -180,7 +179,7 @@ $observacionesLabel = function ($texto) {
                                                 <td><?= htmlspecialchars($observacionesLabel($solicitud['Observaciones'] ?? '')) ?></td>
                                                 <td>
                                                     <?php if ($comprobanteFile): ?>
-                                                        <a href="../../uploads/comprobantes_inbox/<?= htmlspecialchars($comprobanteFile) ?>" target="_blank" class="btn btn-info" title="Ver comprobante">
+                                                        <a href="../../uploads/comprobantes_inbox/<?= htmlspecialchars($comprobanteFile) ?>" target="_blank" title="Ver comprobante" style="color: #2196f3;">
                                                             <span class="material-icons">visibility</span>
                                                         </a>
                                                     <?php else: ?>
@@ -190,18 +189,18 @@ $observacionesLabel = function ($texto) {
                                                 <td>
                                                     <?php if ($estadoActual === 'Pendiente de aprobacion'): ?>
                                                         <div class="gform-actions">
-                                                            <button type="button" class="btn btn-small btn-aceptar" data-action="aprobar" title="Aprobar">
+                                                            <a href="#" data-action="aprobar" title="Aprobar" style="color: #5b21b6;">
                                                                 <span class="material-icons">task_alt</span>
-                                                            </button>
-                                                            <button type="button" class="btn btn-small btn-cancelar" data-action="cancelar" title="Cancelar">
+                                                            </a>
+                                                            <a href="#" data-action="cancelar" title="Cancelar" style="color: #5b21b6;">
                                                                 <span class="material-icons">cancel</span>
-                                                            </button>
+                                                            </a>
                                                             <?php
                                                             $telefonoRaw = $solicitud['UsuarioTelefono'] ?? '';
                                                             $telefonoWhatsapp = preg_replace('/\D+/', '', (string) $telefonoRaw);
                                                             ?>
                                                             <?php if ($telefonoWhatsapp !== ''): ?>
-                                                                <a class="btn btn-small btn-info" href="https://wa.me/<?= htmlspecialchars($telefonoWhatsapp) ?>" target="_blank" title="Enviar WhatsApp">
+                                                                <a href="https://wa.me/<?= htmlspecialchars($telefonoWhatsapp) ?>" target="_blank" title="Enviar WhatsApp" style="color: #5b21b6;">
                                                                     <span class="material-icons">chat</span>
                                                                 </a>
                                                             <?php endif; ?>
@@ -212,7 +211,7 @@ $observacionesLabel = function ($texto) {
                                                         $telefonoWhatsapp = preg_replace('/\D+/', '', (string) $telefonoRaw);
                                                         ?>
                                                         <?php if ($telefonoWhatsapp !== ''): ?>
-                                                            <a class="btn btn-small btn-info" href="https://wa.me/<?= htmlspecialchars($telefonoWhatsapp) ?>" target="_blank" title="Enviar WhatsApp">
+                                                            <a href="https://wa.me/<?= htmlspecialchars($telefonoWhatsapp) ?>" target="_blank" title="Enviar WhatsApp" style="color: #5b21b6;">
                                                                 <span class="material-icons">chat</span>
                                                             </a>
                                                         <?php else: ?>
@@ -331,7 +330,7 @@ $observacionesLabel = function ($texto) {
         function whatsappLinkHtml(telefono) {
             const digits = String(telefono || '').replace(/\D+/g, '');
             if (!digits) return '-';
-            return `<a class="btn btn-small btn-info" href="https://wa.me/${digits}" target="_blank" title="Enviar WhatsApp">
+            return `<a href="https://wa.me/${digits}" target="_blank" title="Enviar WhatsApp" style="color: #5b21b6;">
                         <span class="material-icons">chat</span>
                     </a>`;
         }
@@ -347,18 +346,18 @@ $observacionesLabel = function ($texto) {
                 const comprobante = item.Comprobante ? String(item.Comprobante) : '';
                 const comprobanteFile = comprobante ? comprobante.split(/[\\/]/).pop() : '';
                 const comprobanteHtml = comprobanteFile
-                    ? `<a href="../../uploads/comprobantes_inbox/${escapeHtml(comprobanteFile)}" target="_blank" class="btn btn-info" title="Ver comprobante">
+                    ? `<a href="../../uploads/comprobantes_inbox/${escapeHtml(comprobanteFile)}" target="_blank" title="Ver comprobante" style="color: #2196f3;">
                             <span class="material-icons">visibility</span>
                        </a>`
                     : '-';
                 const acciones = estado === 'Pendiente de aprobacion'
                     ? `<div class="gform-actions">
-                            <button type="button" class="btn btn-small btn-aceptar" data-action="aprobar" title="Aprobar">
+                            <a href="#" data-action="aprobar" title="Aprobar" style="color: #5b21b6;">
                                 <span class="material-icons">task_alt</span>
-                            </button>
-                            <button type="button" class="btn btn-small btn-cancelar" data-action="cancelar" title="Cancelar">
+                            </a>
+                            <a href="#" data-action="cancelar" title="Cancelar" style="color: #5b21b6;">
                                 <span class="material-icons">cancel</span>
-                            </button>
+                            </a>
                             ${whatsappLinkHtml(item.UsuarioTelefono)}
                         </div>`
                     : whatsappLinkHtml(item.UsuarioTelefono);
@@ -373,7 +372,6 @@ $observacionesLabel = function ($texto) {
                                 <span>${escapeHtml(item.UsuarioNombre)}</span>
                                 <small>${escapeHtml(item.UsuarioCorreo || item.UsuarioLogin || '')}</small>
                                 <small>Cel: ${escapeHtml(item.UsuarioTelefono || '-')}</small>
-                                <small>Saldo: $${Number(item.UsuarioSaldo || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</small>
                             </div>
                         </td>
                         <td>$${Number(item.Saldo || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
@@ -474,11 +472,12 @@ $observacionesLabel = function ($texto) {
 
         if (tableBody) {
             tableBody.addEventListener('click', async (event) => {
-                const button = event.target.closest('button[data-action]');
-                if (!button) return;
-                const row = button.closest('tr');
+                const actionEl = event.target.closest('[data-action]');
+                if (!actionEl) return;
+                event.preventDefault();
+                const row = actionEl.closest('tr');
                 if (!row) return;
-                const action = button.dataset.action;
+                const action = actionEl.dataset.action;
                 const pedidoId = row.dataset.id;
                 if (!pedidoId) return;
 
