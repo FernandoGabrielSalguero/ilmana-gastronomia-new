@@ -100,6 +100,12 @@ $estadoSeleccionado = $_POST['estado'] ?? 'En venta';
             white-space: nowrap;
         }
 
+        .col-nombre {
+            max-width: 220px;
+            white-space: normal;
+            word-break: break-word;
+        }
+
         .table-actions {
             display: flex;
             align-items: center;
@@ -286,7 +292,7 @@ $estadoSeleccionado = $_POST['estado'] ?? 'En venta';
                                     <thead>
                                         <tr>
                                             <th>ID</th>
-                                            <th>Nombre</th>
+                                            <th class="col-nombre">Nombre</th>
                                             <th>Fecha entrega</th>
                                             <th>Fecha limite de compra</th>
                                             <th>Fecha limite de venta</th>
@@ -304,7 +310,7 @@ $estadoSeleccionado = $_POST['estado'] ?? 'En venta';
                                             ?>
                                             <tr>
                                                 <td><?= htmlspecialchars($item['Id'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($item['Nombre'] ?? '') ?></td>
+                                                <td class="col-nombre"><?= htmlspecialchars($item['Nombre'] ?? '') ?></td>
                                                 <td><?= htmlspecialchars($item['Fecha_entrega'] ?? '') ?></td>
                                                 <td><?= htmlspecialchars($item['Fecha_hora_compra'] ?? '') ?></td>
                                                 <td><?= htmlspecialchars($item['Fecha_hora_cancelacion'] ?? '') ?></td>
