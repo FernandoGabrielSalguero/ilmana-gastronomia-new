@@ -36,6 +36,9 @@ $estadoSeleccionado = $_POST['estado'] ?? 'En venta';
 
     <!-- Graficos (Chart.js) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
     <style>
         .chip-options {
             display: flex;
@@ -157,7 +160,7 @@ $estadoSeleccionado = $_POST['estado'] ?? 'En venta';
                             <div class="input-group">
                                 <label for="fecha_hora_compra">Fecha y hora compra</label>
                                 <div class="input-icon input-icon-date">
-                                    <input type="datetime-local" id="fecha_hora_compra" name="fecha_hora_compra"
+                                    <input type="text" id="fecha_hora_compra" name="fecha_hora_compra"
                                         value="<?= htmlspecialchars($_POST['fecha_hora_compra'] ?? '') ?>" />
                                 </div>
                             </div>
@@ -165,7 +168,7 @@ $estadoSeleccionado = $_POST['estado'] ?? 'En venta';
                             <div class="input-group">
                                 <label for="fecha_hora_cancelacion">Fecha y hora cancelacion</label>
                                 <div class="input-icon input-icon-date">
-                                    <input type="datetime-local" id="fecha_hora_cancelacion"
+                                    <input type="text" id="fecha_hora_cancelacion"
                                         name="fecha_hora_cancelacion"
                                         value="<?= htmlspecialchars($_POST['fecha_hora_cancelacion'] ?? '') ?>" />
                                 </div>
@@ -272,26 +275,48 @@ $estadoSeleccionado = $_POST['estado'] ?? 'En venta';
             const fechaCompra = document.getElementById('fecha_hora_compra');
             const fechaCancelacion = document.getElementById('fecha_hora_cancelacion');
 
-            const syncFecha = (target) => {
-                if (!fechaEntrega || !target || !fechaEntrega.value) {
+            const pickerConfig = {
+                enableTime: true,
+                enableSeconds: true,
+                time_24hr: true,
+                dateFormat: 'Y-m-d H:i:S',
+                locale: 'es'
+            };
+
+            const compraPicker = fechaCompra ? flatpickr(fechaCompra, pickerConfig) : null;
+            const cancelacionPicker = fechaCancelacion ? flatpickr(fechaCancelacion, pickerConfig) : null;
+
+            const getTimePart = (value) => {
+                if (!value) {
+                    return '00:00:00';
+                }
+                const partes = value.trim().split(' ');
+                return partes[1] || '00:00:00';
+            };
+
+            const syncFecha = (picker, input) => {
+                if (!fechaEntrega || !fechaEntrega.value || !input) {
                     return;
                 }
-
-                const partes = target.value.split('T');
-                const hora = partes[1] || '00:00';
-                target.value = `${fechaEntrega.value}T${hora}`;
+                const timePart = getTimePart(input.value);
+                const nextValue = `${fechaEntrega.value} ${timePart}`;
+                if (picker) {
+                    picker.setDate(nextValue, true);
+                } else {
+                    input.value = nextValue;
+                }
             };
 
             if (fechaEntrega) {
                 fechaEntrega.addEventListener('change', () => {
-                    syncFecha(fechaCompra);
-                    syncFecha(fechaCancelacion);
+                    syncFecha(compraPicker, fechaCompra);
+                    syncFecha(cancelacionPicker, fechaCancelacion);
                 });
             }
 
             if (fechaEntrega && fechaEntrega.value) {
-                syncFecha(fechaCompra);
-                syncFecha(fechaCancelacion);
+                syncFecha(compraPicker, fechaCompra);
+                syncFecha(cancelacionPicker, fechaCancelacion);
             }
         });
     </script>
