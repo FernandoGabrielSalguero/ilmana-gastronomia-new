@@ -234,6 +234,7 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
     <style>
         .resumen-card {
             position: relative;
+            overflow: visible;
         }
 
         .resumen-header {
@@ -257,6 +258,7 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
             position: relative;
             display: flex;
             gap: 8px;
+            z-index: 5;
         }
 
         .filtros-panel {
