@@ -62,6 +62,7 @@ $plantasFiltro = $usarTodasLasPlantas ? [] : array_values(array_intersect($plant
 
 $model = new CuyoPlacaDashboardModel($pdo);
 $resumenMenus = $model->obtenerResumenMenus($fechaDesde, $fechaHasta, $plantasFiltro);
+$pedidosPorPlanta = $model->obtenerPedidosPorPlanta($fechaDesde, $fechaHasta, $plantasFiltro);
 
 $menuOrden = [
     'Refrigerio sandwich almuerzo',
@@ -110,6 +111,12 @@ foreach ($plantasDisponibles as $planta) {
 }
 
 $totalMenus = array_fill_keys($menuOrden, 0);
+$remitosPorPlanta = [
+    'total' => [],
+];
+foreach ($plantasDisponibles as $planta) {
+    $remitosPorPlanta[$planta] = [];
+}
 
 foreach ($resumenMenus as $fila) {
     $planta = $fila['planta'] ?? '';
@@ -133,6 +140,26 @@ foreach ($resumenMenus as $fila) {
     $resumenPlantas[$planta]['total'] += $cantidad;
     $totalMenus[$menu] += $cantidad;
     $totalPedidos += $cantidad;
+}
+
+foreach ($pedidosPorPlanta as $fila) {
+    $planta = $fila['planta'] ?? '';
+    $pedidoId = (string) ($fila['pedido_id'] ?? '');
+    if ($pedidoId === '') {
+        continue;
+    }
+
+    if (!isset($remitosPorPlanta[$planta])) {
+        $remitosPorPlanta[$planta] = [];
+    }
+
+    $remitosPorPlanta[$planta][$pedidoId] = true;
+    $remitosPorPlanta['total'][$pedidoId] = true;
+}
+
+foreach ($remitosPorPlanta as $planta => $ids) {
+    $remitosPorPlanta[$planta] = array_keys($ids);
+    sort($remitosPorPlanta[$planta], SORT_NATURAL);
 }
 
 if ($fechaDesde && $fechaHasta) {

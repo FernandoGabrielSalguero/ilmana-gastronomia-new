@@ -74,4 +74,44 @@ class CuyoPlacaDashboardModel
         $stmt->execute($params);
         return $stmt->fetchAll();
     }
+
+    public function obtenerPedidosPorPlanta($fechaDesde = '', $fechaHasta = '', array $plantas = [])
+    {
+        $params = [];
+        $where = [];
+
+        if ($fechaDesde) {
+            $where[] = "pc.created_at >= :fechaDesde";
+            $params['fechaDesde'] = $fechaDesde . ' 00:00:00';
+        }
+
+        if ($fechaHasta) {
+            $where[] = "pc.created_at <= :fechaHasta";
+            $params['fechaHasta'] = $fechaHasta . ' 23:59:59';
+        }
+
+        if ($plantas) {
+            $placeholders = [];
+            foreach ($plantas as $index => $planta) {
+                $key = "planta{$index}";
+                $placeholders[] = ':' . $key;
+                $params[$key] = $planta;
+            }
+            $where[] = "dp.planta IN (" . implode(', ', $placeholders) . ")";
+        }
+
+        $sql = "SELECT dp.planta, pc.id AS pedido_id
+            FROM Detalle_Pedidos_Cuyo_Placa dp
+            INNER JOIN Pedidos_Cuyo_Placa pc ON pc.id = dp.pedido_id";
+
+        if ($where) {
+            $sql .= " WHERE " . implode(' AND ', $where);
+        }
+
+        $sql .= " GROUP BY dp.planta, pc.id ORDER BY dp.planta, pc.id";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
 }

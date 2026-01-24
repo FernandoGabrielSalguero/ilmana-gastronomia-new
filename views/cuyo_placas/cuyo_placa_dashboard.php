@@ -152,6 +152,10 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
 
                     <div class="resumen-grid">
                         <div class="resumen-card-item resumen-total">
+                            <button class="btn-icon resumen-remito" type="button"
+                                data-tooltip="<?= htmlspecialchars("Remito digital:\n" . (empty($remitosPorPlanta['total']) ? 'Sin pedidos' : implode("\n", $remitosPorPlanta['total']))) ?>">
+                                <span class="material-icons">receipt</span>
+                            </button>
                             <div class="resumen-icon">
                                 <span class="material-icons">receipt_long</span>
                             </div>
@@ -190,6 +194,10 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
 
                         <?php foreach ($resumenPlantas as $planta => $detalle): ?>
                             <div class="resumen-card-item">
+                                <button class="btn-icon resumen-remito" type="button"
+                                    data-tooltip="<?= htmlspecialchars("Remito digital:\n" . (empty($remitosPorPlanta[$planta]) ? 'Sin pedidos' : implode("\n", $remitosPorPlanta[$planta]))) ?>">
+                                    <span class="material-icons">receipt</span>
+                                </button>
                                 <div class="resumen-icon alt">
                                     <span class="material-icons">factory</span>
                                 </div>
@@ -344,6 +352,7 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
             border-radius: 16px;
             padding: 16px;
             background: #ffffff;
+            position: relative;
         }
 
         .resumen-total {
@@ -406,6 +415,12 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
             text-transform: uppercase;
             letter-spacing: 0.04em;
             color: #64748b;
+        }
+
+        .resumen-remito {
+            position: absolute;
+            top: 12px;
+            right: 12px;
         }
 
         [data-tooltip]::after {
