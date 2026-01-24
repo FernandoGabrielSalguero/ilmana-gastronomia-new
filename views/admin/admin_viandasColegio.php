@@ -5,6 +5,16 @@ if (!is_array($selectedNiveles)) {
     $selectedNiveles = [$selectedNiveles];
 }
 $estadoSeleccionado = $_POST['estado'] ?? 'En venta';
+$formatDateTime = function ($value) {
+    if (!$value) {
+        return '';
+    }
+    $parts = explode(' ', trim($value), 2);
+    $date = $parts[0] ?? '';
+    $time = $parts[1] ?? '';
+    return '<span class="cell-date"><span class="cell-date-date">' . htmlspecialchars($date) .
+        '</span><span class="cell-date-time">' . htmlspecialchars($time) . '</span></span>';
+};
 ?>
 
 <!DOCTYPE html>
@@ -101,9 +111,29 @@ $estadoSeleccionado = $_POST['estado'] ?? 'En venta';
         }
 
         .col-nombre {
-            max-width: 220px;
+            max-width: 180px;
             white-space: normal;
             word-break: break-word;
+        }
+
+        .col-fecha {
+            max-width: 140px;
+            white-space: normal;
+        }
+
+        .cell-date {
+            display: inline-flex;
+            flex-direction: column;
+            line-height: 1.25;
+        }
+
+        .cell-date-date {
+            font-weight: 600;
+        }
+
+        .cell-date-time {
+            color: #6b7280;
+            font-size: 0.9rem;
         }
 
         .table-actions {
@@ -293,9 +323,9 @@ $estadoSeleccionado = $_POST['estado'] ?? 'En venta';
                                         <tr>
                                             <th>ID</th>
                                             <th class="col-nombre">Nombre</th>
-                                            <th>Fecha entrega</th>
-                                            <th>Fecha limite de compra</th>
-                                            <th>Fecha limite de venta</th>
+                                            <th class="col-fecha">Fecha entrega</th>
+                                            <th class="col-fecha">Fecha limite de compra</th>
+                                            <th class="col-fecha">Fecha limite de venta</th>
                                             <th>Precio</th>
                                             <th>Estado</th>
                                             <th>Nivel educativo</th>
@@ -311,9 +341,9 @@ $estadoSeleccionado = $_POST['estado'] ?? 'En venta';
                                             <tr>
                                                 <td><?= htmlspecialchars($item['Id'] ?? '') ?></td>
                                                 <td class="col-nombre"><?= htmlspecialchars($item['Nombre'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($item['Fecha_entrega'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($item['Fecha_hora_compra'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($item['Fecha_hora_cancelacion'] ?? '') ?></td>
+                                                <td class="col-fecha"><?= $formatDateTime($item['Fecha_entrega'] ?? '') ?></td>
+                                                <td class="col-fecha"><?= $formatDateTime($item['Fecha_hora_compra'] ?? '') ?></td>
+                                                <td class="col-fecha"><?= $formatDateTime($item['Fecha_hora_cancelacion'] ?? '') ?></td>
                                                 <td><?= htmlspecialchars($item['Precio'] ?? '') ?></td>
                                                 <td>
                                                     <?php if ($estado !== ''): ?>
