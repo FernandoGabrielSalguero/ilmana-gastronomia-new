@@ -364,6 +364,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                                     <th>Correo</th>
                                     <th>Rol</th>
                                     <th>Saldo</th>
+                                    <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -376,6 +377,9 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                                         $usuarioWords = preg_split('/\s+/', trim((string) ($usuario['Usuario'] ?? '')));
                                         $nombreWrapped = implode('<br>', array_map('htmlspecialchars', array_filter($nombreWords, 'strlen')));
                                         $usuarioWrapped = implode('<br>', array_map('htmlspecialchars', array_filter($usuarioWords, 'strlen')));
+                                        $estadoRaw = strtolower(trim((string) ($usuario['Estado'] ?? '')));
+                                        $estadoLabel = $estadoRaw !== '' ? $estadoRaw : 'activo';
+                                        $estadoClass = $estadoLabel === 'inactivo' ? 'danger' : 'success';
                                         $usuarioPayload = [
                                             'id' => $usuario['Id'] ?? '',
                                             'nombre' => $usuario['Nombre'] ?? '',
@@ -396,10 +400,11 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                                         <td><?= htmlspecialchars((string) ($usuario['Correo'] ?? '')) ?></td>
                                         <td><?= htmlspecialchars((string) ($usuario['Rol'] ?? '')) ?></td>
                                         <td><?= htmlspecialchars($saldoTabla) ?></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button type="button" class="action-btn action-delete" data-usuario="<?= $usuarioJson ?>">
-                                                        <span class="material-icons" style="color: #dc2626;">delete</span>
+                                        <td><span class="badge <?= htmlspecialchars($estadoClass) ?>"><?= htmlspecialchars($estadoLabel) ?></span></td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button type="button" class="action-btn action-delete" data-usuario="<?= $usuarioJson ?>">
+                                                    <span class="material-icons" style="color: #dc2626;">delete</span>
                                                     </button>
                                                     <button type="button" class="action-btn action-edit" data-usuario="<?= $usuarioJson ?>" data-hijos="<?= $hijosJson ?>">
                                                         <span class="material-icons" style="color: #2563eb;">edit</span>
@@ -410,7 +415,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>
-                                        <td colspan="8">No hay usuarios cargados.</td>
+                                        <td colspan="9">No hay usuarios cargados.</td>
                                     </tr>
                                 <?php endif; ?>
                             </tbody>

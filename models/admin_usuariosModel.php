@@ -30,7 +30,7 @@ class AdminUsuariosModel
 
     public function obtenerUsuariosConHijos()
     {
-        $stmt = $this->db->query("SELECT Id, Nombre, Usuario, Telefono, Correo, Rol, Saldo FROM Usuarios ORDER BY Nombre");
+        $stmt = $this->db->query("SELECT Id, Nombre, Usuario, Telefono, Correo, Rol, Saldo, Estado FROM Usuarios ORDER BY Nombre");
         $usuarios = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
         if (empty($usuarios)) {
             return [];
