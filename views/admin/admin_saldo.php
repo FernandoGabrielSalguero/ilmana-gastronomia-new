@@ -158,7 +158,9 @@ $observacionesLabel = function ($texto) {
                                             ?>
                                             <tr data-id="<?= (int) ($solicitud['Id'] ?? 0) ?>"
                                                 data-observaciones="<?= htmlspecialchars($solicitud['Observaciones'] ?? '') ?>"
-                                                data-estado="<?= htmlspecialchars($estadoActual) ?>">
+                                                data-estado="<?= htmlspecialchars($estadoActual) ?>"
+                                                data-saldo-actual="<?= htmlspecialchars($solicitud['UsuarioSaldo'] ?? 0) ?>"
+                                                data-saldo-recarga="<?= htmlspecialchars($solicitud['Saldo'] ?? 0) ?>">
                                                 <td><?= (int) ($solicitud['Id'] ?? 0) ?></td>
                                                 <td>
                                                     <div class="saldo-user">
@@ -272,10 +274,13 @@ $observacionesLabel = function ($texto) {
 
     <div class="modal hidden" id="saldo-approve-modal" role="dialog" aria-modal="true" aria-labelledby="saldo-approve-title">
         <div class="modal-content">
-            <h3 id="saldo-approve-title">Solicitud aprobada</h3>
-            <p id="saldo-approve-text">Saldo final del usuario: $0,00</p>
+            <h3 id="saldo-approve-title">Confirmar aprobacion</h3>
+            <p>Saldo actual: <strong id="saldo-approve-actual">$0,00</strong></p>
+            <p>Valor de la recarga: <strong id="saldo-approve-recarga">$0,00</strong></p>
+            <p>Saldo final: <strong id="saldo-approve-final">$0,00</strong></p>
             <div class="form-buttons">
-                <button type="button" class="btn btn-aceptar" id="saldo-approve-close">Listo</button>
+                <button type="button" class="btn btn-cancelar" id="saldo-approve-cancel">Cancelar</button>
+                <button type="button" class="btn btn-aceptar" id="saldo-approve-confirm">Aceptar</button>
             </div>
         </div>
     </div>
@@ -288,10 +293,14 @@ $observacionesLabel = function ($texto) {
         const cancelReasonInput = document.getElementById('saldo-cancel-reason');
         const cancelCloseButton = document.getElementById('saldo-cancel-close');
         const approveModal = document.getElementById('saldo-approve-modal');
-        const approveText = document.getElementById('saldo-approve-text');
-        const approveCloseButton = document.getElementById('saldo-approve-close');
+        const approveActual = document.getElementById('saldo-approve-actual');
+        const approveRecarga = document.getElementById('saldo-approve-recarga');
+        const approveFinal = document.getElementById('saldo-approve-final');
+        const approveCancelButton = document.getElementById('saldo-approve-cancel');
+        const approveConfirmButton = document.getElementById('saldo-approve-confirm');
         let pendingCancelId = null;
         let pendingCancelObservaciones = '';
+        let pendingApproveId = null;
 
         function escapeHtml(value) {
             return String(value ?? '')
@@ -386,7 +395,9 @@ $observacionesLabel = function ($texto) {
                 return `
                     <tr data-id="${escapeHtml(item.Id)}"
                         data-observaciones="${escapeHtml(item.Observaciones)}"
-                        data-estado="${escapeHtml(estado)}">
+                        data-estado="${escapeHtml(estado)}"
+                        data-saldo-actual="${escapeHtml(item.UsuarioSaldo)}"
+                        data-saldo-recarga="${escapeHtml(item.Saldo)}">
                         <td>${escapeHtml(item.Id)}</td>
                         <td>
                             <div class="saldo-user">
@@ -461,6 +472,30 @@ $observacionesLabel = function ($texto) {
             }
         }
 
+        function resetApproveState() {
+            pendingApproveId = null;
+        }
+
+        function openApproveModal(pedidoId, saldoActual, saldoRecarga) {
+            pendingApproveId = pedidoId;
+            const actual = Number(saldoActual || 0);
+            const recarga = Number(saldoRecarga || 0);
+            const final = actual + recarga;
+
+            if (approveActual) {
+                approveActual.textContent = `$${formatMoney(actual)}`;
+            }
+            if (approveRecarga) {
+                approveRecarga.textContent = `$${formatMoney(recarga)}`;
+            }
+            if (approveFinal) {
+                approveFinal.textContent = `$${formatMoney(final)}`;
+            }
+            if (approveModal) {
+                approveModal.classList.remove('hidden');
+            }
+        }
+
         async function sendAction(action, pedidoId, observaciones) {
             const formData = new FormData();
             formData.set('action', action);
@@ -477,13 +512,6 @@ $observacionesLabel = function ($texto) {
                 const data = await response.json();
                 if (data.ok) {
                     showAlertSafe('success', data.mensaje || 'Solicitud actualizada.');
-                    if (action === 'aprobar' && approveModal && approveText) {
-                        const saldoFinal = data.saldo_final;
-                        if (saldoFinal !== null && saldoFinal !== undefined) {
-                            approveText.textContent = `Saldo final del usuario: $${formatMoney(saldoFinal)}`;
-                            approveModal.classList.remove('hidden');
-                        }
-                    }
                     fetchSolicitudes();
                 } else {
                     const errores = data.errores || [];
@@ -510,9 +538,9 @@ $observacionesLabel = function ($texto) {
                     return;
                 }
 
-                const observaciones = prompt('Observaciones (opcional) para aprobar:', row.dataset.observaciones || '');
-                if (observaciones === null) return;
-                sendAction(action, pedidoId, observaciones);
+                const saldoActual = row.dataset.saldoActual || 0;
+                const saldoRecarga = row.dataset.saldoRecarga || 0;
+                openApproveModal(pedidoId, saldoActual, saldoRecarga);
             });
         }
 
@@ -532,14 +560,28 @@ $observacionesLabel = function ($texto) {
             });
         }
 
-        if (approveCloseButton && approveModal) {
-            approveCloseButton.addEventListener('click', closeApproveModal);
+        if (approveCancelButton && approveModal) {
+            approveCancelButton.addEventListener('click', () => {
+                closeApproveModal();
+                resetApproveState();
+            });
+        }
+
+        if (approveConfirmButton) {
+            approveConfirmButton.addEventListener('click', () => {
+                if (!pendingApproveId) return;
+                const pedidoId = pendingApproveId;
+                closeApproveModal();
+                resetApproveState();
+                sendAction('aprobar', pedidoId, '');
+            });
         }
 
         if (approveModal) {
             approveModal.addEventListener('click', (event) => {
                 if (event.target === approveModal) {
                     closeApproveModal();
+                    resetApproveState();
                 }
             });
         }
