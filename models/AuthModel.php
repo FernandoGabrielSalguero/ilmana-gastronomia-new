@@ -31,8 +31,11 @@ class AuthModel
     $stmt->execute(['usuario' => $usuario]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$user || $user['Estado'] !== 'activo') {
-        return false;
+    if (!$user) {
+        return null;
+    }
+    if (($user['Estado'] ?? '') !== 'activo') {
+        return ['error' => 'inactive'];
     }
 
     $hash = $user['Contrasena'] ?? '';
@@ -45,7 +48,7 @@ class AuthModel
         return $user;
     }
 
-    return false;
+    return null;
 }
 
 }

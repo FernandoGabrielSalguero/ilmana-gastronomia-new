@@ -138,7 +138,19 @@ class AdminUsuariosModel
 
         return [
             'ok' => true,
-            'mensaje' => 'Usuario creado correctamente.'
+            'mensaje' => 'Usuario creado correctamente.',
+            'usuario_id' => $usuarioId ?? null
         ];
+    }
+
+    public function actualizarEstadoUsuario($usuarioId, $estado)
+    {
+        $stmt = $this->db->prepare("UPDATE Usuarios SET Estado = :estado WHERE Id = :id");
+        $stmt->execute([
+            'estado' => $estado,
+            'id' => $usuarioId
+        ]);
+
+        return $stmt->rowCount() > 0;
     }
 }

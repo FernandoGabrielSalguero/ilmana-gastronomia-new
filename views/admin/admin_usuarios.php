@@ -206,6 +206,8 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                     </div>
                 <?php endif; ?>
 
+                <div id="usuarios-feedback"></div>
+
                 <div class="card">
                     <h3>Nuevo usuario</h3>
                     <form class="form-modern" method="post" id="usuarioForm" autocomplete="off">
@@ -368,10 +370,10 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="usuarios-table-body">
                                 <?php if (!empty($usuarios)): ?>
                                     <?php foreach ($usuarios as $usuario): ?>
-                                    <?php
+                                        <?php
                                         $saldoTabla = isset($usuario['Saldo']) ? number_format((float) $usuario['Saldo'], 2, '.', '') : '0.00';
                                         $nombreWords = preg_split('/\s+/', trim((string) ($usuario['Nombre'] ?? '')));
                                         $usuarioWords = preg_split('/\s+/', trim((string) ($usuario['Usuario'] ?? '')));
@@ -387,7 +389,8 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                                             'telefono' => $usuario['Telefono'] ?? '',
                                             'correo' => $usuario['Correo'] ?? '',
                                             'rol' => $usuario['Rol'] ?? '',
-                                            'saldo' => $saldoTabla
+                                            'saldo' => $saldoTabla,
+                                            'estado' => $estadoLabel
                                         ];
                                         $usuarioJson = htmlspecialchars(json_encode($usuarioPayload), ENT_QUOTES, 'UTF-8');
                                         $hijosJson = htmlspecialchars(json_encode($usuario['hijos'] ?? []), ENT_QUOTES, 'UTF-8');
@@ -432,7 +435,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
             <p id="deleteModalText">Confirma la eliminacion del usuario.</p>
             <div class="form-buttons">
                 <button type="button" class="btn btn-cancelar" data-close-modal>Cancelar</button>
-                <button type="button" class="btn btn-aceptar" data-close-modal>Aceptar</button>
+                <button type="button" class="btn btn-aceptar" id="confirmDeleteButton">Aceptar</button>
             </div>
         </div>
     </div>
@@ -738,6 +741,11 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
         const editHijosSection = document.getElementById('edit-hijos-section');
         const editHijosContainer = document.getElementById('edit-hijos-container');
         const editAddHijoButton = document.getElementById('edit-add-hijo');
+        const usuariosTableBody = document.getElementById('usuarios-table-body');
+        const feedbackContainer = document.getElementById('usuarios-feedback');
+        const confirmDeleteButton = document.getElementById('confirmDeleteButton');
+        let pendingDeleteId = null;
+        let pendingDeleteRow = null;
 
         const toggleEditHijosSection = () => {
             if (!editHijosSection) return;
@@ -768,6 +776,136 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
             } catch (error) {
                 return null;
             }
+        };
+
+        const escapeHtml = (value) => {
+            if (value === null || value === undefined) return '';
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        };
+
+        const renderFeedback = (type, messages) => {
+            if (!feedbackContainer) return;
+            if (!messages || (Array.isArray(messages) && messages.length === 0)) {
+                feedbackContainer.innerHTML = '';
+                return;
+            }
+            const messageArray = Array.isArray(messages) ? messages : [messages];
+            const borderColor = type === 'success' ? '#16a34a' : '#dc2626';
+            const title = type === 'success' ? 'Listo:' : 'Hubo un problema:';
+            const listHtml = messageArray.length > 1
+                ? `<ul>${messageArray.map((msg) => `<li>${escapeHtml(msg)}</li>`).join('')}</ul>`
+                : `<p>${escapeHtml(messageArray[0])}</p>`;
+            feedbackContainer.innerHTML = `
+                <div class="card" style="border-left: 4px solid ${borderColor};">
+                    <p><strong>${title}</strong></p>
+                    ${listHtml}
+                </div>
+            `;
+        };
+
+        const appendWrappedWords = (cell, text) => {
+            const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+            if (words.length === 0) {
+                cell.textContent = '';
+                return;
+            }
+            words.forEach((word, index) => {
+                if (index > 0) {
+                    cell.appendChild(document.createElement('br'));
+                }
+                cell.appendChild(document.createTextNode(word));
+            });
+        };
+
+        const bindDeleteButton = (button, row) => {
+            if (!button) return;
+            button.addEventListener('click', () => {
+                const usuario = parseJson(button.dataset.usuario);
+                pendingDeleteId = usuario && usuario.id ? Number(usuario.id) : null;
+                pendingDeleteRow = row || null;
+                if (deleteModalText) {
+                    deleteModalText.textContent = usuario && usuario.nombre
+                        ? `Confirma la eliminacion del usuario ${usuario.nombre}.`
+                        : 'Confirma la eliminacion del usuario.';
+                }
+                openAdminModal(deleteModal);
+            });
+        };
+
+        const bindEditButton = (button) => {
+            if (!button) return;
+            button.addEventListener('click', () => {
+                const usuario = parseJson(button.dataset.usuario) || {};
+                const hijos = parseJson(button.dataset.hijos) || [];
+
+                if (editIdInput) editIdInput.value = usuario.id || '';
+                if (editNombreInput) editNombreInput.value = usuario.nombre || '';
+                if (editUsuarioInput) editUsuarioInput.value = usuario.usuario || '';
+                if (editContrasenaInput) editContrasenaInput.value = '';
+                if (editTelefonoInput) editTelefonoInput.value = usuario.telefono || '';
+                if (editCorreoInput) editCorreoInput.value = usuario.correo || '';
+                if (editSaldoInput) editSaldoInput.value = usuario.saldo || '0.00';
+                if (editRolSelect) editRolSelect.value = usuario.rol || '';
+
+                toggleEditHijosSection();
+                if (editRolSelect && editRolSelect.value === 'papas') {
+                    renderEditHijos(hijos);
+                } else if (editHijosContainer) {
+                    editHijosContainer.innerHTML = '';
+                }
+
+                openAdminModal(editModal);
+            });
+        };
+
+        const buildUsuarioRow = (usuarioData, hijosData) => {
+            if (!usuariosTableBody || !usuarioData) return null;
+            const row = document.createElement('tr');
+            const estadoLabel = usuarioData.estado === 'inactivo' ? 'inactivo' : 'activo';
+            const estadoClass = estadoLabel === 'inactivo' ? 'danger' : 'success';
+            row.innerHTML = `
+                <td></td>
+                <td class="wrap-text"></td>
+                <td class="wrap-text"></td>
+                <td>${escapeHtml(usuarioData.telefono || '')}</td>
+                <td>${escapeHtml(usuarioData.correo || '')}</td>
+                <td>${escapeHtml(usuarioData.rol || '')}</td>
+                <td>${escapeHtml(usuarioData.saldo || '0.00')}</td>
+                <td><span class="badge ${estadoClass}">${escapeHtml(estadoLabel)}</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button type="button" class="action-btn action-delete">
+                            <span class="material-icons" style="color: #dc2626;">delete</span>
+                        </button>
+                        <button type="button" class="action-btn action-edit">
+                            <span class="material-icons" style="color: #2563eb;">edit</span>
+                        </button>
+                    </div>
+                </td>
+            `;
+
+            const cells = row.querySelectorAll('td');
+            if (cells[0]) cells[0].textContent = usuarioData.id || '';
+            if (cells[1]) appendWrappedWords(cells[1], usuarioData.nombre || '');
+            if (cells[2]) appendWrappedWords(cells[2], usuarioData.usuario || '');
+
+            const deleteButton = row.querySelector('.action-delete');
+            const editButton = row.querySelector('.action-edit');
+            if (deleteButton) {
+                deleteButton.dataset.usuario = JSON.stringify(usuarioData);
+                bindDeleteButton(deleteButton, row);
+            }
+            if (editButton) {
+                editButton.dataset.usuario = JSON.stringify(usuarioData);
+                editButton.dataset.hijos = JSON.stringify(hijosData || []);
+                bindEditButton(editButton);
+            }
+            return row;
         };
 
         const updateEditHijoTitles = () => {
@@ -888,40 +1026,11 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
         }
 
         document.querySelectorAll('.action-delete').forEach((button) => {
-            button.addEventListener('click', () => {
-                const usuario = parseJson(button.dataset.usuario);
-                if (deleteModalText) {
-                    deleteModalText.textContent = usuario && usuario.nombre
-                        ? `Confirma la eliminacion del usuario ${usuario.nombre}.`
-                        : 'Confirma la eliminacion del usuario.';
-                }
-                openAdminModal(deleteModal);
-            });
+            bindDeleteButton(button, button.closest('tr'));
         });
 
         document.querySelectorAll('.action-edit').forEach((button) => {
-            button.addEventListener('click', () => {
-                const usuario = parseJson(button.dataset.usuario) || {};
-                const hijos = parseJson(button.dataset.hijos) || [];
-
-                if (editIdInput) editIdInput.value = usuario.id || '';
-                if (editNombreInput) editNombreInput.value = usuario.nombre || '';
-                if (editUsuarioInput) editUsuarioInput.value = usuario.usuario || '';
-                if (editContrasenaInput) editContrasenaInput.value = '';
-                if (editTelefonoInput) editTelefonoInput.value = usuario.telefono || '';
-                if (editCorreoInput) editCorreoInput.value = usuario.correo || '';
-                if (editSaldoInput) editSaldoInput.value = usuario.saldo || '0.00';
-                if (editRolSelect) editRolSelect.value = usuario.rol || '';
-
-                toggleEditHijosSection();
-                if (editRolSelect && editRolSelect.value === 'papas') {
-                    renderEditHijos(hijos);
-                } else if (editHijosContainer) {
-                    editHijosContainer.innerHTML = '';
-                }
-
-                openAdminModal(editModal);
-            });
+            bindEditButton(button);
         });
 
         if (editForm) {
@@ -930,6 +1039,94 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                     editHijosContainer.innerHTML = '';
                 }
                 toggleEditHijosSection();
+            });
+        }
+
+        if (confirmDeleteButton) {
+            confirmDeleteButton.addEventListener('click', () => {
+                if (!pendingDeleteId) return;
+                const formData = new FormData();
+                formData.append('action', 'desactivar');
+                formData.append('usuario_id', String(pendingDeleteId));
+                formData.append('ajax', '1');
+
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.ok) {
+                            if (pendingDeleteRow) {
+                                const badge = pendingDeleteRow.querySelector('.badge');
+                                if (badge) {
+                                    badge.classList.remove('success');
+                                    badge.classList.add('danger');
+                                    badge.textContent = 'inactivo';
+                                }
+                                const usuarioButton = pendingDeleteRow.querySelector('.action-delete');
+                                const editButton = pendingDeleteRow.querySelector('.action-edit');
+                                const usuarioData = usuarioButton ? parseJson(usuarioButton.dataset.usuario) : null;
+                                if (usuarioData) {
+                                    usuarioData.estado = 'inactivo';
+                                    const updatedJson = JSON.stringify(usuarioData);
+                                    if (usuarioButton) usuarioButton.dataset.usuario = updatedJson;
+                                    if (editButton) editButton.dataset.usuario = updatedJson;
+                                }
+                            }
+                            renderFeedback('success', data.mensaje || 'Usuario actualizado correctamente.');
+                            closeAdminModal(deleteModal);
+                        } else {
+                            renderFeedback('error', data.errores || 'No se pudo actualizar el usuario.');
+                        }
+                    })
+                    .catch(() => {
+                        renderFeedback('error', 'No se pudo actualizar el usuario.');
+                    });
+            });
+        }
+
+        if (usuarioForm && usuariosTableBody) {
+            usuarioForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const formData = new FormData(usuarioForm);
+                formData.append('ajax', '1');
+
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.ok && data.usuario) {
+                            const row = buildUsuarioRow(data.usuario, data.hijos);
+                            if (row) {
+                                const emptyRow = usuariosTableBody.querySelector('tr td[colspan]');
+                                if (emptyRow) {
+                                    emptyRow.closest('tr').remove();
+                                }
+                                usuariosTableBody.prepend(row);
+                            }
+                            usuarioForm.reset();
+                            if (hijosContainer) {
+                                hijosContainer.innerHTML = '';
+                            }
+                            toggleHijosSection();
+                            updateHijoTitles();
+                            renderFeedback('success', data.mensaje || 'Usuario creado correctamente.');
+                        } else {
+                            renderFeedback('error', data.errores || 'No se pudo crear el usuario.');
+                        }
+                    })
+                    .catch(() => {
+                        renderFeedback('error', 'No se pudo crear el usuario.');
+                    });
             });
         }
     </script>

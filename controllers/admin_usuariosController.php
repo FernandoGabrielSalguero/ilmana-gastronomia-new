@@ -68,6 +68,34 @@ if (!isset($preferenciasLookup[$preferenciaDefaultId])) {
     $preferenciaDefaultId = '';
 }
 
+$isAjax = strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest'
+    || ($_POST['ajax'] ?? '') === '1';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'desactivar') {
+    $usuarioId = (int) ($_POST['usuario_id'] ?? 0);
+    if ($usuarioId <= 0) {
+        $errores[] = 'Usuario invalido.';
+    } else {
+        $ok = $model->actualizarEstadoUsuario($usuarioId, 'inactivo');
+        if ($ok) {
+            $mensaje = 'Usuario actualizado correctamente.';
+        } else {
+            $errores[] = 'No se pudo actualizar el usuario.';
+        }
+    }
+
+    if ($isAjax) {
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode([
+            'ok' => empty($errores),
+            'mensaje' => $mensaje,
+            'errores' => $errores,
+            'estado' => empty($errores) ? 'inactivo' : null
+        ]);
+        exit;
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear') {
     $nombre = trim($_POST['nombre'] ?? '');
     $usuario = trim($_POST['usuario'] ?? '');
@@ -221,6 +249,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
         } else {
             $errores[] = $resultado['mensaje'];
         }
+    }
+
+    if ($isAjax) {
+        header('Content-Type: application/json; charset=UTF-8');
+        $saldoRespuesta = $saldo !== null ? $saldo : 0;
+        $hijosRespuesta = [];
+        if (empty($errores) && $rol === 'papas') {
+            foreach ($hijos as $hijo) {
+                $hijosRespuesta[] = [
+                    'nombre' => $hijo['nombre'],
+                    'preferencias' => $hijo['preferencias_id'] ?? null,
+                    'colegio_id' => $hijo['colegio_id'] ?? null,
+                    'curso_id' => $hijo['curso_id'] ?? null
+                ];
+            }
+        }
+        echo json_encode([
+            'ok' => empty($errores),
+            'mensaje' => $mensaje,
+            'errores' => $errores,
+            'usuario' => empty($errores) ? [
+                'id' => $resultado['usuario_id'] ?? null,
+                'nombre' => $nombre,
+                'usuario' => $usuario,
+                'telefono' => $telefonoNormalizado,
+                'correo' => $correo,
+                'rol' => $rol,
+                'saldo' => number_format((float) $saldoRespuesta, 2, '.', ''),
+                'estado' => $estado
+            ] : null,
+            'hijos' => $hijosRespuesta
+        ]);
+        exit;
     }
 }
 
