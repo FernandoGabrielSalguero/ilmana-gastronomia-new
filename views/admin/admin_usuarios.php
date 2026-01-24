@@ -19,6 +19,17 @@ foreach ($cursos as $curso) {
         htmlspecialchars((string) ($curso['Nombre'] ?? ''))
     );
 }
+
+$preferenciaOptionsHtml = '<option value="">Seleccionar</option>';
+foreach ($preferencias as $preferencia) {
+    $preferenciaOptionsHtml .= sprintf(
+        '<option value="%s">%s</option>',
+        htmlspecialchars((string) ($preferencia['Id'] ?? '')),
+        htmlspecialchars((string) ($preferencia['Nombre'] ?? ''))
+    );
+}
+
+$saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
 ?>
 
 <!DOCTYPE html>
@@ -191,9 +202,10 @@ foreach ($cursos as $curso) {
                             <div class="input-group">
                                 <label for="telefono">Telefono</label>
                                 <div class="input-icon input-icon-phone">
-                                    <input type="text" id="telefono" name="telefono"
+                                    <input type="tel" id="telefono" name="telefono" inputmode="numeric" pattern="\\d{8,15}"
                                         value="<?= htmlspecialchars($formData['telefono']) ?>" />
                                 </div>
+                                <small class="gform-helper">Solo numeros. Se guarda normalizado para WhatsApp.</small>
                             </div>
 
                             <div class="input-group">
@@ -209,7 +221,7 @@ foreach ($cursos as $curso) {
                                 <div class="input-icon">
                                     <span class="material-icons">attach_money</span>
                                     <input type="number" id="saldo" name="saldo" step="0.01" min="0"
-                                        value="<?= htmlspecialchars($formData['saldo']) ?>" />
+                                        value="<?= htmlspecialchars($saldoValue) ?>" />
                                 </div>
                             </div>
 
@@ -227,40 +239,6 @@ foreach ($cursos as $curso) {
                                 </div>
                             </div>
 
-                            <div class="input-group">
-                                <label for="estado">Estado</label>
-                                <div class="input-icon input-icon-globe">
-                                    <select id="estado" name="estado" required>
-                                        <option value="">Seleccionar</option>
-                                        <?php foreach ($estados as $estado): ?>
-                                            <option value="<?= htmlspecialchars($estado) ?>" <?= $formData['estado'] === $estado ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars($estado) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="input-group" style="grid-column: span 2;">
-                                <label for="pedidos_saldo">Pedidos saldo</label>
-                                <div class="input-icon input-icon-comment">
-                                    <textarea id="pedidos_saldo" name="pedidos_saldo" rows="2"><?= htmlspecialchars($formData['pedidos_saldo']) ?></textarea>
-                                </div>
-                            </div>
-
-                            <div class="input-group" style="grid-column: span 2;">
-                                <label for="pedidos_comida">Pedidos comida</label>
-                                <div class="input-icon input-icon-comment">
-                                    <textarea id="pedidos_comida" name="pedidos_comida" rows="2"><?= htmlspecialchars($formData['pedidos_comida']) ?></textarea>
-                                </div>
-                            </div>
-
-                            <div class="input-group" style="grid-column: span 4;">
-                                <label for="hijos_texto">Hijos (texto)</label>
-                                <div class="input-icon input-icon-comment">
-                                    <textarea id="hijos_texto" name="hijos_texto" rows="2"><?= htmlspecialchars($formData['hijos_texto']) ?></textarea>
-                                </div>
-                            </div>
                         </div>
 
                         <div class="form-buttons">
@@ -304,8 +282,9 @@ foreach ($cursos as $curso) {
                                         <div class="input-group">
                                             <label>Preferencias</label>
                                             <div class="input-icon input-icon-comment">
-                                                <input type="text" name="hijos_preferencias[]"
-                                                    value="<?= htmlspecialchars($hijo['preferencias'] ?? '') ?>" />
+                                                <select name="hijos_preferencias[]" class="hijo-preferencia" data-selected="<?= htmlspecialchars((string) ($hijo['preferencias'] ?? '')) ?>">
+                                                    <?= $preferenciaOptionsHtml ?>
+                                                </select>
                                             </div>
                                         </div>
 
@@ -341,12 +320,19 @@ foreach ($cursos as $curso) {
 
     <script>
         const rolSelect = document.getElementById('rol');
+        const nombreInput = document.getElementById('nombre');
+        const usuarioInput = document.getElementById('usuario');
+        const telefonoInput = document.getElementById('telefono');
         const hijosSection = document.getElementById('hijos-section');
         const hijosContainer = document.getElementById('hijos-container');
         const addHijoButton = document.getElementById('add-hijo');
 
         const colegioOptionsHtml = <?= json_encode($colegioOptionsHtml) ?>;
         const cursoOptionsHtml = <?= json_encode($cursoOptionsHtml) ?>;
+        const preferenciaOptionsHtml = <?= json_encode($preferenciaOptionsHtml) ?>;
+
+        let autoUsuario = true;
+        let lastAutoUsuario = '';
 
         const toggleHijosSection = () => {
             if (!hijosSection) return;
@@ -396,9 +382,15 @@ foreach ($cursos as $curso) {
                 });
             }
 
+            const preferenciaSelect = row.querySelector('.hijo-preferencia');
+            if (preferenciaSelect && preferenciaSelect.dataset.selected) {
+                preferenciaSelect.value = preferenciaSelect.dataset.selected;
+            }
+
             if (removeButton) {
                 removeButton.addEventListener('click', () => {
                     row.remove();
+                    updateHijoTitles();
                 });
             }
         };
@@ -421,7 +413,7 @@ foreach ($cursos as $curso) {
                     <div class="input-group">
                         <label>Preferencias</label>
                         <div class="input-icon input-icon-comment">
-                            <input type="text" name="hijos_preferencias[]" />
+                            <select name="hijos_preferencias[]" class="hijo-preferencia">${preferenciaOptionsHtml}</select>
                         </div>
                     </div>
                     <div class="input-group">
@@ -441,6 +433,53 @@ foreach ($cursos as $curso) {
             return row;
         };
 
+        const updateHijoTitles = () => {
+            if (!hijosContainer) return;
+            const rows = Array.from(hijosContainer.querySelectorAll('.hijo-card'));
+            rows.forEach((row, index) => {
+                const title = row.querySelector('.hijo-title');
+                if (title) {
+                    title.textContent = `Hijo ${index + 1}`;
+                }
+            });
+            if (addHijoButton) {
+                addHijoButton.disabled = rows.length >= 20;
+            }
+        };
+
+        const sanitizeTelefono = () => {
+            if (!telefonoInput) return;
+            const digits = telefonoInput.value.replace(/\D+/g, '');
+            telefonoInput.value = digits;
+        };
+
+        if (telefonoInput) {
+            telefonoInput.addEventListener('input', sanitizeTelefono);
+        }
+
+        const usuarioForm = document.getElementById('usuarioForm');
+        if (usuarioForm) {
+            usuarioForm.addEventListener('submit', () => {
+                sanitizeTelefono();
+            });
+        }
+
+        if (nombreInput && usuarioInput) {
+            nombreInput.addEventListener('input', () => {
+                if (autoUsuario) {
+                    usuarioInput.value = nombreInput.value;
+                    lastAutoUsuario = nombreInput.value;
+                }
+            });
+            usuarioInput.addEventListener('input', () => {
+                if (usuarioInput.value === nombreInput.value || usuarioInput.value === lastAutoUsuario) {
+                    autoUsuario = true;
+                } else {
+                    autoUsuario = false;
+                }
+            });
+        }
+
         if (rolSelect) {
             rolSelect.addEventListener('change', toggleHijosSection);
         }
@@ -450,6 +489,7 @@ foreach ($cursos as $curso) {
                 const row = createHijoRow();
                 hijosContainer.appendChild(row);
                 bindRow(row);
+                updateHijoTitles();
             });
         }
 
@@ -460,6 +500,7 @@ foreach ($cursos as $curso) {
         }
 
         toggleHijosSection();
+        updateHijoTitles();
     </script>
 </body>
 

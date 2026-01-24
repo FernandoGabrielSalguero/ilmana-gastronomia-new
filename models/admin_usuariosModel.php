@@ -22,6 +22,12 @@ class AdminUsuariosModel
         return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
     }
 
+    public function obtenerPreferencias()
+    {
+        $stmt = $this->db->query("SELECT Id, Nombre FROM Preferencias_Alimenticias ORDER BY Nombre");
+        return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    }
+
     public function crearUsuarioConHijos(array $data, array $hijos)
     {
         try {

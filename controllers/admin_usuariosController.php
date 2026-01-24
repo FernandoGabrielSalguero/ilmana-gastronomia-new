@@ -43,19 +43,14 @@ $roles = [
     'transporte_ld'
 ];
 
-$estados = ['activo', 'inactivo'];
-
 $formData = [
     'nombre' => '',
     'usuario' => '',
     'contrasena' => '',
     'telefono' => '',
     'correo' => '',
-    'pedidos_saldo' => '',
     'saldo' => '',
-    'pedidos_comida' => '',
     'rol' => '',
-    'hijos_texto' => '',
     'estado' => 'activo'
 ];
 
@@ -63,6 +58,7 @@ $hijosForm = [];
 
 $colegios = $model->obtenerColegios();
 $cursos = $model->obtenerCursos();
+$preferencias = $model->obtenerPreferencias();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear') {
     $nombre = trim($_POST['nombre'] ?? '');
@@ -70,12 +66,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
     $contrasena = $_POST['contrasena'] ?? '';
     $telefono = trim($_POST['telefono'] ?? '');
     $correo = trim($_POST['correo'] ?? '');
-    $pedidosSaldo = trim($_POST['pedidos_saldo'] ?? '');
     $saldoInput = trim($_POST['saldo'] ?? '');
-    $pedidosComida = trim($_POST['pedidos_comida'] ?? '');
     $rol = $_POST['rol'] ?? '';
-    $hijosTexto = trim($_POST['hijos_texto'] ?? '');
-    $estado = $_POST['estado'] ?? 'activo';
+    $estado = 'activo';
 
     $formData = [
         'nombre' => $nombre,
@@ -83,11 +76,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
         'contrasena' => '',
         'telefono' => $telefono,
         'correo' => $correo,
-        'pedidos_saldo' => $pedidosSaldo,
         'saldo' => $saldoInput,
-        'pedidos_comida' => $pedidosComida,
         'rol' => $rol,
-        'hijos_texto' => $hijosTexto,
         'estado' => $estado
     ];
 
@@ -103,11 +93,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
     if ($rol === '' || !in_array($rol, $roles, true)) {
         $errores[] = 'Selecciona un rol valido.';
     }
-    if ($estado === '' || !in_array($estado, $estados, true)) {
-        $errores[] = 'Selecciona un estado valido.';
-    }
     if ($correo !== '' && !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
         $errores[] = 'El correo no es valido.';
+    }
+
+    $telefonoNormalizado = preg_replace('/\D+/', '', $telefono);
+    if ($telefonoNormalizado !== '' && (strlen($telefonoNormalizado) < 8 || strlen($telefonoNormalizado) > 15)) {
+        $errores[] = 'El telefono debe tener entre 8 y 15 digitos.';
     }
 
     $saldo = null;
@@ -125,6 +117,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
     $hijosColegios = $_POST['hijos_colegio'] ?? [];
     $hijosCursos = $_POST['hijos_curso'] ?? [];
 
+    $preferenciasLookup = [];
+    foreach ($preferencias as $preferencia) {
+        $preferenciasLookup[(string) ($preferencia['Id'] ?? '')] = $preferencia['Nombre'] ?? '';
+    }
+
     $max = max(
         count($hijosNombres),
         count($hijosPreferencias),
@@ -132,13 +129,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
         count($hijosCursos)
     );
 
+    if ($rol === 'papas' && $max > 20) {
+        $errores[] = 'Se permiten hasta 20 hijos por usuario.';
+    }
+
     for ($i = 0; $i < $max; $i++) {
         $nombreHijo = trim($hijosNombres[$i] ?? '');
-        $prefHijo = trim($hijosPreferencias[$i] ?? '');
+        $prefId = trim($hijosPreferencias[$i] ?? '');
+        $prefNombre = $prefId !== '' ? ($preferenciasLookup[$prefId] ?? '') : '';
         $colegioRaw = $hijosColegios[$i] ?? '';
         $cursoRaw = $hijosCursos[$i] ?? '';
 
-        $hasAny = $nombreHijo !== '' || $prefHijo !== '' || $colegioRaw !== '' || $cursoRaw !== '';
+        $hasAny = $nombreHijo !== '' || $prefId !== '' || $colegioRaw !== '' || $cursoRaw !== '';
         if (!$hasAny) {
             continue;
         }
@@ -148,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
 
         $hijosForm[] = [
             'nombre' => $nombreHijo,
-            'preferencias' => $prefHijo,
+            'preferencias' => $prefId,
             'colegio_id' => $colegioId,
             'curso_id' => $cursoId
         ];
@@ -168,9 +170,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
             continue;
         }
 
+        if ($prefId !== '' && $prefNombre === '') {
+            $errores[] = 'Selecciona una preferencia alimenticia valida.';
+            continue;
+        }
+
         $hijos[] = [
             'nombre' => $nombreHijo,
-            'preferencias' => $prefHijo !== '' ? $prefHijo : null,
+            'preferencias' => $prefNombre !== '' ? $prefNombre : null,
             'colegio_id' => $colegioId ?: null,
             'curso_id' => $cursoId ?: null
         ];
@@ -181,13 +188,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
             'nombre' => $nombre !== '' ? $nombre : null,
             'usuario' => $usuario !== '' ? $usuario : null,
             'contrasena' => password_hash($contrasena, PASSWORD_BCRYPT),
-            'telefono' => $telefono !== '' ? $telefono : null,
+            'telefono' => $telefonoNormalizado !== '' ? $telefonoNormalizado : null,
             'correo' => $correo !== '' ? $correo : null,
-            'pedidos_saldo' => $pedidosSaldo !== '' ? $pedidosSaldo : null,
-            'saldo' => $saldo,
-            'pedidos_comida' => $pedidosComida !== '' ? $pedidosComida : null,
+            'pedidos_saldo' => null,
+            'saldo' => $saldo !== null ? $saldo : 0,
+            'pedidos_comida' => null,
             'rol' => $rol,
-            'hijos' => $hijosTexto !== '' ? $hijosTexto : null,
+            'hijos' => null,
             'estado' => $estado
         ];
 
@@ -200,11 +207,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
                 'contrasena' => '',
                 'telefono' => '',
                 'correo' => '',
-                'pedidos_saldo' => '',
                 'saldo' => '',
-                'pedidos_comida' => '',
                 'rol' => '',
-                'hijos_texto' => '',
                 'estado' => 'activo'
             ];
             $hijosForm = [];
