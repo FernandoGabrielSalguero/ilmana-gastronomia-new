@@ -326,6 +326,9 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                     <li onclick="location.href='admin_viandasColegio.php'">
                         <span class="material-icons" style="color: #5b21b6;">restaurant_menu</span><span class="link-text">Menu</span>
                     </li>
+                    <li onclick="location.href='admin_saldo.php'">
+                        <span class="material-icons" style="color: #5b21b6;">paid</span><span class="link-text">Saldos</span>
+                    </li>
                     <li onclick="location.href='../../../logout.php'">
                         <span class="material-icons" style="color: red;">logout</span><span class="link-text">Salir</span>
                     </li>
