@@ -1,0 +1,32 @@
+<?php
+// Mostrar errores en pantalla (util en desarrollo)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Iniciar sesion y proteger acceso
+session_start();
+
+// Expiracion por inactividad (20 minutos)
+if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 1200)) {
+    session_unset();
+    session_destroy();
+    header("Location: /index.php?expired=1");
+    exit;
+}
+$_SESSION['LAST_ACTIVITY'] = time(); // Actualiza el tiempo de actividad
+
+// Proteccion de acceso general
+if (!isset($_SESSION['usuario'])) {
+    die("Acceso denegado. No has iniciado sesion.");
+}
+
+// Proteccion por rol
+if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'administrador') {
+    die("Acceso restringido: esta pagina es solo para usuarios Administrador.");
+}
+
+require_once __DIR__ . '/../models/admin_viandasColegioModel.php';
+
+$model = new AdminViandasColegioModel($pdo);
+$menuItems = $model->obtenerMenuActual();
