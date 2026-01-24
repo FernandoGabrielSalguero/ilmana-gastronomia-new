@@ -162,9 +162,65 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
             color: #111827;
         }
 
+        .welcome-actions {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 46px;
+            height: 24px;
+            display: inline-block;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: #e2e8f0;
+            border-radius: 999px;
+            transition: background 0.2s ease;
+        }
+
+        .toggle-slider::before {
+            content: "";
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 3px;
+            top: 3px;
+            background: #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
+            transition: transform 0.2s ease;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: #4f46e5;
+        }
+
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(22px);
+        }
+
+        .toggle-label {
+            font-size: 13px;
+            color: #334155;
+            font-weight: 600;
+        }
+
         .kpi-table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 720px;
         }
 
         .kpi-table thead th {
@@ -190,10 +246,32 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
             color: #111827;
         }
 
+        .kpi-table-wrap {
+            overflow-x: auto;
+            overflow-y: visible;
+            -webkit-overflow-scrolling: touch;
+        }
+
         .sparkline {
             width: 140px;
             height: 34px;
             display: block;
+        }
+
+        .kpi-tooltip {
+            position: fixed;
+            pointer-events: none;
+            background: #111827;
+            color: #ffffff;
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            line-height: 1.2;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.1s ease;
+            z-index: 2000;
+            transform: translate(-50%, -100%);
         }
     </style>
 </head>
@@ -256,6 +334,13 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                 <div class="card">
                     <h2>Hola</h2>
                     <p>En esta pagina, vamos a tener KPI.</p>
+                    <div class="welcome-actions">
+                        <label class="toggle-switch" aria-label="Vincular filtros">
+                            <input type="checkbox" id="kpi-link-filters" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label">Vincular filtros</span>
+                    </div>
                 </div>
 
                 <div class="card kpi-group-card">
@@ -449,7 +534,7 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                         </div>
                     </div>
 
-                    <div class="table-responsive">
+                    <div class="kpi-table-wrap">
                         <table class="kpi-table">
                             <thead>
                                 <tr>
@@ -521,6 +606,7 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
         const kpiFields = document.querySelectorAll("[data-kpi]");
         const kpiTableBody = document.getElementById("kpi-table-body");
         const kpiFilterForms = document.querySelectorAll(".kpi-filters");
+        const kpiLinkFilters = document.getElementById("kpi-link-filters");
 
         const formatValue = (value, type) => {
             if (type === "currency") {
@@ -560,9 +646,9 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
             });
         };
 
-        const renderCursos = (cursos, selectedId) => {
+        const renderCursos = (cursos, selectedId, targetForms) => {
             const selectedValue = selectedId ? String(selectedId) : "";
-            kpiFilterForms.forEach((form) => {
+            targetForms.forEach((form) => {
                 const cursoSelect = form.querySelector(".kpi-curso");
                 if (!cursoSelect) {
                     return;
@@ -575,6 +661,18 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                 });
                 cursoSelect.innerHTML = options.join("");
             });
+        };
+
+        const getOrCreateTooltip = (canvas) => {
+            const tooltipId = "kpi-tooltip";
+            let tooltipEl = document.getElementById(tooltipId);
+            if (!tooltipEl) {
+                tooltipEl = document.createElement("div");
+                tooltipEl.id = tooltipId;
+                tooltipEl.className = "kpi-tooltip";
+                document.body.appendChild(tooltipEl);
+            }
+            return tooltipEl;
         };
 
         const renderSparkline = (canvas, series) => {
@@ -604,9 +702,21 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            callbacks: {
-                                title: (items) => (items[0] ? items[0].label : ""),
-                                label: (item) => `Pedidos: ${item.raw ?? 0}`
+                            enabled: false,
+                            external: (context) => {
+                                const { chart, tooltip } = context;
+                                const tooltipEl = getOrCreateTooltip(chart.canvas);
+                                if (tooltip.opacity === 0) {
+                                    tooltipEl.style.opacity = 0;
+                                    return;
+                                }
+                                const title = tooltip.title?.[0] ?? "";
+                                const value = tooltip.dataPoints?.[0]?.formattedValue ?? "0";
+                                tooltipEl.innerHTML = `${title}<br><strong>Pedidos: ${value}</strong>`;
+                                const canvasRect = chart.canvas.getBoundingClientRect();
+                                tooltipEl.style.opacity = 1;
+                                tooltipEl.style.left = `${canvasRect.left + window.scrollX + tooltip.caretX}px`;
+                                tooltipEl.style.top = `${canvasRect.top + window.scrollY + tooltip.caretY}px`;
                             }
                         }
                     },
@@ -657,28 +767,50 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
             if (!response.ok) {
                 return;
             }
-            const data = await response.json();
-            updateKpiCards(data);
-            if (Array.isArray(data.cursos)) {
-                renderCursos(data.cursos, data.cursoId);
+            return response.json();
+        };
+
+        const isLinked = () => (kpiLinkFilters ? kpiLinkFilters.checked : true);
+
+        const updateFromResponse = (data, scope, sourceForm) => {
+            const linked = isLinked();
+            if (linked || scope === "global") {
+                updateKpiCards(data);
             }
-            if (Array.isArray(data.tablaPedidos)) {
-                renderTablaPedidos(data.tablaPedidos);
+            if (linked || scope === "table") {
+                if (Array.isArray(data.tablaPedidos)) {
+                    renderTablaPedidos(data.tablaPedidos);
+                }
+            }
+            if (Array.isArray(data.cursos)) {
+                const targets = linked ? Array.from(kpiFilterForms) : [sourceForm];
+                renderCursos(data.cursos, data.cursoId, targets);
             }
         };
 
-        const scheduleFetch = () => {
-            if (window.kpiFetchTimer) {
-                clearTimeout(window.kpiFetchTimer);
+        const scheduleFetch = (form) => {
+            if (!form) {
+                return;
             }
-            window.kpiFetchTimer = setTimeout(() => {
-                if (kpiFilterForms.length) {
-                    fetchKpiData(new FormData(kpiFilterForms[0]));
+            if (!window.kpiFetchTimers) {
+                window.kpiFetchTimers = new Map();
+            }
+            const timers = window.kpiFetchTimers;
+            if (timers.get(form)) {
+                clearTimeout(timers.get(form));
+            }
+            timers.set(form, setTimeout(async () => {
+                const data = await fetchKpiData(new FormData(form));
+                if (data) {
+                    updateFromResponse(data, form.dataset.filterScope || "global", form);
                 }
-            }, 150);
+            }, 150));
         };
 
         const syncForms = (sourceForm) => {
+            if (!isLinked()) {
+                return;
+            }
             const data = new FormData(sourceForm);
             kpiFilterForms.forEach((form) => {
                 if (form === sourceForm) {
@@ -702,21 +834,30 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
             form.addEventListener("submit", (event) => {
                 event.preventDefault();
                 syncForms(form);
-                scheduleFetch();
+                scheduleFetch(form);
             });
 
             form.addEventListener("change", (event) => {
                 if (event.target === colegioSelect && cursoSelect) {
-                    cursoSelect.value = "";
+                    if (isLinked()) {
+                        kpiFilterForms.forEach((otherForm) => {
+                            const otherCurso = otherForm.querySelector(".kpi-curso");
+                            if (otherCurso) {
+                                otherCurso.value = "";
+                            }
+                        });
+                    } else {
+                        cursoSelect.value = "";
+                    }
                 }
                 syncForms(form);
-                scheduleFetch();
+                scheduleFetch(form);
             });
 
             form.addEventListener("input", (event) => {
                 if (event.target.type === "date") {
                     syncForms(form);
-                    scheduleFetch();
+                    scheduleFetch(form);
                 }
             });
 
@@ -724,10 +865,19 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                 clearBtn.addEventListener("click", () => {
                     form.reset();
                     syncForms(form);
-                    scheduleFetch();
+                    scheduleFetch(form);
                 });
             }
         });
+
+        if (kpiLinkFilters) {
+            kpiLinkFilters.addEventListener("change", () => {
+                if (isLinked() && kpiFilterForms[0]) {
+                    syncForms(kpiFilterForms[0]);
+                    scheduleFetch(kpiFilterForms[0]);
+                }
+            });
+        }
 
         document.querySelectorAll(".sparkline").forEach((canvas) => {
             const series = JSON.parse(canvas.dataset.series || "[]");
