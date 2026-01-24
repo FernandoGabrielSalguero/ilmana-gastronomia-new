@@ -158,7 +158,6 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
                             <div>
                                 <div class="resumen-label">Total de pedidos</div>
                                 <div class="resumen-value"><?= number_format($totalPedidos, 0, ',', '.') ?></div>
-                                <div class="resumen-helper">Sumatoria de menus</div>
                             </div>
                             <div class="resumen-menus">
                                 <?php
@@ -407,6 +406,12 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
             text-transform: uppercase;
             letter-spacing: 0.04em;
             color: #64748b;
+        }
+
+        [data-tooltip]::after {
+            white-space: pre-line;
+            max-width: 220px;
+            text-align: left;
         }
 
         .resumen-empty {

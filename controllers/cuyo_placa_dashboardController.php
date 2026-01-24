@@ -146,7 +146,7 @@ if ($fechaDesde && $fechaHasta) {
 }
 
 $textoPlantas = $usarTodasLasPlantas ? 'Todas' : implode(', ', $plantasFiltro);
-$tooltipFiltros = "Plantas: {$textoPlantas} | Desde: " . ($fechaDesde ?: 'Sin fecha') . " | Hasta: " . ($fechaHasta ?: 'Sin fecha');
+$tooltipFiltros = "Planta: {$textoPlantas}\nFecha desde: " . ($fechaDesde ?: 'Sin fecha') . "\nFecha hasta: " . ($fechaHasta ?: 'Sin fecha');
 
 $nombre = $_SESSION['nombre'] ?? 'Sin nombre';
 $correo = $_SESSION['correo'] ?? 'Sin correo';
