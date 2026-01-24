@@ -165,9 +165,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             top: 50%;
             transform: translateY(-50%);
             cursor: pointer;
-            font-size: 12px;
             color: #673ab7;
             user-select: none;
+        }
+
+        .toggle-password svg {
+            display: block;
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .toggle-password .icon-hidden {
+            display: none;
         }
     </style>
 </head>
@@ -186,7 +196,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="form-group password-container">
                 <label for="contrasena">Contraseña:</label>
                 <input type="password" name="contrasena" id="contrasena" required>
-                <span class="toggle-password" role="button" aria-label="Mostrar contrasena">Mostrar</span>
+                <span class="toggle-password" role="button" aria-label="Mostrar contrasena">
+                    <svg class="icon-visible" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 5c-5 0-9.27 3.11-11 7 1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
+                    </svg>
+                    <svg class="icon-hidden" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M2.1 3.51 3.52 2.1 21.9 20.49l-1.41 1.41-3.25-3.25A11.1 11.1 0 0 1 12 19c-5 0-9.27-3.11-11-7 1.05-2.37 3.02-4.43 5.56-5.66L2.1 3.51zm7.07 7.07a3 3 0 0 0 4.25 4.25l-4.25-4.25zM12 9a3 3 0 0 1 3 3c0 .4-.08.78-.22 1.13l-3.91-3.91c.35-.14.73-.22 1.13-.22zm0-4c5 0 9.27 3.11 11 7a11.17 11.17 0 0 1-3.09 4.03l-2.16-2.16A5 5 0 0 0 12 7c-.88 0-1.72.2-2.47.56L7.8 5.83C9.1 5.3 10.52 5 12 5z" />
+                    </svg>
+                </span>
             </div>
             <div class="form-group">
                 <button type="submit">INGRESAR</button>
@@ -203,7 +220,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             togglePassword.addEventListener('click', () => {
                 const isPassword = passwordField.getAttribute('type') === 'password';
                 passwordField.setAttribute('type', isPassword ? 'text' : 'password');
-                togglePassword.textContent = isPassword ? 'Ocultar' : 'Mostrar';
+                const iconVisible = togglePassword.querySelector('.icon-visible');
+                const iconHidden = togglePassword.querySelector('.icon-hidden');
+
+                if (iconVisible && iconHidden) {
+                    iconVisible.style.display = isPassword ? 'none' : 'block';
+                    iconHidden.style.display = isPassword ? 'block' : 'none';
+                }
+
+                togglePassword.setAttribute(
+                    'aria-label',
+                    isPassword ? 'Ocultar contrasena' : 'Mostrar contrasena'
+                );
             });
         }
 
