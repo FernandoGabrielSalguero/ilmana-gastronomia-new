@@ -163,4 +163,100 @@ class CuyoPlacaPedidosModel
         $stmt->execute($params);
         return $stmt->fetchAll();
     }
+
+    public function obtenerPedidoPorFechaUsuario($usuarioId, $fecha)
+    {
+        $sql = "SELECT id, usuario_id, fecha
+            FROM Pedidos_Cuyo_Placa
+            WHERE usuario_id = :usuarioId AND fecha = :fecha
+            LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'usuarioId' => $usuarioId,
+            'fecha' => $fecha,
+        ]);
+        $pedido = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $pedido ?: null;
+    }
+
+    public function obtenerDetallePedido($pedidoId)
+    {
+        $sql = "SELECT planta, turno, menu, cantidad
+            FROM Detalle_Pedidos_Cuyo_Placa
+            WHERE pedido_id = :pedidoId";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['pedidoId' => $pedidoId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function crearPedido($usuarioId, $fecha, array $detalles)
+    {
+        try {
+            $this->db->beginTransaction();
+
+            $stmt = $this->db->prepare("INSERT INTO Pedidos_Cuyo_Placa (usuario_id, fecha)
+                VALUES (:usuarioId, :fecha)");
+            $stmt->execute([
+                'usuarioId' => $usuarioId,
+                'fecha' => $fecha,
+            ]);
+
+            $pedidoId = (int) $this->db->lastInsertId();
+
+            $stmtDetalle = $this->db->prepare("INSERT INTO Detalle_Pedidos_Cuyo_Placa
+                (pedido_id, planta, turno, menu, cantidad)
+                VALUES (:pedidoId, :planta, :turno, :menu, :cantidad)");
+
+            foreach ($detalles as $detalle) {
+                $stmtDetalle->execute([
+                    'pedidoId' => $pedidoId,
+                    'planta' => $detalle['planta'],
+                    'turno' => $detalle['turno'],
+                    'menu' => $detalle['menu'],
+                    'cantidad' => $detalle['cantidad'],
+                ]);
+            }
+
+            $this->db->commit();
+            return true;
+        } catch (Exception $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            return false;
+        }
+    }
+
+    public function actualizarPedido($pedidoId, array $detalles)
+    {
+        try {
+            $this->db->beginTransaction();
+
+            $stmt = $this->db->prepare("DELETE FROM Detalle_Pedidos_Cuyo_Placa
+                WHERE pedido_id = :pedidoId");
+            $stmt->execute(['pedidoId' => $pedidoId]);
+
+            $stmtDetalle = $this->db->prepare("INSERT INTO Detalle_Pedidos_Cuyo_Placa
+                (pedido_id, planta, turno, menu, cantidad)
+                VALUES (:pedidoId, :planta, :turno, :menu, :cantidad)");
+
+            foreach ($detalles as $detalle) {
+                $stmtDetalle->execute([
+                    'pedidoId' => $pedidoId,
+                    'planta' => $detalle['planta'],
+                    'turno' => $detalle['turno'],
+                    'menu' => $detalle['menu'],
+                    'cantidad' => $detalle['cantidad'],
+                ]);
+            }
+
+            $this->db->commit();
+            return true;
+        } catch (Exception $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            return false;
+        }
+    }
 }

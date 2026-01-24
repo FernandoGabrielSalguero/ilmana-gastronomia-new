@@ -28,168 +28,171 @@ if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'cuyo_placa') {
 
 require_once __DIR__ . '/../models/cuyo_placa_pedidosModel.php';
 
-$plantasDisponibles = [
-    'Aglomerado',
-    'Impregnacion',
-    'Muebles',
-    'Revestimiento',
-    'Transporte',
-];
-
-$plantaAliasMap = [
-    'Mebles' => 'Muebles',
-    'Muebles' => 'Muebles',
-    'Impregnacion' => 'Impregnacion',
-    'Impregnación' => 'Impregnacion',
-];
-
-$normalizarPlanta = function ($planta) use ($plantaAliasMap) {
-    $planta = trim((string) $planta);
-    return $plantaAliasMap[$planta] ?? $planta;
-};
-
-$fechaDesde = $_GET['fecha_desde'] ?? '';
-$fechaHasta = $_GET['fecha_hasta'] ?? '';
-$plantasSeleccionadas = $_GET['planta'] ?? [];
-
-if (!is_array($plantasSeleccionadas)) {
-    $plantasSeleccionadas = [];
-}
-$plantasSeleccionadas = array_map($normalizarPlanta, $plantasSeleccionadas);
-
-if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaDesde)) {
-    $fechaDesde = '';
-}
-if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaHasta)) {
-    $fechaHasta = '';
+$usuarioId = $_SESSION['usuario_id'] ?? null;
+if (!$usuarioId) {
+    die("Acceso denegado. Usuario invalido.");
 }
 
-if ($fechaDesde && $fechaHasta && $fechaDesde > $fechaHasta) {
-    $tmp = $fechaDesde;
-    $fechaDesde = $fechaHasta;
-    $fechaHasta = $tmp;
-}
-
-$usarTodasLasPlantas = empty($plantasSeleccionadas) || in_array('todos', $plantasSeleccionadas, true);
-$plantasFiltro = $usarTodasLasPlantas ? [] : array_values(array_intersect($plantasSeleccionadas, $plantasDisponibles));
-
-$model = new CuyoPlacaPedidosModel($pdo);
-$resumenMenus = $model->obtenerResumenMenus($fechaDesde, $fechaHasta, $plantasFiltro);
-$pedidosPorPlanta = $model->obtenerPedidosPorPlanta($fechaDesde, $fechaHasta, $plantasFiltro);
-$detallePedidosExcel = $model->obtenerDetallePedidosExcel($fechaDesde, $fechaHasta, $plantasFiltro);
-
-$menuOrden = [
-    'Refrigerio sandwich almuerzo',
-    'Almuerzo Caliente',
-    'Desayuno día siguiente',
-    'Media tarde',
-    'Refrigerio sandwich cena',
-    'Cena caliente',
-    'Desayuno noche',
-    'Sandwich noche',
+$plantas = [
+    ['key' => 'Aglomerado', 'label' => 'Aglomerado'],
+    ['key' => 'Revestimiento', 'label' => 'Revestimiento'],
+    ['key' => 'Impregnacion', 'label' => 'Impregnacion'],
+    ['key' => 'Muebles', 'label' => 'Muebles'],
+    ['key' => 'Transporte', 'label' => 'Transporte (Revestimiento)'],
 ];
 
 $menuGrupos = [
-    'Manana' => [
+    [
+        'key' => 'Manana',
         'label' => 'Mañana',
         'menus' => [
-            'Refrigerio sandwich almuerzo',
-            'Almuerzo Caliente',
-            'Desayuno día siguiente',
+            ['key' => 'desayuno_dia_siguiente', 'label' => 'Desayuno día siguiente', 'db' => 'Desayuno día siguiente'],
+            ['key' => 'almuerzo_caliente', 'label' => 'Almuerzo Caliente', 'db' => 'Almuerzo Caliente'],
+            ['key' => 'refrigerio_sandwich_almuerzo', 'label' => 'Refrigerio sandwich almuerzo', 'db' => 'Refrigerio sandwich almuerzo'],
         ],
     ],
-    'Tarde' => [
+    [
+        'key' => 'Tarde',
         'label' => 'Tarde',
         'menus' => [
-            'Media tarde',
-            'Refrigerio sandwich cena',
-            'Cena caliente',
+            ['key' => 'media_tarde', 'label' => 'Media tarde', 'db' => 'Media tarde'],
+            ['key' => 'cena_caliente', 'label' => 'Cena caliente', 'db' => 'Cena caliente'],
+            ['key' => 'refrigerio_sandwich_cena', 'label' => 'Refrigerio sandwich cena', 'db' => 'Refrigerio sandwich cena'],
         ],
     ],
-    'Noche' => [
+    [
+        'key' => 'Noche',
         'label' => 'Noche',
         'menus' => [
-            'Desayuno noche',
-            'Sandwich noche',
+            ['key' => 'desayuno_noche', 'label' => 'Desayuno noche', 'db' => 'Desayuno noche'],
+            ['key' => 'sandwich_noche', 'label' => 'Sandwich noche', 'db' => 'Sandwich noche'],
         ],
     ],
 ];
 
-$resumenPlantas = [];
-$totalPedidos = 0;
-foreach ($plantasDisponibles as $planta) {
-    $resumenPlantas[$planta] = [
-        'menus' => array_fill_keys($menuOrden, 0),
-        'total' => 0,
-    ];
-}
-
-$totalMenus = array_fill_keys($menuOrden, 0);
-$remitosPorPlanta = [
-    'total' => [],
-];
-foreach ($plantasDisponibles as $planta) {
-    $remitosPorPlanta[$planta] = [];
-}
-
-foreach ($resumenMenus as $fila) {
-    $planta = $normalizarPlanta($fila['planta'] ?? '');
-    $menu = $fila['menu'] ?? 'Sin menu';
-    $cantidad = (int) ($fila['total'] ?? 0);
-
-    if (!isset($resumenPlantas[$planta])) {
-        $resumenPlantas[$planta] = [
-            'menus' => [],
-            'total' => 0,
+$menuPorClave = [];
+$menuPorNombreDb = [];
+foreach ($menuGrupos as $grupo) {
+    foreach ($grupo['menus'] as $menu) {
+        $menuPorClave[$menu['key']] = [
+            'label' => $menu['label'],
+            'db' => $menu['db'],
+            'turno' => $grupo['key'],
         ];
+        $menuPorNombreDb[$menu['db']] = $menu['key'];
     }
-
-    if (!isset($resumenPlantas[$planta]['menus'][$menu])) {
-        $resumenPlantas[$planta]['menus'][$menu] = 0;
-        $menuOrden[] = $menu;
-        $totalMenus[$menu] = 0;
-    }
-
-    $resumenPlantas[$planta]['menus'][$menu] += $cantidad;
-    $resumenPlantas[$planta]['total'] += $cantidad;
-    $totalMenus[$menu] += $cantidad;
-    $totalPedidos += $cantidad;
 }
 
-foreach ($pedidosPorPlanta as $fila) {
-    $planta = $normalizarPlanta($fila['planta'] ?? '');
-    $pedidoId = (string) ($fila['pedido_id'] ?? '');
-    if ($pedidoId === '') {
+$fechaSeleccionada = $_GET['fecha'] ?? $_POST['fecha'] ?? date('Y-m-d');
+$fechaSeleccionada = trim((string) $fechaSeleccionada);
+if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaSeleccionada)) {
+    $fechaSeleccionada = '';
+}
+
+$model = new CuyoPlacaPedidosModel($pdo);
+$alerta = null;
+
+$bloqueoEdicion = false;
+if ($fechaSeleccionada) {
+    $ahora = new DateTime('now');
+    $limite = new DateTime($fechaSeleccionada . ' 10:00:00');
+    if ($fechaSeleccionada === $ahora->format('Y-m-d') && $ahora >= $limite) {
+        $bloqueoEdicion = true;
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!$fechaSeleccionada) {
+        $alerta = [
+            'tipo' => 'error',
+            'mensaje' => 'Selecciona una fecha valida para guardar el pedido.',
+        ];
+    } elseif ($bloqueoEdicion) {
+        $alerta = [
+            'tipo' => 'error',
+            'mensaje' => 'No se pueden modificar pedidos para hoy despues de las 10:00 (hora Argentina).',
+        ];
+    } else {
+        $accion = $_POST['accion'] ?? '';
+        $pedidoExistente = $model->obtenerPedidoPorFechaUsuario($usuarioId, $fechaSeleccionada);
+
+        $detalles = [];
+        $datosPedido = $_POST['pedido'] ?? [];
+        foreach ($plantas as $planta) {
+            $plantaKey = $planta['key'];
+            $menusPlanta = $datosPedido[$plantaKey] ?? [];
+            foreach ($menuPorClave as $menuKey => $menuInfo) {
+                $cantidad = $menusPlanta[$menuKey] ?? 0;
+                $cantidad = is_numeric($cantidad) ? (int) $cantidad : 0;
+                if ($cantidad > 0) {
+                    $detalles[] = [
+                        'planta' => $plantaKey,
+                        'turno' => $menuInfo['turno'],
+                        'menu' => $menuInfo['db'],
+                        'cantidad' => $cantidad,
+                    ];
+                }
+            }
+        }
+
+        if (empty($detalles)) {
+            $alerta = [
+                'tipo' => 'error',
+                'mensaje' => 'Debes cargar al menos una cantidad mayor a 0.',
+            ];
+        } elseif ($accion === 'crear' && $pedidoExistente) {
+            $alerta = [
+                'tipo' => 'error',
+                'mensaje' => 'Ya existe un pedido para esa fecha. Cargalo para modificarlo.',
+            ];
+        } else {
+            $ok = false;
+            if ($pedidoExistente) {
+                $ok = $model->actualizarPedido((int) $pedidoExistente['id'], $detalles);
+            } else {
+                $ok = $model->crearPedido($usuarioId, $fechaSeleccionada, $detalles);
+            }
+
+            $alerta = [
+                'tipo' => $ok ? 'success' : 'error',
+                'mensaje' => $ok
+                    ? ($pedidoExistente ? 'Pedido actualizado correctamente.' : 'Pedido cargado correctamente.')
+                    : 'Ocurrio un error al guardar el pedido.',
+            ];
+        }
+    }
+}
+
+$pedidoExistente = null;
+$detallePedido = [];
+if ($fechaSeleccionada) {
+    $pedidoExistente = $model->obtenerPedidoPorFechaUsuario($usuarioId, $fechaSeleccionada);
+    if ($pedidoExistente) {
+        $detallePedido = $model->obtenerDetallePedido((int) $pedidoExistente['id']);
+    }
+}
+
+$detalleMap = [];
+foreach ($plantas as $planta) {
+    $detalleMap[$planta['key']] = array_fill_keys(array_keys($menuPorClave), 0);
+}
+
+foreach ($detallePedido as $fila) {
+    $plantaKey = $fila['planta'] ?? '';
+    $menuDb = $fila['menu'] ?? '';
+    $cantidad = (int) ($fila['cantidad'] ?? 0);
+
+    if (!isset($detalleMap[$plantaKey])) {
         continue;
     }
 
-    if (!isset($remitosPorPlanta[$planta])) {
-        $remitosPorPlanta[$planta] = [];
+    $menuKey = $menuPorNombreDb[$menuDb] ?? null;
+    if (!$menuKey || !isset($detalleMap[$plantaKey][$menuKey])) {
+        continue;
     }
 
-    $remitosPorPlanta[$planta][$pedidoId] = true;
-    $remitosPorPlanta['total'][$pedidoId] = true;
+    $detalleMap[$plantaKey][$menuKey] = $cantidad;
 }
 
-foreach ($remitosPorPlanta as $planta => $ids) {
-    $remitosPorPlanta[$planta] = array_keys($ids);
-    sort($remitosPorPlanta[$planta], SORT_NATURAL);
-}
-
-if ($fechaDesde && $fechaHasta) {
-    $rangoTexto = "Desde {$fechaDesde} hasta {$fechaHasta}";
-} elseif ($fechaDesde) {
-    $rangoTexto = "Desde {$fechaDesde}";
-} elseif ($fechaHasta) {
-    $rangoTexto = "Hasta {$fechaHasta}";
-} else {
-    $rangoTexto = "Todo el historial";
-}
-
-$textoPlantas = $usarTodasLasPlantas ? 'Todas' : implode(', ', $plantasFiltro);
-$tooltipFiltros = "Planta: {$textoPlantas}\nFecha desde: " . ($fechaDesde ?: 'Sin fecha') . "\nFecha hasta: " . ($fechaHasta ?: 'Sin fecha');
-
+$accion = $pedidoExistente ? 'actualizar' : 'crear';
 $nombre = $_SESSION['nombre'] ?? 'Sin nombre';
-$correo = $_SESSION['correo'] ?? 'Sin correo';
-$usuario = $_SESSION['usuario'] ?? 'Sin usuario';
-$telefono = $_SESSION['telefono'] ?? 'Sin telefono';

@@ -18,19 +18,6 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
     <!-- Framework Success desde CDN -->
     <link rel="stylesheet" href="https://framework.impulsagroup.com/assets/css/framework.css">
     <script src="https://framework.impulsagroup.com/assets/javascript/framework.js" defer></script>
-
-    <!-- Descarga de consolidado (no se usa directamente aqui, pero se deja por consistencia) -->
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-
-    <!-- PDF: html2canvas + jsPDF (CDN gratuitos) -->
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-    <!-- Tablas con saltos de pagina prolijos (autoTable) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-
-    <!-- Graficos (Chart.js) -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 
 <body>
@@ -59,7 +46,6 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
                 </ul>
             </nav>
 
-
             <div class="sidebar-footer">
                 <button class="btn-icon" onclick="toggleSidebar()">
                     <span class="material-icons" id="collapseIcon">chevron_left</span>
@@ -80,417 +66,212 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
 
             <!-- 📦 CONTENIDO -->
             <section class="content">
-
-                <!-- Bienvenida -->
                 <div class="card">
                     <h2>Hola <?= htmlspecialchars($nombre) ?></h2>
-                    <p>Selecciona un rango de fechas para ver la cantidad de pedidos realizados.</p>
+                    <p>Selecciona la fecha para cargar o modificar pedidos.</p>
                 </div>
 
-                <div class="card resumen-card">
-                    <div class="resumen-header">
+                <div class="card">
+                    <div class="pedido-header">
                         <div>
-                            <h3>Resumen general</h3>
-                            <p class="resumen-subtitle">Rango: <?= htmlspecialchars($rangoTexto) ?></p>
+                            <h3>Pedidos de Viandas - Cuyo Placa</h3>
+                            <p class="pedido-subtitle">
+                                Fecha seleccionada: <?= htmlspecialchars($fechaSeleccionada ?: 'Sin fecha') ?>
+                                <?= $pedidoExistente ? "(Pedido #" . htmlspecialchars($pedidoExistente['id']) . ")" : '' ?>
+                            </p>
                         </div>
-                        <div class="resumen-actions">
-                            <button class="btn-icon" type="button" data-tooltip="<?= htmlspecialchars($tooltipFiltros) ?>">
-                                <span class="material-icons">help_outline</span>
-                            </button>
-                            <button class="btn-icon" id="descargarExcel" type="button" data-tooltip="Descargar Excel">
-                                <span class="material-icons">download</span>
-                            </button>
-                            <button class="btn-icon" id="toggleFiltros" type="button">
-                                <span class="material-icons">tune</span>
-                            </button>
-                            <div class="filtros-panel" id="panelFiltros">
-                                <form class="form-modern" method="get" action="cuyo_placa_pedidos.php">
-                                    <div class="input-group">
-                                        <label>Fecha desde</label>
-                                        <div class="input-icon">
-                                            <span class="material-icons">event</span>
-                                            <input type="date" name="fecha_desde" value="<?= htmlspecialchars($fechaDesde) ?>">
-                                        </div>
-                                    </div>
-
-                                    <div class="input-group">
-                                        <label>Fecha hasta</label>
-                                        <div class="input-icon">
-                                            <span class="material-icons">event</span>
-                                            <input type="date" name="fecha_hasta" value="<?= htmlspecialchars($fechaHasta) ?>">
-                                        </div>
-                                    </div>
-
-                                    <div class="input-group">
-                                        <label>Planta</label>
-                                        <div class="selector-list selector-compact">
-                                            <label>
-                                                <input type="checkbox" name="planta[]" value="todos" <?= $usarTodasLasPlantas ? 'checked' : '' ?>>
-                                                <span>Todos</span>
-                                            </label>
-                                            <?php foreach ($plantasDisponibles as $planta): ?>
-                                                <label>
-                                                    <input type="checkbox" name="planta[]" value="<?= htmlspecialchars($planta) ?>"
-                                                        <?= (!$usarTodasLasPlantas && in_array($planta, $plantasFiltro, true)) ? 'checked' : '' ?>>
-                                                    <span><?= htmlspecialchars($planta) ?></span>
-                                                </label>
-                                            <?php endforeach; ?>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-buttons">
-                                        <button class="btn btn-aceptar" type="submit">Aplicar</button>
-                                        <a class="btn btn-cancelar" href="cuyo_placa_pedidos.php">Limpiar</a>
-                                    </div>
-                                </form>
+                        <form class="form-modern pedido-fecha" method="get" action="cuyo_placa_pedidos.php">
+                            <div class="input-group">
+                                <label>Fecha</label>
+                                <div class="input-icon">
+                                    <span class="material-icons">event</span>
+                                    <input type="date" name="fecha" value="<?= htmlspecialchars($fechaSeleccionada) ?>" required>
+                                </div>
                             </div>
-                        </div>
+                            <div class="form-buttons">
+                                <button class="btn btn-info" type="submit">Cargar fecha</button>
+                            </div>
+                        </form>
                     </div>
 
-                    <div class="resumen-grid">
-                        <div class="resumen-card-item resumen-total">
-                            <button class="btn-icon resumen-remito" type="button"
-                                data-tooltip="<?= htmlspecialchars("Remito digital:\n" . (empty($remitosPorPlanta['total']) ? 'Sin pedidos' : implode("\n", $remitosPorPlanta['total']))) ?>">
-                                <span class="material-icons">receipt</span>
-                            </button>
-                            <div class="resumen-icon">
-                                <span class="material-icons">receipt_long</span>
+                    <?php if (!empty($alerta)): ?>
+                        <div class="pedido-alerta <?= $alerta['tipo'] === 'success' ? 'ok' : 'error' ?>">
+                            <?= htmlspecialchars($alerta['mensaje']) ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($fechaSeleccionada): ?>
+                        <form method="post" action="cuyo_placa_pedidos.php">
+                            <input type="hidden" name="fecha" value="<?= htmlspecialchars($fechaSeleccionada) ?>">
+                            <input type="hidden" name="accion" value="<?= htmlspecialchars($accion) ?>">
+
+                            <div class="pedido-table-wrapper">
+                                <table class="pedido-table">
+                                    <thead>
+                                        <tr>
+                                            <th rowspan="2">Planta</th>
+                                            <?php foreach ($menuGrupos as $grupo): ?>
+                                                <th colspan="<?= count($grupo['menus']) ?>"><?= htmlspecialchars($grupo['label']) ?></th>
+                                            <?php endforeach; ?>
+                                        </tr>
+                                        <tr>
+                                            <?php foreach ($menuGrupos as $grupo): ?>
+                                                <?php foreach ($grupo['menus'] as $menu): ?>
+                                                    <th><?= htmlspecialchars($menu['label']) ?></th>
+                                                <?php endforeach; ?>
+                                            <?php endforeach; ?>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($plantas as $planta): ?>
+                                            <tr>
+                                                <td class="pedido-planta"><?= htmlspecialchars($planta['label']) ?></td>
+                                                <?php foreach ($menuGrupos as $grupo): ?>
+                                                    <?php foreach ($grupo['menus'] as $menu): ?>
+                                                        <?php
+                                                        $valor = $detalleMap[$planta['key']][$menu['key']] ?? 0;
+                                                        ?>
+                                                        <td>
+                                                            <input
+                                                                type="number"
+                                                                name="pedido[<?= htmlspecialchars($planta['key']) ?>][<?= htmlspecialchars($menu['key']) ?>]"
+                                                                value="<?= htmlspecialchars((string) $valor) ?>"
+                                                                min="0"
+                                                                step="1"
+                                                                class="pedido-input"
+                                                                <?= $bloqueoEdicion ? 'disabled' : '' ?>
+                                                            />
+                                                        </td>
+                                                    <?php endforeach; ?>
+                                                <?php endforeach; ?>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
                             </div>
-                            <div>
-                                <div class="resumen-label">Total de pedidos</div>
-                                <div class="resumen-value"><?= number_format($totalPedidos, 0, ',', '.') ?></div>
-                            </div>
-                            <div class="resumen-menus">
-                                <?php
-                                $menusMostrados = [];
-                                foreach ($menuGrupos as $grupo) :
-                                    ?>
-                                    <div class="resumen-grupo"><?= htmlspecialchars($grupo['label']) ?></div>
-                                    <?php foreach ($grupo['menus'] as $menu): ?>
-                                        <div class="resumen-menu">
-                                            <span><?= htmlspecialchars($menu) ?></span>
-                                            <strong><?= number_format($totalMenus[$menu] ?? 0, 0, ',', '.') ?></strong>
-                                        </div>
-                                        <?php $menusMostrados[] = $menu; ?>
-                                    <?php endforeach; ?>
-                                <?php endforeach; ?>
-                                <?php
-                                $menusRestantes = array_diff(array_keys($totalMenus), $menusMostrados);
-                                ?>
-                                <?php if (!empty($menusRestantes)): ?>
-                                    <div class="resumen-grupo">Otros</div>
-                                    <?php foreach ($menusRestantes as $menu): ?>
-                                        <div class="resumen-menu">
-                                            <span><?= htmlspecialchars($menu) ?></span>
-                                            <strong><?= number_format($totalMenus[$menu] ?? 0, 0, ',', '.') ?></strong>
-                                        </div>
-                                    <?php endforeach; ?>
+
+                            <div class="form-buttons pedido-actions">
+                                <button class="btn btn-aceptar" type="submit" <?= $bloqueoEdicion ? 'disabled' : '' ?>>
+                                    <?= $accion === 'actualizar' ? 'Actualizar pedidos' : 'Guardar pedidos' ?>
+                                </button>
+                                <?php if ($bloqueoEdicion): ?>
+                                    <span class="pedido-bloqueo">
+                                        Las modificaciones para hoy se cierran a las 10:00 (hora Argentina).
+                                    </span>
                                 <?php endif; ?>
                             </div>
+                        </form>
+                    <?php else: ?>
+                        <div class="pedido-alerta error">
+                            Selecciona una fecha valida para cargar los pedidos.
                         </div>
-
-                        <?php foreach ($resumenPlantas as $planta => $detalle): ?>
-                            <div class="resumen-card-item">
-                                <button class="btn-icon resumen-remito" type="button"
-                                    data-tooltip="<?= htmlspecialchars("Remito digital:\n" . (empty($remitosPorPlanta[$planta]) ? 'Sin pedidos' : implode("\n", $remitosPorPlanta[$planta]))) ?>">
-                                    <span class="material-icons">receipt</span>
-                                </button>
-                                <div class="resumen-icon alt">
-                                    <span class="material-icons">factory</span>
-                                </div>
-                                <div class="resumen-label"><?= htmlspecialchars($planta) ?></div>
-                                <div class="resumen-menus">
-                                    <?php if (empty($detalle['menus'])): ?>
-                                        <div class="resumen-empty">Sin pedidos</div>
-                                    <?php else: ?>
-                                        <?php
-                                        $menusMostrados = [];
-                                        foreach ($menuGrupos as $grupo) :
-                                            ?>
-                                            <div class="resumen-grupo"><?= htmlspecialchars($grupo['label']) ?></div>
-                                            <?php foreach ($grupo['menus'] as $menu): ?>
-                                                <div class="resumen-menu">
-                                                    <span><?= htmlspecialchars($menu) ?></span>
-                                                    <strong><?= number_format($detalle['menus'][$menu] ?? 0, 0, ',', '.') ?></strong>
-                                                </div>
-                                                <?php $menusMostrados[] = $menu; ?>
-                                            <?php endforeach; ?>
-                                        <?php endforeach; ?>
-                                        <?php
-                                        $menusRestantes = array_diff(array_keys($detalle['menus']), $menusMostrados);
-                                        ?>
-                                        <?php if (!empty($menusRestantes)): ?>
-                                            <div class="resumen-grupo">Otros</div>
-                                            <?php foreach ($menusRestantes as $menu): ?>
-                                                <div class="resumen-menu">
-                                                    <span><?= htmlspecialchars($menu) ?></span>
-                                                    <strong><?= number_format($detalle['menus'][$menu] ?? 0, 0, ',', '.') ?></strong>
-                                                </div>
-                                            <?php endforeach; ?>
-                                        <?php endif; ?>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
+                    <?php endif; ?>
                 </div>
-
             </section>
 
         </div>
     </div>
+
     <!-- Spinner Global -->
     <script src="../../views/partials/spinner-global.js"></script>
 
-    <script>
-        console.log(<?php echo json_encode($_SESSION); ?>);
-
-        const detallePedidosExcel = <?php echo json_encode($detallePedidosExcel); ?>;
-        const filtrosExcel = <?php
-        echo json_encode([
-            'fecha_desde' => $fechaDesde ?: '',
-            'fecha_hasta' => $fechaHasta ?: '',
-            'plantas' => $usarTodasLasPlantas ? 'Todas' : $plantasFiltro,
-        ]);
-        ?>;
-
-        const toggleFiltros = document.getElementById('toggleFiltros');
-        const panelFiltros = document.getElementById('panelFiltros');
-        const filtroTodos = panelFiltros.querySelector('input[value="todos"]');
-        const filtrosPlanta = Array.from(panelFiltros.querySelectorAll('input[name="planta[]"]')).filter(
-            (input) => input.value !== 'todos'
-        );
-
-        toggleFiltros.addEventListener('click', () => {
-            panelFiltros.classList.toggle('is-open');
-        });
-
-        document.addEventListener('click', (event) => {
-            if (!panelFiltros.contains(event.target) && !toggleFiltros.contains(event.target)) {
-                panelFiltros.classList.remove('is-open');
-            }
-        });
-
-        filtroTodos.addEventListener('change', () => {
-            if (filtroTodos.checked) {
-                filtrosPlanta.forEach((input) => {
-                    input.checked = false;
-                });
-            }
-        });
-
-        filtrosPlanta.forEach((input) => {
-            input.addEventListener('change', () => {
-                if (input.checked) {
-                    filtroTodos.checked = false;
-                } else if (!filtrosPlanta.some((item) => item.checked)) {
-                    filtroTodos.checked = true;
-                }
-            });
-        });
-
-        const botonDescarga = document.getElementById('descargarExcel');
-        botonDescarga.addEventListener('click', () => {
-            if (!Array.isArray(detallePedidosExcel) || detallePedidosExcel.length === 0) {
-                alert('No hay datos para exportar con los filtros actuales.');
-                return;
-            }
-
-            const filas = detallePedidosExcel.map((fila) => ({
-                'Pedido ID': fila.pedido_id ?? '',
-                'Fecha entrega': fila.fecha_entrega ?? '',
-                'Fecha creacion': fila.fecha_creacion ?? '',
-                'Usuario ID': fila.usuario_id ?? '',
-                'Usuario': fila.usuario_nombre ?? '',
-                'Planta': fila.planta ?? '',
-                'Turno': fila.turno ?? '',
-                'Menu': fila.menu ?? '',
-                'Cantidad': Number(fila.cantidad ?? 0),
-            }));
-
-            const hoja = XLSX.utils.json_to_sheet(filas);
-            hoja['!cols'] = [
-                { wch: 12 },
-                { wch: 14 },
-                { wch: 20 },
-                { wch: 12 },
-                { wch: 24 },
-                { wch: 16 },
-                { wch: 12 },
-                { wch: 26 },
-                { wch: 10 },
-            ];
-
-            const libro = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(libro, hoja, 'Pedidos y plantas');
-
-            const rangoDesde = filtrosExcel.fecha_desde ? filtrosExcel.fecha_desde.replace(/-/g, '') : 'inicio';
-            const rangoHasta = filtrosExcel.fecha_hasta ? filtrosExcel.fecha_hasta.replace(/-/g, '') : 'hoy';
-            const nombreArchivo = `cuyo_placa_pedidos_${rangoDesde}_${rangoHasta}.xlsx`;
-            XLSX.writeFile(libro, nombreArchivo);
-        });
-    </script>
-
     <style>
-        .resumen-card {
-            position: relative;
-            overflow: visible;
-        }
-
-        .resumen-header {
+        .pedido-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
             gap: 16px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
         }
 
-        .resumen-header h3 {
-            margin: 0;
-        }
-
-        .resumen-subtitle {
+        .pedido-subtitle {
             margin-top: 4px;
             color: #6b7280;
         }
 
-        .resumen-actions {
-            position: relative;
-            display: flex;
-            gap: 8px;
-            z-index: 5;
+        .pedido-fecha .form-buttons {
+            margin-top: 12px;
+            justify-content: flex-end;
         }
 
-        .filtros-panel {
-            position: absolute;
-            right: 0;
-            top: 46px;
-            min-width: 280px;
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 16px;
-            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(8px);
-            transition: all 0.2s ease;
-            z-index: 10;
+        .pedido-alerta {
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-size: 14px;
         }
 
-        .filtros-panel.is-open {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateY(0);
+        .pedido-alerta.ok {
+            background: #ecfdf3;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
         }
 
-        .selector-compact {
-            max-height: 180px;
-            overflow: auto;
+        .pedido-alerta.error {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
         }
 
-        .resumen-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-            gap: 16px;
-        }
-
-        .resumen-card-item {
+        .pedido-table-wrapper {
+            overflow-x: auto;
             border: 1px solid #e5e7eb;
             border-radius: 16px;
-            padding: 16px;
+        }
+
+        .pedido-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 860px;
             background: #ffffff;
-            position: relative;
         }
 
-        .resumen-total {
-            border: 1px solid #dbeafe;
-            background: linear-gradient(120deg, #eff6ff, #ffffff);
+        .pedido-table th,
+        .pedido-table td {
+            padding: 10px;
+            border: 1px solid #e5e7eb;
+            text-align: center;
+            vertical-align: middle;
         }
 
-        .resumen-icon {
-            width: 44px;
-            height: 44px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 14px;
-            background: #dcfce7;
-            color: #15803d;
-            margin-bottom: 12px;
-        }
-
-        .resumen-icon.alt {
-            background: #e0e7ff;
-            color: #3730a3;
-        }
-
-        .resumen-label {
+        .pedido-table th {
+            background: #f8fafc;
             font-weight: 600;
-            color: #111827;
-            margin-bottom: 8px;
-        }
-
-        .resumen-value {
-            font-size: 24px;
-            font-weight: 700;
             color: #0f172a;
         }
 
-        .resumen-helper {
-            font-size: 12px;
-            color: #6b7280;
-            margin-top: 4px;
-        }
-
-        .resumen-menus {
-            display: grid;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .resumen-menu {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            color: #374151;
-        }
-
-        .resumen-grupo {
-            margin-top: 6px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            color: #64748b;
-        }
-
-        .resumen-remito {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-        }
-
-        [data-tooltip]::after {
-            white-space: pre-line;
-            max-width: 220px;
+        .pedido-planta {
+            font-weight: 600;
+            color: #1f2937;
             text-align: left;
+            min-width: 160px;
         }
 
-        .resumen-empty {
+        .pedido-input {
+            width: 64px;
+            padding: 6px;
+            border: 1px solid #cbd5f5;
+            border-radius: 8px;
+            text-align: center;
+            background: #f8fafc;
+        }
+
+        .pedido-actions {
+            margin-top: 16px;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pedido-bloqueo {
             font-size: 13px;
-            color: #9ca3af;
+            color: #b91c1c;
         }
 
-        @media (max-width: 640px) {
-            .resumen-header {
+        @media (max-width: 900px) {
+            .pedido-header {
                 flex-direction: column;
                 align-items: stretch;
-            }
-
-            .filtros-panel {
-                right: auto;
-                left: 0;
-                width: 100%;
             }
         }
     </style>
