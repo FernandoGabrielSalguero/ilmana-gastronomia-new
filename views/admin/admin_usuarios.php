@@ -99,6 +99,30 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
         #hijos-section h3 {
             margin: 0 0 12px;
         }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+        }
+
+        #modal-editar .modal-content {
+            max-width: 1100px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        #edit-hijos-section {
+            margin-top: 16px;
+        }
     </style>
 </head>
 
@@ -320,7 +344,161 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                         </div>
                     </form>
                 </div>
+
+                <div class="card tabla-card">
+                    <h3>Usuarios registrados</h3>
+                    <div class="tabla-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Nombre</th>
+                                    <th>Usuario</th>
+                                    <th>Telefono</th>
+                                    <th>Correo</th>
+                                    <th>Rol</th>
+                                    <th>Saldo</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($usuarios)): ?>
+                                    <?php foreach ($usuarios as $usuario): ?>
+                                        <?php
+                                        $saldoTabla = isset($usuario['Saldo']) ? number_format((float) $usuario['Saldo'], 2, '.', '') : '0.00';
+                                        $usuarioPayload = [
+                                            'id' => $usuario['Id'] ?? '',
+                                            'nombre' => $usuario['Nombre'] ?? '',
+                                            'usuario' => $usuario['Usuario'] ?? '',
+                                            'telefono' => $usuario['Telefono'] ?? '',
+                                            'correo' => $usuario['Correo'] ?? '',
+                                            'rol' => $usuario['Rol'] ?? '',
+                                            'saldo' => $saldoTabla
+                                        ];
+                                        $usuarioJson = htmlspecialchars(json_encode($usuarioPayload), ENT_QUOTES, 'UTF-8');
+                                        $hijosJson = htmlspecialchars(json_encode($usuario['hijos'] ?? []), ENT_QUOTES, 'UTF-8');
+                                        ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars((string) ($usuario['Id'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars((string) ($usuario['Nombre'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars((string) ($usuario['Usuario'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars((string) ($usuario['Telefono'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars((string) ($usuario['Correo'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars((string) ($usuario['Rol'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars($saldoTabla) ?></td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button type="button" class="action-btn action-delete" data-usuario="<?= $usuarioJson ?>">
+                                                        <span class="material-icons" style="color: #dc2626;">delete</span>
+                                                    </button>
+                                                    <button type="button" class="action-btn action-edit" data-usuario="<?= $usuarioJson ?>" data-hijos="<?= $hijosJson ?>">
+                                                        <span class="material-icons" style="color: #2563eb;">edit</span>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="8">No hay usuarios cargados.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
+        </div>
+    </div>
+
+    <div class="modal hidden" id="modal-eliminar">
+        <div class="modal-content">
+            <h3>Confirmar eliminacion</h3>
+            <p id="deleteModalText">Confirma la eliminacion del usuario.</p>
+            <div class="form-buttons">
+                <button type="button" class="btn btn-cancelar" data-close-modal>Cancelar</button>
+                <button type="button" class="btn btn-aceptar" data-close-modal>Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal hidden" id="modal-editar">
+        <div class="modal-content">
+            <h3>Editar usuario</h3>
+            <form class="form-modern" id="editUsuarioForm" autocomplete="off" onsubmit="return false;">
+                <input type="hidden" id="edit_id" />
+                <div class="form-grid grid-4">
+                    <div class="input-group">
+                        <label for="edit_nombre">Nombre</label>
+                        <div class="input-icon input-icon-name">
+                            <input type="text" id="edit_nombre" name="edit_nombre" />
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="edit_usuario">Usuario</label>
+                        <div class="input-icon">
+                            <span class="material-icons">person</span>
+                            <input type="text" id="edit_usuario" name="edit_usuario" />
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="edit_contrasena">Contrasena</label>
+                        <div class="input-icon">
+                            <span class="material-icons">lock</span>
+                            <input type="password" id="edit_contrasena" name="edit_contrasena" autocomplete="new-password" />
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="edit_telefono">Telefono</label>
+                        <div class="input-icon input-icon-phone">
+                            <input type="tel" id="edit_telefono" name="edit_telefono" inputmode="numeric" />
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="edit_correo">Correo</label>
+                        <div class="input-icon input-icon-email">
+                            <input type="email" id="edit_correo" name="edit_correo" />
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="edit_saldo">Saldo</label>
+                        <div class="input-icon">
+                            <span class="material-icons">attach_money</span>
+                            <input type="number" id="edit_saldo" name="edit_saldo" step="0.01" min="0" />
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="edit_rol">Rol</label>
+                        <div class="input-icon input-icon-globe">
+                            <select id="edit_rol" name="edit_rol">
+                                <option value="">Seleccionar</option>
+                                <?php foreach ($roles as $rol): ?>
+                                    <option value="<?= htmlspecialchars($rol) ?>"><?= htmlspecialchars($rol) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="edit-hijos-section">
+                    <div class="hijos-wrapper" id="edit-hijos-container"></div>
+                    <br>
+                    <div class="form-buttons">
+                        <button type="button" class="btn btn-info" id="edit-add-hijo">Agregar hijo</button>
+                    </div>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-cancelar" data-close-modal>Cancelar</button>
+                    <button type="button" class="btn btn-aceptar" data-close-modal>Guardar cambios</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -529,6 +707,216 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
 
         toggleHijosSection();
         updateHijoTitles();
+
+        const deleteModal = document.getElementById('modal-eliminar');
+        const deleteModalText = document.getElementById('deleteModalText');
+        const editModal = document.getElementById('modal-editar');
+        const editForm = document.getElementById('editUsuarioForm');
+        const editIdInput = document.getElementById('edit_id');
+        const editNombreInput = document.getElementById('edit_nombre');
+        const editUsuarioInput = document.getElementById('edit_usuario');
+        const editContrasenaInput = document.getElementById('edit_contrasena');
+        const editTelefonoInput = document.getElementById('edit_telefono');
+        const editCorreoInput = document.getElementById('edit_correo');
+        const editSaldoInput = document.getElementById('edit_saldo');
+        const editRolSelect = document.getElementById('edit_rol');
+        const editHijosSection = document.getElementById('edit-hijos-section');
+        const editHijosContainer = document.getElementById('edit-hijos-container');
+        const editAddHijoButton = document.getElementById('edit-add-hijo');
+
+        const toggleEditHijosSection = () => {
+            if (!editHijosSection) return;
+            editHijosSection.style.display = editRolSelect && editRolSelect.value === 'papas' ? 'block' : 'none';
+        };
+
+        const openModal = (modal) => {
+            if (!modal) return;
+            modal.classList.remove('hidden');
+        };
+
+        const closeModal = (modal) => {
+            if (!modal) return;
+            modal.classList.add('hidden');
+        };
+
+        document.querySelectorAll('[data-close-modal]').forEach((button) => {
+            button.addEventListener('click', () => {
+                closeModal(deleteModal);
+                closeModal(editModal);
+            });
+        });
+
+        const parseJson = (raw) => {
+            if (!raw) return null;
+            try {
+                return JSON.parse(raw);
+            } catch (error) {
+                return null;
+            }
+        };
+
+        const updateEditHijoTitles = () => {
+            if (!editHijosContainer) return;
+            const rows = Array.from(editHijosContainer.querySelectorAll('.hijo-card'));
+            rows.forEach((row, index) => {
+                const title = row.querySelector('.hijo-title');
+                if (title) {
+                    title.textContent = `Hijo ${index + 1}`;
+                }
+            });
+            if (editAddHijoButton) {
+                editAddHijoButton.disabled = rows.length >= 20;
+            }
+        };
+
+        const createEditHijoRow = (hijo = {}) => {
+            const row = document.createElement('div');
+            row.className = 'hijo-card';
+            row.innerHTML = `
+                <div class="hijo-header">
+                    <p class="hijo-title">Hijo</p>
+                    <button type="button" class="btn btn-cancelar btn-small btn-remove-hijo">Quitar</button>
+                </div>
+                <div class="form-grid grid-4">
+                    <div class="input-group">
+                        <label>Nombre</label>
+                        <div class="input-icon input-icon-name">
+                            <input type="text" name="edit_hijos_nombre[]" />
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Preferencias</label>
+                        <div class="input-icon input-icon-comment">
+                            <select name="edit_hijos_preferencias[]" class="edit-hijo-preferencia">${preferenciaOptionsHtml}</select>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Colegio</label>
+                        <div class="input-icon input-icon-globe">
+                            <select name="edit_hijos_colegio[]" class="edit-hijo-colegio">${colegioOptionsHtml}</select>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Curso</label>
+                        <div class="input-icon input-icon-globe">
+                            <select name="edit_hijos_curso[]" class="edit-hijo-curso">${cursoOptionsHtml}</select>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const nombreInput = row.querySelector('input[name="edit_hijos_nombre[]"]');
+            if (nombreInput) {
+                nombreInput.value = hijo.nombre || '';
+            }
+
+            const preferenciaSelect = row.querySelector('.edit-hijo-preferencia');
+            if (preferenciaSelect) {
+                if (hijo.preferencias) {
+                    preferenciaSelect.value = String(hijo.preferencias);
+                } else if (defaultPreferenciaId) {
+                    preferenciaSelect.value = defaultPreferenciaId;
+                }
+            }
+
+            const colegioSelect = row.querySelector('.edit-hijo-colegio');
+            const cursoSelect = row.querySelector('.edit-hijo-curso');
+            if (colegioSelect) {
+                colegioSelect.value = hijo.colegio_id ? String(hijo.colegio_id) : '';
+            }
+            if (cursoSelect) {
+                cursoSelect.value = hijo.curso_id ? String(hijo.curso_id) : '';
+            }
+            if (colegioSelect && cursoSelect) {
+                syncCursoOptions(cursoSelect, colegioSelect.value);
+                colegioSelect.addEventListener('change', () => {
+                    syncCursoOptions(cursoSelect, colegioSelect.value);
+                });
+            }
+
+            const removeButton = row.querySelector('.btn-remove-hijo');
+            if (removeButton) {
+                removeButton.addEventListener('click', () => {
+                    row.remove();
+                    updateEditHijoTitles();
+                });
+            }
+
+            return row;
+        };
+
+        const renderEditHijos = (hijos = []) => {
+            if (!editHijosContainer) return;
+            editHijosContainer.innerHTML = '';
+            if (!Array.isArray(hijos) || hijos.length === 0) {
+                editHijosContainer.appendChild(createEditHijoRow({}));
+                updateEditHijoTitles();
+                return;
+            }
+            hijos.forEach((hijo) => {
+                editHijosContainer.appendChild(createEditHijoRow(hijo));
+            });
+            updateEditHijoTitles();
+        };
+
+        if (editAddHijoButton && editHijosContainer) {
+            editAddHijoButton.addEventListener('click', () => {
+                editHijosContainer.appendChild(createEditHijoRow({}));
+                updateEditHijoTitles();
+            });
+        }
+
+        if (editRolSelect) {
+            editRolSelect.addEventListener('change', () => {
+                toggleEditHijosSection();
+            });
+        }
+
+        document.querySelectorAll('.action-delete').forEach((button) => {
+            button.addEventListener('click', () => {
+                const usuario = parseJson(button.dataset.usuario);
+                if (deleteModalText) {
+                    deleteModalText.textContent = usuario && usuario.nombre
+                        ? `Confirma la eliminacion del usuario ${usuario.nombre}.`
+                        : 'Confirma la eliminacion del usuario.';
+                }
+                openModal(deleteModal);
+            });
+        });
+
+        document.querySelectorAll('.action-edit').forEach((button) => {
+            button.addEventListener('click', () => {
+                const usuario = parseJson(button.dataset.usuario) || {};
+                const hijos = parseJson(button.dataset.hijos) || [];
+
+                if (editIdInput) editIdInput.value = usuario.id || '';
+                if (editNombreInput) editNombreInput.value = usuario.nombre || '';
+                if (editUsuarioInput) editUsuarioInput.value = usuario.usuario || '';
+                if (editContrasenaInput) editContrasenaInput.value = '';
+                if (editTelefonoInput) editTelefonoInput.value = usuario.telefono || '';
+                if (editCorreoInput) editCorreoInput.value = usuario.correo || '';
+                if (editSaldoInput) editSaldoInput.value = usuario.saldo || '0.00';
+                if (editRolSelect) editRolSelect.value = usuario.rol || '';
+
+                toggleEditHijosSection();
+                if (editRolSelect && editRolSelect.value === 'papas') {
+                    renderEditHijos(hijos);
+                } else if (editHijosContainer) {
+                    editHijosContainer.innerHTML = '';
+                }
+
+                openModal(editModal);
+            });
+        });
+
+        if (editForm) {
+            editForm.addEventListener('reset', () => {
+                if (editHijosContainer) {
+                    editHijosContainer.innerHTML = '';
+                }
+                toggleEditHijosSection();
+            });
+        }
     </script>
 </body>
 

@@ -28,6 +28,45 @@ class AdminUsuariosModel
         return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
     }
 
+    public function obtenerUsuariosConHijos()
+    {
+        $stmt = $this->db->query("SELECT Id, Nombre, Usuario, Telefono, Correo, Rol, Saldo FROM Usuarios ORDER BY Nombre");
+        $usuarios = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+        if (empty($usuarios)) {
+            return [];
+        }
+
+        $ids = array_map('intval', array_column($usuarios, 'Id'));
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmtHijos = $this->db->prepare("SELECT uh.Usuario_Id, h.Id, h.Nombre, h.Preferencias_Alimenticias, h.Colegio_Id, h.Curso_Id
+            FROM Usuarios_Hijos uh
+            INNER JOIN Hijos h ON h.Id = uh.Hijo_Id
+            WHERE uh.Usuario_Id IN ($placeholders)
+            ORDER BY h.Id");
+        $stmtHijos->execute($ids);
+        $hijosRows = $stmtHijos->fetchAll(PDO::FETCH_ASSOC);
+
+        $hijosPorUsuario = [];
+        foreach ($hijosRows as $hijo) {
+            $usuarioId = (int) $hijo['Usuario_Id'];
+            $hijosPorUsuario[$usuarioId][] = [
+                'id' => (int) $hijo['Id'],
+                'nombre' => $hijo['Nombre'],
+                'preferencias' => $hijo['Preferencias_Alimenticias'],
+                'colegio_id' => $hijo['Colegio_Id'],
+                'curso_id' => $hijo['Curso_Id']
+            ];
+        }
+
+        foreach ($usuarios as &$usuario) {
+            $usuarioId = (int) $usuario['Id'];
+            $usuario['hijos'] = $hijosPorUsuario[$usuarioId] ?? [];
+        }
+        unset($usuario);
+
+        return $usuarios;
+    }
+
     public function crearUsuarioConHijos(array $data, array $hijos)
     {
         try {
