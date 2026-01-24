@@ -162,9 +162,13 @@ $observacionesLabel = function ($texto) {
                                                 <td><?= (int) ($solicitud['Id'] ?? 0) ?></td>
                                                 <td>
                                                     <div class="saldo-user">
-                                                        <div><?= htmlspecialchars($solicitud['UsuarioNombre'] ?? '') ?></div>
-                                                        <div class="gform-helper"><?= htmlspecialchars($solicitud['UsuarioCorreo'] ?? $solicitud['UsuarioLogin'] ?? '') ?></div>
-                                                        <div class="gform-helper">Cel: <?= htmlspecialchars($solicitud['UsuarioTelefono'] ?? '-') ?></div>
+                                                        <strong><?= htmlspecialchars($solicitud['UsuarioNombre'] ?? '') ?></strong>
+                                                        <div class="gform-helper" style="font-size: 0.85rem;">
+                                                            <?= htmlspecialchars($solicitud['UsuarioCorreo'] ?? $solicitud['UsuarioLogin'] ?? '') ?>
+                                                        </div>
+                                                        <div class="gform-helper" style="font-size: 0.85rem;">
+                                                            Cel: <?= htmlspecialchars($solicitud['UsuarioTelefono'] ?? '-') ?>
+                                                        </div>
                                                     </div>
                                                 </td>
                                                 <td>$<?= number_format((float) ($solicitud['Saldo'] ?? 0), 2, ',', '.') ?></td>
@@ -175,7 +179,18 @@ $observacionesLabel = function ($texto) {
                                                         </span>
                                                     <?php endif; ?>
                                                 </td>
-                                                <td><?= htmlspecialchars($solicitud['Fecha_pedido'] ?? '') ?></td>
+                                                <?php
+                                                $fechaPedido = trim((string) ($solicitud['Fecha_pedido'] ?? ''));
+                                                $fechaParts = $fechaPedido !== '' ? preg_split('/\s+/', $fechaPedido, 2) : [];
+                                                $fechaTexto = $fechaParts[0] ?? '';
+                                                $horaTexto = $fechaParts[1] ?? '';
+                                                ?>
+                                                <td>
+                                                    <div><?= htmlspecialchars($fechaTexto) ?></div>
+                                                    <div class="gform-helper" style="font-size: 0.85rem;">
+                                                        <?= htmlspecialchars($horaTexto) ?>
+                                                    </div>
+                                                </td>
                                                 <td><?= htmlspecialchars($observacionesLabel($solicitud['Observaciones'] ?? '')) ?></td>
                                                 <td>
                                                     <?php if ($comprobanteFile): ?>
@@ -189,10 +204,10 @@ $observacionesLabel = function ($texto) {
                                                 <td>
                                                     <?php if ($estadoActual === 'Pendiente de aprobacion'): ?>
                                                         <div class="gform-actions">
-                                                            <a href="#" data-action="aprobar" title="Aprobar" style="color: #5b21b6;">
+                                                            <a href="#" data-action="aprobar" title="Aprobar" style="color: #16a34a;">
                                                                 <span class="material-icons">task_alt</span>
                                                             </a>
-                                                            <a href="#" data-action="cancelar" title="Cancelar" style="color: #5b21b6;">
+                                                            <a href="#" data-action="cancelar" title="Cancelar" style="color: #dc2626;">
                                                                 <span class="material-icons">cancel</span>
                                                             </a>
                                                             <?php
@@ -353,15 +368,20 @@ $observacionesLabel = function ($texto) {
                     : '-';
                 const acciones = estado === 'Pendiente de aprobacion'
                     ? `<div class="gform-actions">
-                            <a href="#" data-action="aprobar" title="Aprobar" style="color: #58b621;">
+                            <a href="#" data-action="aprobar" title="Aprobar" style="color: #16a34a;">
                                 <span class="material-icons">task_alt</span>
                             </a>
-                            <a href="#" data-action="cancelar" title="Cancelar" style="color: #b62121;">
+                            <a href="#" data-action="cancelar" title="Cancelar" style="color: #dc2626;">
                                 <span class="material-icons">cancel</span>
                             </a>
                             ${whatsappLinkHtml(item.UsuarioTelefono)}
                         </div>`
                     : whatsappLinkHtml(item.UsuarioTelefono);
+
+                const fechaPedido = String(item.Fecha_pedido || '').trim();
+                const fechaSplit = fechaPedido ? fechaPedido.split(/\s+/, 2) : [];
+                const fechaTexto = fechaSplit[0] || '';
+                const horaTexto = fechaSplit[1] || '';
 
                 return `
                     <tr data-id="${escapeHtml(item.Id)}"
@@ -370,14 +390,17 @@ $observacionesLabel = function ($texto) {
                         <td>${escapeHtml(item.Id)}</td>
                         <td>
                             <div class="saldo-user">
-                                <div>${escapeHtml(item.UsuarioNombre)}</div>
-                                <div class="gform-helper">${escapeHtml(item.UsuarioCorreo || item.UsuarioLogin || '')}</div>
-                                <div class="gform-helper">Cel: ${escapeHtml(item.UsuarioTelefono || '-')}</div>
+                                <strong>${escapeHtml(item.UsuarioNombre)}</strong>
+                                <div class="gform-helper" style="font-size: 0.85rem;">${escapeHtml(item.UsuarioCorreo || item.UsuarioLogin || '')}</div>
+                                <div class="gform-helper" style="font-size: 0.85rem;">Cel: ${escapeHtml(item.UsuarioTelefono || '-')}</div>
                             </div>
                         </td>
                         <td>$${Number(item.Saldo || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                         <td>${estado ? `<span class="badge ${estadoBadge(estado)}">${escapeHtml(estadoLabel(estado))}</span>` : ''}</td>
-                        <td>${escapeHtml(item.Fecha_pedido || '')}</td>
+                        <td>
+                            <div>${escapeHtml(fechaTexto)}</div>
+                            <div class="gform-helper" style="font-size: 0.85rem;">${escapeHtml(horaTexto)}</div>
+                        </td>
                         <td>${escapeHtml(observacionesLabel(item.Observaciones))}</td>
                         <td>${comprobanteHtml}</td>
                         <td>${acciones}</td>
