@@ -718,8 +718,8 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                                 const pointX = point ? point.x : tooltip.caretX;
                                 const pointY = point ? point.y : tooltip.caretY;
                                 tooltipEl.style.opacity = 1;
-                                tooltipEl.style.left = `${canvasRect.left + window.scrollX + pointX}px`;
-                                tooltipEl.style.top = `${canvasRect.top + window.scrollY + pointY - 8}px`;
+                                tooltipEl.style.left = `${canvasRect.left + pointX}px`;
+                                tooltipEl.style.top = `${canvasRect.top + pointY - 8}px`;
                             }
                         }
                     },
