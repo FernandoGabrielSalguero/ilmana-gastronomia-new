@@ -1,38 +1,5 @@
 <?php
-// Mostrar errores en pantalla (útil en desarrollo)
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-// Iniciar sesión y proteger acceso
-session_start();
-
-// ⚠️ Expiración por inactividad (20 minutos)
-if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 1200)) {
-    session_unset();
-    session_destroy();
-    header("Location: /index.php?expired=1");
-    exit;
-}
-$_SESSION['LAST_ACTIVITY'] = time(); // Actualiza el tiempo de actividad
-
-// 🚧 Protección de acceso general
-if (!isset($_SESSION['usuario'])) {
-    die("⚠️ Acceso denegado. No has iniciado sesión.");
-}
-
-// 🔐 Protección por rol
-if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'cuyo_placa') {
-    die("🚫 Acceso restringido: esta página es solo para usuarios cuyo_placa.");
-}
-
-// Datos del usuario en sesión
-$nombre = $_SESSION['nombre'] ?? 'Sin nombre';
-$correo = $_SESSION['correo'] ?? 'Sin correo';
-$usuario = $_SESSION['usuario'] ?? 'Sin usuario';
-$telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
-
-
+require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
 ?>
 
 <!DOCTYPE html>
@@ -116,48 +83,45 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             <!-- 📦 CONTENIDO -->
             <section class="content">
 
-                <!-- Bienvenida -->
+                                <!-- Bienvenida -->
                 <div class="card">
-                    <h2>Hola 👋</h2>
-                    <p>En esta página, vamos a tener KPI.</p>
+                    <h2>Hola <?= htmlspecialchars($nombre) ?></h2>
+                    <p>Selecciona un rango de fechas para ver la cantidad de pedidos realizados.</p>
                 </div>
 
-
-                <div class="card-grid grid-4">
-                    <div class="card">
-                        <h3>KPI 1</h3>
-                        <p>Contenido 1</p>
-                    </div>
-                    <div class="card">
-                        <h3>KPI 2</h3>
-                        <p>Contenido 2</p>
-                    </div>
-                    <div class="card">
-                        <h3>KPI 3</h3>
-                        <p>Contenido 3</p>
-                    </div>
-                    <div class="card">
-                        <h3>KPI 4</h3>
-                        <p>Contenido 3</p>
-                    </div>
-                </div>
-
-
                 <div class="card">
-                    <form class="form-modern">
+                    <form class="form-modern" method="get" action="cuyo_placa_dashboard.php">
                         <div class="input-group">
-                            <label>Correo</label>
+                            <label>Desde</label>
                             <div class="input-icon">
-                                <span class="material-icons">mail</span>
-                                <input type="email" placeholder="ejemplo@correo.com">
+                                <span class="material-icons">event</span>
+                                <input type="date" name="fecha_desde" value="<?= htmlspecialchars($fechaDesde) ?>">
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Hasta</label>
+                            <div class="input-icon">
+                                <span class="material-icons">event</span>
+                                <input type="date" name="fecha_hasta" value="<?= htmlspecialchars($fechaHasta) ?>">
                             </div>
                         </div>
 
                         <div class="form-buttons">
-                            <button class="btn btn-aceptar" type="submit">Enviar</button>
-                            <button class="btn btn-cancelar" type="button">Cancelar</button>
+                            <button class="btn btn-aceptar" type="submit">Aplicar</button>
+                            <a class="btn btn-cancelar" href="cuyo_placa_dashboard.php">Limpiar</a>
                         </div>
                     </form>
+                </div>
+
+                <div class="card-grid grid-2">
+                    <div class="card">
+                        <h3>Pedidos realizados</h3>
+                        <p style="font-size: 28px; font-weight: 700;">
+                            <?= number_format($totalPedidos, 0, ',', '.') ?>
+                        </p>
+                        <p style="color: #6b7280;">Rango: <?= htmlspecialchars($rangoTexto) ?></p>
+                    </div>
                 </div>
 
             </section>
@@ -173,3 +137,4 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
 </body>
 
 </html>
+
