@@ -56,6 +56,12 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
             position: relative;
         }
 
+        .kpi-help {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
         .kpi-menu-panel {
             position: absolute;
             right: 0;
@@ -100,6 +106,30 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
             display: flex;
             gap: 8px;
             margin-top: 10px;
+        }
+
+        .kpi-help-tooltip {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            min-width: 220px;
+            background: #111827;
+            color: #ffffff;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            line-height: 1.4;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-4px);
+            transition: opacity 0.12s ease, transform 0.12s ease;
+            z-index: 1000;
+        }
+
+        .kpi-help-tooltip.is-open {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
         }
 
         .kpi-grid {
@@ -347,6 +377,12 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                     <div class="kpi-group-header">
                         <h3 class="kpi-group-title">Resumen general</h3>
                         <div class="kpi-menu">
+                            <div class="kpi-help">
+                                <button class="btn-icon kpi-help-toggle" type="button" aria-label="Ver filtros aplicados">
+                                    <span class="material-icons">help_outline</span>
+                                </button>
+                                <div class="kpi-help-tooltip"></div>
+                            </div>
                             <button class="btn-icon kpi-menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false">
                                 <span class="material-icons">more_horiz</span>
                             </button>
@@ -470,6 +506,12 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                     <div class="kpi-group-header">
                         <h3 class="kpi-group-title">Pedidos por curso</h3>
                         <div class="kpi-menu">
+                            <div class="kpi-help">
+                                <button class="btn-icon kpi-help-toggle" type="button" aria-label="Ver filtros aplicados">
+                                    <span class="material-icons">help_outline</span>
+                                </button>
+                                <div class="kpi-help-tooltip"></div>
+                            </div>
                             <button class="btn-icon kpi-menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false">
                                 <span class="material-icons">more_horiz</span>
                             </button>
@@ -598,6 +640,7 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
         const kpiTableBody = document.getElementById("kpi-table-body");
         const kpiFilterForms = document.querySelectorAll(".kpi-filters");
         const kpiLinkFilters = document.getElementById("kpi-link-filters");
+        const kpiHelpToggles = document.querySelectorAll(".kpi-help-toggle");
 
         const formatValue = (value, type) => {
             if (type === "currency") {
@@ -665,6 +708,49 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
             }
             return tooltipEl;
         };
+
+        const buildFilterSummary = (form) => {
+            const colegioSelect = form.querySelector(".kpi-colegio");
+            const cursoSelect = form.querySelector(".kpi-curso");
+            const fechaDesde = form.querySelector("input[name='fecha_desde']");
+            const fechaHasta = form.querySelector("input[name='fecha_hasta']");
+
+            const colegioText = colegioSelect?.selectedOptions?.[0]?.textContent?.trim() || "Todos";
+            const cursoText = cursoSelect?.selectedOptions?.[0]?.textContent?.trim() || "Todos";
+            const desdeText = fechaDesde?.value || "Sin fecha";
+            const hastaText = fechaHasta?.value || "Sin fecha";
+
+            return `Colegio: ${colegioText}<br>Curso: ${cursoText}<br>Desde: ${desdeText}<br>Hasta: ${hastaText}`;
+        };
+
+        const updateHelpTooltip = (toggle) => {
+            const card = toggle.closest(".card");
+            const form = card?.querySelector(".kpi-filters");
+            const tooltip = toggle.parentElement?.querySelector(".kpi-help-tooltip");
+            if (!form || !tooltip) {
+                return;
+            }
+            tooltip.innerHTML = buildFilterSummary(form);
+        };
+
+        kpiHelpToggles.forEach((toggle) => {
+            const tooltip = toggle.parentElement?.querySelector(".kpi-help-tooltip");
+            const openTooltip = () => {
+                updateHelpTooltip(toggle);
+                tooltip?.classList.add("is-open");
+            };
+            const closeTooltip = () => tooltip?.classList.remove("is-open");
+
+            toggle.addEventListener("mouseenter", openTooltip);
+            toggle.addEventListener("focus", openTooltip);
+            toggle.addEventListener("mouseleave", closeTooltip);
+            toggle.addEventListener("blur", closeTooltip);
+            toggle.addEventListener("click", (event) => {
+                event.stopPropagation();
+                updateHelpTooltip(toggle);
+                tooltip?.classList.toggle("is-open");
+            });
+        });
 
         const renderSparkline = (canvas, series) => {
             const labels = series.map((item) => item.dia);
@@ -846,12 +932,14 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                 }
                 syncForms(form);
                 scheduleFetch(form);
+                kpiHelpToggles.forEach(updateHelpTooltip);
             });
 
             form.addEventListener("input", (event) => {
                 if (event.target.type === "date") {
                     syncForms(form);
                     scheduleFetch(form);
+                    kpiHelpToggles.forEach(updateHelpTooltip);
                 }
             });
 
@@ -860,6 +948,7 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                     form.reset();
                     syncForms(form);
                     scheduleFetch(form);
+                    kpiHelpToggles.forEach(updateHelpTooltip);
                 });
             }
         });
@@ -870,6 +959,7 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                     syncForms(kpiFilterForms[0]);
                     scheduleFetch(kpiFilterForms[0]);
                 }
+                kpiHelpToggles.forEach(updateHelpTooltip);
             });
         }
 
