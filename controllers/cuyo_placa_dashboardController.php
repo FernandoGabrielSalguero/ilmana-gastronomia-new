@@ -31,10 +31,22 @@ require_once __DIR__ . '/../models/cuyo_placa_dashboardModel.php';
 $plantasDisponibles = [
     'Aglomerado',
     'Impregnacion',
-    'Mebles',
+    'Muebles',
     'Revestimiento',
     'Transporte',
 ];
+
+$plantaAliasMap = [
+    'Mebles' => 'Muebles',
+    'Muebles' => 'Muebles',
+    'Impregnacion' => 'Impregnacion',
+    'Impregnación' => 'Impregnacion',
+];
+
+$normalizarPlanta = function ($planta) use ($plantaAliasMap) {
+    $planta = trim((string) $planta);
+    return $plantaAliasMap[$planta] ?? $planta;
+};
 
 $fechaDesde = $_GET['fecha_desde'] ?? '';
 $fechaHasta = $_GET['fecha_hasta'] ?? '';
@@ -43,6 +55,7 @@ $plantasSeleccionadas = $_GET['planta'] ?? [];
 if (!is_array($plantasSeleccionadas)) {
     $plantasSeleccionadas = [];
 }
+$plantasSeleccionadas = array_map($normalizarPlanta, $plantasSeleccionadas);
 
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaDesde)) {
     $fechaDesde = '';
@@ -119,7 +132,7 @@ foreach ($plantasDisponibles as $planta) {
 }
 
 foreach ($resumenMenus as $fila) {
-    $planta = $fila['planta'] ?? '';
+    $planta = $normalizarPlanta($fila['planta'] ?? '');
     $menu = $fila['menu'] ?? 'Sin menu';
     $cantidad = (int) ($fila['total'] ?? 0);
 
@@ -143,7 +156,7 @@ foreach ($resumenMenus as $fila) {
 }
 
 foreach ($pedidosPorPlanta as $fila) {
-    $planta = $fila['planta'] ?? '';
+    $planta = $normalizarPlanta($fila['planta'] ?? '');
     $pedidoId = (string) ($fila['pedido_id'] ?? '');
     if ($pedidoId === '') {
         continue;
