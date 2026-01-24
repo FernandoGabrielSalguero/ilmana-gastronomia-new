@@ -63,14 +63,53 @@ $plantasFiltro = $usarTodasLasPlantas ? [] : array_values(array_intersect($plant
 $model = new CuyoPlacaDashboardModel($pdo);
 $resumenMenus = $model->obtenerResumenMenus($fechaDesde, $fechaHasta, $plantasFiltro);
 
+$menuOrden = [
+    'Refrigerio sandwich almuerzo',
+    'Almuerzo Caliente',
+    'Desayuno día siguiente',
+    'Media tarde',
+    'Refrigerio sandwich cena',
+    'Cena caliente',
+    'Desayuno noche',
+    'Sandwich noche',
+];
+
+$menuGrupos = [
+    'Manana' => [
+        'label' => 'Mañana',
+        'menus' => [
+            'Refrigerio sandwich almuerzo',
+            'Almuerzo Caliente',
+            'Desayuno día siguiente',
+        ],
+    ],
+    'Tarde' => [
+        'label' => 'Tarde',
+        'menus' => [
+            'Media tarde',
+            'Refrigerio sandwich cena',
+            'Cena caliente',
+        ],
+    ],
+    'Noche' => [
+        'label' => 'Noche',
+        'menus' => [
+            'Desayuno noche',
+            'Sandwich noche',
+        ],
+    ],
+];
+
 $resumenPlantas = [];
 $totalPedidos = 0;
 foreach ($plantasDisponibles as $planta) {
     $resumenPlantas[$planta] = [
-        'menus' => [],
+        'menus' => array_fill_keys($menuOrden, 0),
         'total' => 0,
     ];
 }
+
+$totalMenus = array_fill_keys($menuOrden, 0);
 
 foreach ($resumenMenus as $fila) {
     $planta = $fila['planta'] ?? '';
@@ -84,8 +123,15 @@ foreach ($resumenMenus as $fila) {
         ];
     }
 
-    $resumenPlantas[$planta]['menus'][$menu] = $cantidad;
+    if (!isset($resumenPlantas[$planta]['menus'][$menu])) {
+        $resumenPlantas[$planta]['menus'][$menu] = 0;
+        $menuOrden[] = $menu;
+        $totalMenus[$menu] = 0;
+    }
+
+    $resumenPlantas[$planta]['menus'][$menu] += $cantidad;
     $resumenPlantas[$planta]['total'] += $cantidad;
+    $totalMenus[$menu] += $cantidad;
     $totalPedidos += $cantidad;
 }
 

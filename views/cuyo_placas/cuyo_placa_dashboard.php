@@ -160,6 +160,33 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
                                 <div class="resumen-value"><?= number_format($totalPedidos, 0, ',', '.') ?></div>
                                 <div class="resumen-helper">Sumatoria de menus</div>
                             </div>
+                            <div class="resumen-menus">
+                                <?php
+                                $menusMostrados = [];
+                                foreach ($menuGrupos as $grupo) :
+                                    ?>
+                                    <div class="resumen-grupo"><?= htmlspecialchars($grupo['label']) ?></div>
+                                    <?php foreach ($grupo['menus'] as $menu): ?>
+                                        <div class="resumen-menu">
+                                            <span><?= htmlspecialchars($menu) ?></span>
+                                            <strong><?= number_format($totalMenus[$menu] ?? 0, 0, ',', '.') ?></strong>
+                                        </div>
+                                        <?php $menusMostrados[] = $menu; ?>
+                                    <?php endforeach; ?>
+                                <?php endforeach; ?>
+                                <?php
+                                $menusRestantes = array_diff(array_keys($totalMenus), $menusMostrados);
+                                ?>
+                                <?php if (!empty($menusRestantes)): ?>
+                                    <div class="resumen-grupo">Otros</div>
+                                    <?php foreach ($menusRestantes as $menu): ?>
+                                        <div class="resumen-menu">
+                                            <span><?= htmlspecialchars($menu) ?></span>
+                                            <strong><?= number_format($totalMenus[$menu] ?? 0, 0, ',', '.') ?></strong>
+                                        </div>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </div>
                         </div>
 
                         <?php foreach ($resumenPlantas as $planta => $detalle): ?>
@@ -172,12 +199,31 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
                                     <?php if (empty($detalle['menus'])): ?>
                                         <div class="resumen-empty">Sin pedidos</div>
                                     <?php else: ?>
-                                        <?php foreach ($detalle['menus'] as $menu => $cantidad): ?>
-                                            <div class="resumen-menu">
-                                                <span><?= htmlspecialchars($menu) ?></span>
-                                                <strong><?= number_format($cantidad, 0, ',', '.') ?></strong>
-                                            </div>
+                                        <?php
+                                        $menusMostrados = [];
+                                        foreach ($menuGrupos as $grupo) :
+                                            ?>
+                                            <div class="resumen-grupo"><?= htmlspecialchars($grupo['label']) ?></div>
+                                            <?php foreach ($grupo['menus'] as $menu): ?>
+                                                <div class="resumen-menu">
+                                                    <span><?= htmlspecialchars($menu) ?></span>
+                                                    <strong><?= number_format($detalle['menus'][$menu] ?? 0, 0, ',', '.') ?></strong>
+                                                </div>
+                                                <?php $menusMostrados[] = $menu; ?>
+                                            <?php endforeach; ?>
                                         <?php endforeach; ?>
+                                        <?php
+                                        $menusRestantes = array_diff(array_keys($detalle['menus']), $menusMostrados);
+                                        ?>
+                                        <?php if (!empty($menusRestantes)): ?>
+                                            <div class="resumen-grupo">Otros</div>
+                                            <?php foreach ($menusRestantes as $menu): ?>
+                                                <div class="resumen-menu">
+                                                    <span><?= htmlspecialchars($menu) ?></span>
+                                                    <strong><?= number_format($detalle['menus'][$menu] ?? 0, 0, ',', '.') ?></strong>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -344,6 +390,7 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
         .resumen-menus {
             display: grid;
             gap: 8px;
+            margin-top: 12px;
         }
 
         .resumen-menu {
@@ -351,6 +398,15 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
             justify-content: space-between;
             font-size: 14px;
             color: #374151;
+        }
+
+        .resumen-grupo {
+            margin-top: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #64748b;
         }
 
         .resumen-empty {
