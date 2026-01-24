@@ -399,7 +399,7 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                                     </div>
 
                                     <div class="form-buttons">
-                                        <button class="btn btn-cancelar kpi-clear" type="button">Limpiar</button>
+                                        <button class="btn btn-cancelar" type="button">Limpiar</button>
                                     </div>
                                 </form>
                             </div>
@@ -525,7 +525,7 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                                     </div>
 
                                     <div class="form-buttons">
-                                        <button class="btn btn-cancelar kpi-clear" type="button">Limpiar</button>
+                                        <button class="btn btn-cancelar" type="button">Limpiar</button>
                                     </div>
                                 </form>
                             </div>
