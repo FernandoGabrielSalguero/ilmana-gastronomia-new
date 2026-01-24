@@ -369,7 +369,7 @@ $formatDateTime = function ($value) {
                                                         <span class="material-icons">edit</span>
                                                     </button>
                                                     <button type="button" class="icon-action" data-action="eliminar" aria-label="Cambiar estado">
-                                                        <span class="material-icons">delete</span>
+                                                        <span class="material-icons">power_settings_new</span>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -591,7 +591,7 @@ $formatDateTime = function ($value) {
                                     <span class="material-icons">edit</span>
                                 </button>
                                 <button type="button" class="icon-action" data-action="eliminar" aria-label="Cambiar estado">
-                                    <span class="material-icons">delete</span>
+                                    <span class="material-icons">power_settings_new</span>
                                 </button>
                             </td>
                         </tr>`;
