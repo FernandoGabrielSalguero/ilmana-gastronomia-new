@@ -729,20 +729,20 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
             editHijosSection.style.display = editRolSelect && editRolSelect.value === 'papas' ? 'block' : 'none';
         };
 
-        const openModal = (modal) => {
+        const openAdminModal = (modal) => {
             if (!modal) return;
             modal.classList.remove('hidden');
         };
 
-        const closeModal = (modal) => {
+        const closeAdminModal = (modal) => {
             if (!modal) return;
             modal.classList.add('hidden');
         };
 
         document.querySelectorAll('[data-close-modal]').forEach((button) => {
             button.addEventListener('click', () => {
-                closeModal(deleteModal);
-                closeModal(editModal);
+                closeAdminModal(deleteModal);
+                closeAdminModal(editModal);
             });
         });
 
@@ -880,7 +880,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                         ? `Confirma la eliminacion del usuario ${usuario.nombre}.`
                         : 'Confirma la eliminacion del usuario.';
                 }
-                openModal(deleteModal);
+                openAdminModal(deleteModal);
             });
         });
 
@@ -905,7 +905,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                     editHijosContainer.innerHTML = '';
                 }
 
-                openModal(editModal);
+                openAdminModal(editModal);
             });
         });
 
