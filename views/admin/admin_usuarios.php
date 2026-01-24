@@ -252,7 +252,6 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                         </div>
 
                         <div id="hijos-section">
-                            <h3>Hijos (solo para rol papas)</h3>
                         <div class="hijos-wrapper" id="hijos-container">
                             <?php
                             $mostrarHijos = $formData['rol'] === 'papas';
