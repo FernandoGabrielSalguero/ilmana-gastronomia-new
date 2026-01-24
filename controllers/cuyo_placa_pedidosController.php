@@ -83,39 +83,59 @@ foreach ($menuGrupos as $grupo) {
     }
 }
 
-$fechaSeleccionada = $_GET['fecha'] ?? $_POST['fecha'] ?? date('Y-m-d');
-$fechaSeleccionada = trim((string) $fechaSeleccionada);
-if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaSeleccionada)) {
-    $fechaSeleccionada = '';
-}
-
 $model = new CuyoPlacaPedidosModel($pdo);
 $alerta = null;
 
+$fechaRaw = $_GET['fecha'] ?? $_POST['fecha'] ?? null;
+$fechaSeleccionada = $fechaRaw !== null ? trim((string) $fechaRaw) : date('Y-m-d');
+if ($fechaSeleccionada && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaSeleccionada)) {
+    $fechaSeleccionada = '';
+    $alerta = [
+        'tipo' => 'error',
+        'mensaje' => 'Selecciona una fecha valida para cargar los pedidos.',
+    ];
+}
+
+$pedidoExistente = null;
+$detallePedido = [];
+if ($fechaSeleccionada) {
+    $pedidoExistente = $model->obtenerPedidoPorFecha($fechaSeleccionada);
+    if ($pedidoExistente) {
+        $detallePedido = $model->obtenerDetallePedido((int) $pedidoExistente['id']);
+    }
+}
+
 $bloqueoEdicion = false;
+$bloqueoPorHora = false;
 if ($fechaSeleccionada) {
     $ahora = new DateTime('now');
     $limite = new DateTime($fechaSeleccionada . ' 10:00:00');
     if ($fechaSeleccionada === $ahora->format('Y-m-d') && $ahora >= $limite) {
-        $bloqueoEdicion = true;
+        $bloqueoPorHora = true;
     }
 }
+$bloqueoPorFecha = $pedidoExistente ? true : false;
+$bloqueoEdicion = $bloqueoPorHora || $bloqueoPorFecha;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$fechaSeleccionada) {
+        if (!$alerta) {
+            $alerta = [
+                'tipo' => 'error',
+                'mensaje' => 'Selecciona una fecha valida para guardar el pedido.',
+            ];
+        }
+    } elseif ($bloqueoPorHora) {
         $alerta = [
             'tipo' => 'error',
-            'mensaje' => 'Selecciona una fecha valida para guardar el pedido.',
+            'mensaje' => 'No se pueden cargar pedidos para hoy despues de las 10:00 (hora Argentina).',
         ];
-    } elseif ($bloqueoEdicion) {
+    } elseif ($bloqueoPorFecha) {
         $alerta = [
             'tipo' => 'error',
-            'mensaje' => 'No se pueden modificar pedidos para hoy despues de las 10:00 (hora Argentina).',
+            'mensaje' => 'Ya existe un pedido para esa fecha. No se pueden cargar nuevos pedidos.',
         ];
     } else {
-        $accion = $_POST['accion'] ?? '';
-        $pedidoExistente = $model->obtenerPedidoPorFechaUsuario($usuarioId, $fechaSeleccionada);
-
         $detalles = [];
         $datosPedido = $_POST['pedido'] ?? [];
         foreach ($plantas as $planta) {
@@ -140,36 +160,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'tipo' => 'error',
                 'mensaje' => 'Debes cargar al menos una cantidad mayor a 0.',
             ];
-        } elseif ($accion === 'crear' && $pedidoExistente) {
-            $alerta = [
-                'tipo' => 'error',
-                'mensaje' => 'Ya existe un pedido para esa fecha. Cargalo para modificarlo.',
-            ];
         } else {
-            $ok = false;
-            if ($pedidoExistente) {
-                $ok = $model->actualizarPedido((int) $pedidoExistente['id'], $detalles);
-            } else {
-                $ok = $model->crearPedido($usuarioId, $fechaSeleccionada, $detalles);
-            }
+            $ok = $model->crearPedido($usuarioId, $fechaSeleccionada, $detalles);
 
             $alerta = [
                 'tipo' => $ok ? 'success' : 'error',
                 'mensaje' => $ok
-                    ? ($pedidoExistente ? 'Pedido actualizado correctamente.' : 'Pedido cargado correctamente.')
+                    ? 'Pedido cargado correctamente.'
                     : 'Ocurrio un error al guardar el pedido.',
             ];
         }
     }
 }
 
-$pedidoExistente = null;
-$detallePedido = [];
 if ($fechaSeleccionada) {
-    $pedidoExistente = $model->obtenerPedidoPorFechaUsuario($usuarioId, $fechaSeleccionada);
-    if ($pedidoExistente) {
-        $detallePedido = $model->obtenerDetallePedido((int) $pedidoExistente['id']);
-    }
+    $pedidoExistente = $model->obtenerPedidoPorFecha($fechaSeleccionada);
+    $detallePedido = $pedidoExistente ? $model->obtenerDetallePedido((int) $pedidoExistente['id']) : [];
+}
+$bloqueoPorFecha = $pedidoExistente ? true : false;
+$bloqueoEdicion = $bloqueoPorHora || $bloqueoPorFecha;
+
+if (!$alerta && $pedidoExistente && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $alerta = [
+        'tipo' => 'warning',
+        'mensaje' => 'Ya existe un pedido para esta fecha. No se pueden cargar nuevos pedidos.',
+    ];
+} elseif (!$alerta && $bloqueoPorHora && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $alerta = [
+        'tipo' => 'warning',
+        'mensaje' => 'Las cargas para hoy se cierran a las 10:00 (hora Argentina).',
+    ];
 }
 
 $detalleMap = [];
@@ -194,5 +214,4 @@ foreach ($detallePedido as $fila) {
     $detalleMap[$plantaKey][$menuKey] = $cantidad;
 }
 
-$accion = $pedidoExistente ? 'actualizar' : 'crear';
 $nombre = $_SESSION['nombre'] ?? 'Sin nombre';

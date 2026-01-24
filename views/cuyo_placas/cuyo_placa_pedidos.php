@@ -68,7 +68,7 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
             <section class="content">
                 <div class="card">
                     <h2>Hola <?= htmlspecialchars($nombre) ?></h2>
-                    <p>Selecciona la fecha para cargar o modificar pedidos.</p>
+                    <p>Selecciona la fecha para cargar pedidos.</p>
                 </div>
 
                 <div class="card">
@@ -94,16 +94,9 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
                         </form>
                     </div>
 
-                    <?php if (!empty($alerta)): ?>
-                        <div class="pedido-alerta <?= $alerta['tipo'] === 'success' ? 'ok' : 'error' ?>">
-                            <?= htmlspecialchars($alerta['mensaje']) ?>
-                        </div>
-                    <?php endif; ?>
-
                     <?php if ($fechaSeleccionada): ?>
                         <form method="post" action="cuyo_placa_pedidos.php">
                             <input type="hidden" name="fecha" value="<?= htmlspecialchars($fechaSeleccionada) ?>">
-                            <input type="hidden" name="accion" value="<?= htmlspecialchars($accion) ?>">
 
                             <div class="pedido-table-wrapper">
                                 <table class="pedido-table">
@@ -152,19 +145,10 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
 
                             <div class="form-buttons pedido-actions">
                                 <button class="btn btn-aceptar" type="submit" <?= $bloqueoEdicion ? 'disabled' : '' ?>>
-                                    <?= $accion === 'actualizar' ? 'Actualizar pedidos' : 'Guardar pedidos' ?>
+                                    Guardar pedidos
                                 </button>
-                                <?php if ($bloqueoEdicion): ?>
-                                    <span class="pedido-bloqueo">
-                                        Las modificaciones para hoy se cierran a las 10:00 (hora Argentina).
-                                    </span>
-                                <?php endif; ?>
                             </div>
                         </form>
-                    <?php else: ?>
-                        <div class="pedido-alerta error">
-                            Selecciona una fecha valida para cargar los pedidos.
-                        </div>
                     <?php endif; ?>
                 </div>
             </section>
@@ -174,6 +158,30 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
 
     <!-- Spinner Global -->
     <script src="../../views/partials/spinner-global.js"></script>
+    <script>
+        function showAlertSafe(type, message, options = {}) {
+            if (typeof window.showAlert === 'function') {
+                try {
+                    if (window.showAlert.length <= 1) {
+                        window.showAlert(Object.assign({ type, message }, options));
+                    } else {
+                        window.showAlert(type, message, options);
+                    }
+                    return;
+                } catch (err) {
+                    console.warn('showAlert failed, falling back to alert.', err);
+                }
+            }
+            alert(message);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const alerta = <?= json_encode($alerta) ?>;
+            if (alerta && alerta.mensaje) {
+                showAlertSafe(alerta.tipo || 'info', alerta.mensaje);
+            }
+        });
+    </script>
 
     <style>
         .pedido-header {
@@ -193,25 +201,6 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
         .pedido-fecha .form-buttons {
             margin-top: 12px;
             justify-content: flex-end;
-        }
-
-        .pedido-alerta {
-            padding: 12px 16px;
-            border-radius: 12px;
-            margin-bottom: 16px;
-            font-size: 14px;
-        }
-
-        .pedido-alerta.ok {
-            background: #ecfdf3;
-            color: #15803d;
-            border: 1px solid #bbf7d0;
-        }
-
-        .pedido-alerta.error {
-            background: #fef2f2;
-            color: #b91c1c;
-            border: 1px solid #fecaca;
         }
 
         .pedido-table-wrapper {
@@ -261,11 +250,6 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
             margin-top: 16px;
             align-items: center;
             gap: 12px;
-        }
-
-        .pedido-bloqueo {
-            font-size: 13px;
-            color: #b91c1c;
         }
 
         @media (max-width: 900px) {

@@ -179,6 +179,20 @@ class CuyoPlacaPedidosModel
         return $pedido ?: null;
     }
 
+    public function obtenerPedidoPorFecha($fecha)
+    {
+        $sql = "SELECT id, usuario_id, fecha
+            FROM Pedidos_Cuyo_Placa
+            WHERE fecha = :fecha
+            LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'fecha' => $fecha,
+        ]);
+        $pedido = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $pedido ?: null;
+    }
+
     public function obtenerDetallePedido($pedidoId)
     {
         $sql = "SELECT planta, turno, menu, cantidad
