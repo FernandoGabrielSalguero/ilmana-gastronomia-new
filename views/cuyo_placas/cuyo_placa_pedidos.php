@@ -80,18 +80,36 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
                                 <?= $pedidoExistente ? "(Pedido #" . htmlspecialchars($pedidoExistente['id']) . ")" : '' ?>
                             </p>
                         </div>
-                        <form class="form-modern pedido-fecha" method="get" action="cuyo_placa_pedidos.php">
-                            <div class="input-group">
-                                <label>Fecha</label>
-                                <div class="input-icon">
-                                    <span class="material-icons">event</span>
-                                    <input type="date" name="fecha" value="<?= htmlspecialchars($fechaSeleccionada) ?>" required>
-                                </div>
-                            </div>
-                            <div class="form-buttons">
-                                <button class="btn btn-info" type="submit">Cargar fecha</button>
-                            </div>
-                        </form>
+                    </div>
+                    <div class="pedido-semana-label">Semana</div>
+                    <div class="pedido-semana">
+                        <a class="week-nav" href="cuyo_placa_pedidos.php?fecha=<?= htmlspecialchars($semanaAnterior->format('Y-m-d')) ?>">
+                            <span class="material-icons">chevron_left</span>
+                        </a>
+                        <div class="week-grid">
+                            <?php foreach ($semanaDias as $dia): ?>
+                                <?php
+                                $pedido = $dia['pedido'] ?? null;
+                                $estadoClase = '';
+                                if ($pedido) {
+                                    $estadoClase = $dia['puedeModificar'] ? 'day-modificable' : 'day-bloqueado';
+                                }
+                                ?>
+                                <a class="week-day <?= $estadoClase ?> <?= $dia['seleccionada'] ? 'day-seleccionada' : '' ?>"
+                                    href="cuyo_placa_pedidos.php?fecha=<?= htmlspecialchars($dia['fecha']) ?>">
+                                    <span class="day-name"><?= htmlspecialchars($dia['label']) ?></span>
+                                    <span class="day-date"><?= htmlspecialchars($dia['fecha']) ?></span>
+                                    <?php if ($pedido): ?>
+                                        <span class="day-remito">Remito Digital #<?= htmlspecialchars($pedido['id']) ?></span>
+                                    <?php else: ?>
+                                        <span class="day-remito day-vacio">Sin pedido</span>
+                                    <?php endif; ?>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                        <a class="week-nav" href="cuyo_placa_pedidos.php?fecha=<?= htmlspecialchars($semanaSiguiente->format('Y-m-d')) ?>">
+                            <span class="material-icons">chevron_right</span>
+                        </a>
                     </div>
 
                     <?php if ($fechaSeleccionada): ?>
@@ -198,9 +216,92 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
             color: #6b7280;
         }
 
-        .pedido-fecha .form-buttons {
-            margin-top: 12px;
-            justify-content: flex-end;
+        .pedido-semana-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+
+        .pedido-semana {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .week-nav {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #0f172a;
+            background: #ffffff;
+            text-decoration: none;
+        }
+
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .week-day {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 12px;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            text-decoration: none;
+            color: #0f172a;
+            background: #ffffff;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            min-height: 110px;
+        }
+
+        .week-day:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+        }
+
+        .week-day.day-seleccionada {
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
+        }
+
+        .week-day.day-modificable {
+            background: #fff7ed;
+            border-color: #fdba74;
+        }
+
+        .week-day.day-bloqueado {
+            background: #ecfdf3;
+            border-color: #86efac;
+        }
+
+        .day-name {
+            font-weight: 600;
+        }
+
+        .day-date {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .day-remito {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .day-remito.day-vacio {
+            font-weight: 500;
+            color: #94a3b8;
         }
 
         .pedido-table-wrapper {
@@ -256,6 +357,14 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
             .pedido-header {
                 flex-direction: column;
                 align-items: stretch;
+            }
+
+            .pedido-semana {
+                grid-template-columns: auto 1fr auto;
+            }
+
+            .week-grid {
+                grid-template-columns: repeat(7, minmax(90px, 1fr));
             }
         }
     </style>

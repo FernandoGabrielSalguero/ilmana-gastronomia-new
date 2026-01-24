@@ -203,6 +203,19 @@ class CuyoPlacaPedidosModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function obtenerPedidosPorRango($fechaDesde, $fechaHasta)
+    {
+        $sql = "SELECT id, fecha
+            FROM Pedidos_Cuyo_Placa
+            WHERE fecha BETWEEN :fechaDesde AND :fechaHasta";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'fechaDesde' => $fechaDesde,
+            'fechaHasta' => $fechaHasta,
+        ]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function crearPedido($usuarioId, $fecha, array $detalles)
     {
         try {

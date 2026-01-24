@@ -89,7 +89,7 @@ $alerta = null;
 $fechaRaw = $_GET['fecha'] ?? $_POST['fecha'] ?? null;
 $fechaSeleccionada = $fechaRaw !== null ? trim((string) $fechaRaw) : date('Y-m-d');
 if ($fechaSeleccionada && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaSeleccionada)) {
-    $fechaSeleccionada = '';
+    $fechaSeleccionada = date('Y-m-d');
     $alerta = [
         'tipo' => 'error',
         'mensaje' => 'Selecciona una fecha valida para cargar los pedidos.',
@@ -105,10 +105,53 @@ if ($fechaSeleccionada) {
     }
 }
 
+$fechaBase = $fechaSeleccionada ?: date('Y-m-d');
+$inicioSemana = new DateTime($fechaBase);
+$inicioSemana->modify('monday this week');
+$finSemana = clone $inicioSemana;
+$finSemana->modify('+6 days');
+
+$pedidosSemana = $model->obtenerPedidosPorRango($inicioSemana->format('Y-m-d'), $finSemana->format('Y-m-d'));
+$pedidosPorFecha = [];
+foreach ($pedidosSemana as $pedido) {
+    $fechaPedido = $pedido['fecha'] ?? null;
+    if ($fechaPedido) {
+        $pedidosPorFecha[$fechaPedido] = $pedido;
+    }
+}
+
+$diasSemana = [
+    'Monday' => 'Lunes',
+    'Tuesday' => 'Martes',
+    'Wednesday' => 'Miercoles',
+    'Thursday' => 'Jueves',
+    'Friday' => 'Viernes',
+    'Saturday' => 'Sabado',
+    'Sunday' => 'Domingo',
+];
+
+$semanaDias = [];
+$cursor = clone $inicioSemana;
+$ahora = new DateTime('now');
+$limiteHoy = new DateTime($ahora->format('Y-m-d') . ' 10:00:00');
+for ($i = 0; $i < 7; $i++) {
+    $fechaDia = $cursor->format('Y-m-d');
+    $pedidoDia = $pedidosPorFecha[$fechaDia] ?? null;
+    $esHoy = $fechaDia === $ahora->format('Y-m-d');
+    $puedeModificar = $pedidoDia && $esHoy && $ahora < $limiteHoy;
+    $semanaDias[] = [
+        'fecha' => $fechaDia,
+        'label' => $diasSemana[$cursor->format('l')] ?? $cursor->format('l'),
+        'pedido' => $pedidoDia,
+        'puedeModificar' => $puedeModificar,
+        'seleccionada' => $fechaDia === $fechaSeleccionada,
+    ];
+    $cursor->modify('+1 day');
+}
+
 $bloqueoEdicion = false;
 $bloqueoPorHora = false;
 if ($fechaSeleccionada) {
-    $ahora = new DateTime('now');
     $limite = new DateTime($fechaSeleccionada . ' 10:00:00');
     if ($fechaSeleccionada === $ahora->format('Y-m-d') && $ahora >= $limite) {
         $bloqueoPorHora = true;
@@ -191,6 +234,11 @@ if (!$alerta && $pedidoExistente && $_SERVER['REQUEST_METHOD'] !== 'POST') {
         'mensaje' => 'Las cargas para hoy se cierran a las 10:00 (hora Argentina).',
     ];
 }
+
+$semanaAnterior = clone $inicioSemana;
+$semanaAnterior->modify('-7 days');
+$semanaSiguiente = clone $inicioSemana;
+$semanaSiguiente->modify('+7 days');
 
 $detalleMap = [];
 foreach ($plantas as $planta) {
