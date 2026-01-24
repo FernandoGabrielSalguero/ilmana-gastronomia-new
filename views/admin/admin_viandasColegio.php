@@ -159,7 +159,7 @@ $estadoSeleccionado = $_POST['estado'] ?? 'En venta';
 
                             <div class="input-group">
                                 <label for="fecha_hora_compra">Fecha y hora compra</label>
-                                <div class="input-icon input-icon-date">
+                                <div class="input-icon">
                                     <input type="text" id="fecha_hora_compra" name="fecha_hora_compra"
                                         value="<?= htmlspecialchars($_POST['fecha_hora_compra'] ?? '') ?>" />
                                 </div>
@@ -167,7 +167,7 @@ $estadoSeleccionado = $_POST['estado'] ?? 'En venta';
 
                             <div class="input-group">
                                 <label for="fecha_hora_cancelacion">Fecha y hora cancelacion</label>
-                                <div class="input-icon input-icon-date">
+                                <div class="input-icon">
                                     <input type="text" id="fecha_hora_cancelacion"
                                         name="fecha_hora_cancelacion"
                                         value="<?= htmlspecialchars($_POST['fecha_hora_cancelacion'] ?? '') ?>" />
