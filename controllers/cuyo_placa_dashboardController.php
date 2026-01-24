@@ -28,8 +28,21 @@ if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'cuyo_placa') {
 
 require_once __DIR__ . '/../models/cuyo_placa_dashboardModel.php';
 
+$plantasDisponibles = [
+    'Aglomerado',
+    'Impregnacion',
+    'Mebles',
+    'Revestimiento',
+    'Transporte',
+];
+
 $fechaDesde = $_GET['fecha_desde'] ?? '';
 $fechaHasta = $_GET['fecha_hasta'] ?? '';
+$plantasSeleccionadas = $_GET['planta'] ?? [];
+
+if (!is_array($plantasSeleccionadas)) {
+    $plantasSeleccionadas = [];
+}
 
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaDesde)) {
     $fechaDesde = '';
@@ -44,8 +57,37 @@ if ($fechaDesde && $fechaHasta && $fechaDesde > $fechaHasta) {
     $fechaHasta = $tmp;
 }
 
+$usarTodasLasPlantas = empty($plantasSeleccionadas) || in_array('todos', $plantasSeleccionadas, true);
+$plantasFiltro = $usarTodasLasPlantas ? [] : array_values(array_intersect($plantasSeleccionadas, $plantasDisponibles));
+
 $model = new CuyoPlacaDashboardModel($pdo);
-$totalPedidos = $model->obtenerTotalPedidos($fechaDesde, $fechaHasta);
+$resumenMenus = $model->obtenerResumenMenus($fechaDesde, $fechaHasta, $plantasFiltro);
+
+$resumenPlantas = [];
+$totalPedidos = 0;
+foreach ($plantasDisponibles as $planta) {
+    $resumenPlantas[$planta] = [
+        'menus' => [],
+        'total' => 0,
+    ];
+}
+
+foreach ($resumenMenus as $fila) {
+    $planta = $fila['planta'] ?? '';
+    $menu = $fila['menu'] ?? 'Sin menu';
+    $cantidad = (int) ($fila['total'] ?? 0);
+
+    if (!isset($resumenPlantas[$planta])) {
+        $resumenPlantas[$planta] = [
+            'menus' => [],
+            'total' => 0,
+        ];
+    }
+
+    $resumenPlantas[$planta]['menus'][$menu] = $cantidad;
+    $resumenPlantas[$planta]['total'] += $cantidad;
+    $totalPedidos += $cantidad;
+}
 
 if ($fechaDesde && $fechaHasta) {
     $rangoTexto = "Desde {$fechaDesde} hasta {$fechaHasta}";
@@ -56,6 +98,9 @@ if ($fechaDesde && $fechaHasta) {
 } else {
     $rangoTexto = "Todo el historial";
 }
+
+$textoPlantas = $usarTodasLasPlantas ? 'Todas' : implode(', ', $plantasFiltro);
+$tooltipFiltros = "Plantas: {$textoPlantas} | Desde: " . ($fechaDesde ?: 'Sin fecha') . " | Hasta: " . ($fechaHasta ?: 'Sin fecha');
 
 $nombre = $_SESSION['nombre'] ?? 'Sin nombre';
 $correo = $_SESSION['correo'] ?? 'Sin correo';
