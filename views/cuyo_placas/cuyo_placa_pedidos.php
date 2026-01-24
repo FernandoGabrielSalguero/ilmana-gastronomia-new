@@ -53,6 +53,9 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
                     <li onclick="location.href='cuyo_placa_pedidos.php'">
                         <span class="material-icons" style="color: #5b21b6;">receipt_long</span><span class="link-text">Pedidos</span>
                     </li>
+                    <li onclick="location.href='../../../logout.php'">
+                        <span class="material-icons" style="color: red;">logout</span><span class="link-text">Salir</span>
+                    </li>
                 </ul>
             </nav>
 
