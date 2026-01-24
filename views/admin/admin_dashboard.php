@@ -593,7 +593,8 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                         backgroundColor: "rgba(99, 102, 241, 0.15)",
                         borderWidth: 2,
                         tension: 0.35,
-                        pointRadius: 0,
+                        pointRadius: 2,
+                        pointHoverRadius: 3,
                         fill: true
                     }]
                 },
