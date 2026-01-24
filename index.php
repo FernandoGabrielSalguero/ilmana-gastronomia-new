@@ -4,7 +4,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 if (session_status() === PHP_SESSION_NONE) {
-    // Configurar duraciÃ³n de sesiÃ³n en 20 minutos
+    // Configurar duraciÃ³n de sesión en 20 minutos
     ini_set('session.gc_maxlifetime', 1200); // 20 minutos
     session_set_cookie_params([
         'lifetime' => 1200,
@@ -22,9 +22,9 @@ require_once __DIR__ . '/models/AuthModel.php';
 
 $error = '';
 
-// Mensaje si viene por expiraciÃ³n
+// Mensaje si viene por expiración
 if (isset($_GET['expired']) && $_GET['expired'] == 1) {
-    $error = "La sesiÃ³n expirÃ³ por inactividad. Por favor, iniciÃ¡ sesiÃ³n nuevamente.";
+    $error = "La sesión expiró por inactividad. Por favor, iniciá sesión nuevamente.";
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Usuario o contrasena incorrectos.';
         }
     } elseif ($user) {
-        // Guardar solo los datos de la tabla Usuarios en sesiÃ³n
+        // Guardar solo los datos de la tabla Usuarios en sesión
         $_SESSION['usuario_id'] = $user['Id'];
         $_SESSION['usuario'] = $user['Usuario'];
         $_SESSION['nombre'] = $user['Nombre'];
@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar SesiÃ³n</title>
+    <title>Iniciar sesión</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -174,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <body>
     <div class="login-container">
-        <h1>Iniciar SesiÃ³n</h1>
+        <h1>Iniciar Sesión</h1>
         <?php if ($error): ?>
             <div class="error"><?= $error ?></div>
         <?php endif; ?>
@@ -210,7 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // imprirmir los datos de la sesion en la consola
         <?php if (!empty($_SESSION)): ?>
             const sessionData = <?= json_encode($_SESSION, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
-            console.log("Datos de sesiÃ³n:", sessionData);
+            console.log("Datos de sesión:", sessionData);
         <?php endif; ?>
 
         // visualizar los campos del formulario de ingreso por consola:
