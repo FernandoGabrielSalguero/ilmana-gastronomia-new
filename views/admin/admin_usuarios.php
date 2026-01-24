@@ -178,14 +178,14 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
 
                 <div class="card">
                     <h3>Nuevo usuario</h3>
-                    <form class="form-modern" method="post" id="usuarioForm">
+                    <form class="form-modern" method="post" id="usuarioForm" autocomplete="off">
                         <input type="hidden" name="action" value="crear" />
 
                         <div class="form-grid grid-4">
                             <div class="input-group">
                                 <label for="nombre">Nombre</label>
                                 <div class="input-icon input-icon-name">
-                                    <input type="text" id="nombre" name="nombre" required
+                                    <input type="text" id="nombre" name="nombre" required autocomplete="off"
                                         value="<?= htmlspecialchars($formData['nombre']) ?>" />
                                 </div>
                             </div>
@@ -194,7 +194,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                                 <label for="usuario">Usuario</label>
                                 <div class="input-icon">
                                     <span class="material-icons">person</span>
-                                    <input type="text" id="usuario" name="usuario" required
+                                    <input type="text" id="usuario" name="usuario" required autocomplete="off"
                                         value="<?= htmlspecialchars($formData['usuario']) ?>" />
                                 </div>
                             </div>
@@ -203,14 +203,14 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                                 <label for="contrasena">Contrasena</label>
                                 <div class="input-icon">
                                     <span class="material-icons">lock</span>
-                                    <input type="password" id="contrasena" name="contrasena" required />
+                                    <input type="password" id="contrasena" name="contrasena" required autocomplete="new-password" />
                                 </div>
                             </div>
 
                             <div class="input-group">
                                 <label for="telefono_display">Telefono</label>
                                 <div class="input-icon input-icon-phone">
-                                    <input type="tel" id="telefono_display" name="telefono_display" inputmode="numeric"
+                                    <input type="tel" id="telefono_display" name="telefono_display" inputmode="numeric" autocomplete="off"
                                         value="<?= htmlspecialchars($formData['telefono']) ?>" />
                                     <input type="hidden" id="telefono" name="telefono"
                                         value="<?= htmlspecialchars($formData['telefono']) ?>" />
@@ -221,7 +221,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                             <div class="input-group">
                                 <label for="correo">Correo</label>
                                 <div class="input-icon input-icon-email">
-                                    <input type="email" id="correo" name="correo"
+                                    <input type="email" id="correo" name="correo" autocomplete="off"
                                         value="<?= htmlspecialchars($formData['correo']) ?>" />
                                 </div>
                             </div>
@@ -310,6 +310,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                                 </div>
                             <?php endforeach; ?>
                         </div>
+                        <br>
                         <div class="form-buttons">
                             <button type="button" class="btn btn-info" id="add-hijo">Agregar hijo</button>
                         </div>
