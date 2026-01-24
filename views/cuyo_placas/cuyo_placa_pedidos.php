@@ -101,6 +101,7 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
                                     <span class="day-date"><?= htmlspecialchars($dia['fecha']) ?></span>
                                     <?php if ($pedido): ?>
                                         <span class="day-remito">Remito Digital #<?= htmlspecialchars($pedido['id']) ?></span>
+                                        <span class="day-countdown" data-fecha="<?= htmlspecialchars($dia['fecha']) ?>"></span>
                                     <?php else: ?>
                                         <span class="day-remito day-vacio">Sin pedido</span>
                                     <?php endif; ?>
@@ -115,6 +116,9 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
                     <?php if ($fechaSeleccionada): ?>
                         <form method="post" action="cuyo_placa_pedidos.php">
                             <input type="hidden" name="fecha" value="<?= htmlspecialchars($fechaSeleccionada) ?>">
+                            <?php
+                            $botonLabel = $pedidoExistente ? 'Actualizar pedido' : 'Guardar pedidos';
+                            ?>
 
                             <div class="pedido-table-wrapper">
                                 <table class="pedido-table">
@@ -162,8 +166,8 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
                             </div>
 
                             <div class="form-buttons pedido-actions">
-                                <button class="btn btn-aceptar" type="submit" <?= $bloqueoEdicion ? 'disabled' : '' ?>>
-                                    Guardar pedidos
+                                <button class="btn btn-aceptar<?= $bloqueoEdicion ? ' btn-disabled' : '' ?>" type="submit" <?= $bloqueoEdicion ? 'disabled' : '' ?>>
+                                    <?= htmlspecialchars($botonLabel) ?>
                                 </button>
                             </div>
                         </form>
@@ -193,11 +197,47 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
             alert(message);
         }
 
+        function getLimiteEdicion(fecha) {
+            const partes = fecha.split('-').map(Number);
+            if (partes.length !== 3) {
+                return null;
+            }
+            return new Date(partes[0], partes[1] - 1, partes[2], 10, 0, 0);
+        }
+
+        function actualizarCuentaRegresiva() {
+            const items = document.querySelectorAll('.day-countdown');
+            if (!items.length) {
+                return;
+            }
+            const ahora = new Date();
+            items.forEach((item) => {
+                const fecha = item.getAttribute('data-fecha');
+                const limite = getLimiteEdicion(fecha);
+                if (!limite) {
+                    return;
+                }
+                const diferencia = limite.getTime() - ahora.getTime();
+                if (diferencia <= 0) {
+                    item.textContent = 'Edicion cerrada';
+                    item.classList.add('day-countdown-cerrado');
+                    return;
+                }
+                const totalMinutos = Math.floor(diferencia / 60000);
+                const horas = Math.floor(totalMinutos / 60);
+                const minutos = totalMinutos % 60;
+                item.textContent = `Cierra en ${horas}h ${minutos}m`;
+                item.classList.remove('day-countdown-cerrado');
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const alerta = <?= json_encode($alerta) ?>;
             if (alerta && alerta.mensaje) {
                 showAlertSafe(alerta.tipo || 'info', alerta.mensaje);
             }
+            actualizarCuentaRegresiva();
+            setInterval(actualizarCuentaRegresiva, 60000);
         });
     </script>
 
@@ -304,6 +344,17 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
             color: #94a3b8;
         }
 
+        .day-countdown {
+            font-size: 12px;
+            color: #f97316;
+            font-weight: 600;
+        }
+
+        .day-countdown.day-countdown-cerrado {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
         .pedido-table-wrapper {
             overflow-x: auto;
             border: 1px solid #e5e7eb;
@@ -351,6 +402,11 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_pedidosController.php';
             margin-top: 16px;
             align-items: center;
             gap: 12px;
+        }
+
+        .btn-disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         @media (max-width: 900px) {

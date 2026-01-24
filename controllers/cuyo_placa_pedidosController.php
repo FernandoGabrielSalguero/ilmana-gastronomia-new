@@ -96,6 +96,9 @@ if ($fechaSeleccionada && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaSeleccionad
     ];
 }
 
+$tz = new DateTimeZone('America/Argentina/Buenos_Aires');
+$ahora = new DateTime('now', $tz);
+
 $pedidoExistente = null;
 $detallePedido = [];
 if ($fechaSeleccionada) {
@@ -105,8 +108,8 @@ if ($fechaSeleccionada) {
     }
 }
 
-$fechaBase = $fechaSeleccionada ?: date('Y-m-d');
-$inicioSemana = new DateTime($fechaBase);
+$fechaBase = $fechaSeleccionada ?: $ahora->format('Y-m-d');
+$inicioSemana = new DateTime($fechaBase, $tz);
 $inicioSemana->modify('monday this week');
 $finSemana = clone $inicioSemana;
 $finSemana->modify('+6 days');
@@ -132,13 +135,11 @@ $diasSemana = [
 
 $semanaDias = [];
 $cursor = clone $inicioSemana;
-$ahora = new DateTime('now');
-$limiteHoy = new DateTime($ahora->format('Y-m-d') . ' 10:00:00');
 for ($i = 0; $i < 7; $i++) {
     $fechaDia = $cursor->format('Y-m-d');
     $pedidoDia = $pedidosPorFecha[$fechaDia] ?? null;
-    $esHoy = $fechaDia === $ahora->format('Y-m-d');
-    $puedeModificar = $pedidoDia && $esHoy && $ahora < $limiteHoy;
+    $limiteDia = new DateTime($fechaDia . ' 10:00:00', $tz);
+    $puedeModificar = $pedidoDia && $ahora < $limiteDia;
     $semanaDias[] = [
         'fecha' => $fechaDia,
         'label' => $diasSemana[$cursor->format('l')] ?? $cursor->format('l'),
@@ -151,14 +152,14 @@ for ($i = 0; $i < 7; $i++) {
 
 $bloqueoEdicion = false;
 $bloqueoPorHora = false;
+$limiteEdicion = null;
 if ($fechaSeleccionada) {
-    $limite = new DateTime($fechaSeleccionada . ' 10:00:00');
-    if ($fechaSeleccionada === $ahora->format('Y-m-d') && $ahora >= $limite) {
+    $limiteEdicion = new DateTime($fechaSeleccionada . ' 10:00:00', $tz);
+    if ($ahora >= $limiteEdicion) {
         $bloqueoPorHora = true;
     }
 }
-$bloqueoPorFecha = $pedidoExistente ? true : false;
-$bloqueoEdicion = $bloqueoPorHora || $bloqueoPorFecha;
+$bloqueoEdicion = $bloqueoPorHora;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$fechaSeleccionada) {
@@ -171,12 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($bloqueoPorHora) {
         $alerta = [
             'tipo' => 'error',
-            'mensaje' => 'No se pueden cargar pedidos para hoy despues de las 10:00 (hora Argentina).',
-        ];
-    } elseif ($bloqueoPorFecha) {
-        $alerta = [
-            'tipo' => 'error',
-            'mensaje' => 'Ya existe un pedido para esa fecha. No se pueden cargar nuevos pedidos.',
+            'mensaje' => 'La edicion de pedidos se cierra a las 10:00 (hora Argentina) del dia seleccionado.',
         ];
     } else {
         $detalles = [];
@@ -204,12 +200,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'mensaje' => 'Debes cargar al menos una cantidad mayor a 0.',
             ];
         } else {
-            $ok = $model->crearPedido($usuarioId, $fechaSeleccionada, $detalles);
+            $esActualizacion = $pedidoExistente ? true : false;
+            if ($esActualizacion) {
+                $ok = $model->actualizarPedido((int) $pedidoExistente['id'], $detalles);
+            } else {
+                $ok = $model->crearPedido($usuarioId, $fechaSeleccionada, $detalles);
+            }
 
             $alerta = [
                 'tipo' => $ok ? 'success' : 'error',
                 'mensaje' => $ok
-                    ? 'Pedido cargado correctamente.'
+                    ? ($esActualizacion ? 'Pedido actualizado correctamente.' : 'Pedido cargado correctamente.')
                     : 'Ocurrio un error al guardar el pedido.',
             ];
         }
@@ -220,19 +221,20 @@ if ($fechaSeleccionada) {
     $pedidoExistente = $model->obtenerPedidoPorFecha($fechaSeleccionada);
     $detallePedido = $pedidoExistente ? $model->obtenerDetallePedido((int) $pedidoExistente['id']) : [];
 }
-$bloqueoPorFecha = $pedidoExistente ? true : false;
-$bloqueoEdicion = $bloqueoPorHora || $bloqueoPorFecha;
+$bloqueoEdicion = $bloqueoPorHora;
 
-if (!$alerta && $pedidoExistente && $_SERVER['REQUEST_METHOD'] !== 'POST') {
-    $alerta = [
-        'tipo' => 'warning',
-        'mensaje' => 'Ya existe un pedido para esta fecha. No se pueden cargar nuevos pedidos.',
-    ];
-} elseif (!$alerta && $bloqueoPorHora && $_SERVER['REQUEST_METHOD'] !== 'POST') {
-    $alerta = [
-        'tipo' => 'warning',
-        'mensaje' => 'Las cargas para hoy se cierran a las 10:00 (hora Argentina).',
-    ];
+if (!$alerta && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    if ($pedidoExistente && !$bloqueoPorHora) {
+        $alerta = [
+            'tipo' => 'info',
+            'mensaje' => 'Pedido cargado. Puedes actualizarlo hasta las 10:00 (hora Argentina).',
+        ];
+    } elseif ($bloqueoPorHora) {
+        $alerta = [
+            'tipo' => 'warning',
+            'mensaje' => 'La edicion se cerro a las 10:00 (hora Argentina) del dia seleccionado.',
+        ];
+    }
 }
 
 $semanaAnterior = clone $inicioSemana;
