@@ -406,15 +406,17 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                                         <td><span class="badge <?= htmlspecialchars($estadoClass) ?>"><?= htmlspecialchars($estadoLabel) ?></span></td>
                                         <td>
                                             <div class="action-buttons">
-                                                <button type="button" class="action-btn action-delete" data-usuario="<?= $usuarioJson ?>">
-                                                    <span class="material-icons" style="color: #dc2626;">delete</span>
-                                                    </button>
-                                                    <button type="button" class="action-btn action-edit" data-usuario="<?= $usuarioJson ?>" data-hijos="<?= $hijosJson ?>">
-                                                        <span class="material-icons" style="color: #2563eb;">edit</span>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                                <button type="button" class="action-btn action-toggle" data-usuario="<?= $usuarioJson ?>" aria-label="Cambiar estado">
+                                                    <span class="material-icons" style="color: <?= $estadoLabel === 'inactivo' ? '#dc2626' : '#16a34a'; ?>;">
+                                                        <?= $estadoLabel === 'inactivo' ? 'toggle_off' : 'toggle_on'; ?>
+                                                    </span>
+                                                </button>
+                                                <button type="button" class="action-btn action-edit" data-usuario="<?= $usuarioJson ?>" data-hijos="<?= $hijosJson ?>">
+                                                    <span class="material-icons" style="color: #2563eb;">edit</span>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>
@@ -426,17 +428,6 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                     </div>
                 </div>
             </section>
-        </div>
-    </div>
-
-    <div class="modal hidden" id="modal-eliminar">
-        <div class="modal-content">
-            <h3>Confirmar eliminacion</h3>
-            <p id="deleteModalText">Confirma la eliminacion del usuario.</p>
-            <div class="form-buttons">
-                <button type="button" class="btn btn-cancelar" data-close-modal>Cancelar</button>
-                <button type="button" class="btn btn-aceptar" id="confirmDeleteButton">Aceptar</button>
-            </div>
         </div>
     </div>
 
@@ -726,8 +717,6 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
         toggleHijosSection();
         updateHijoTitles();
 
-        const deleteModal = document.getElementById('modal-eliminar');
-        const deleteModalText = document.getElementById('deleteModalText');
         const editModal = document.getElementById('modal-editar');
         const editForm = document.getElementById('editUsuarioForm');
         const editIdInput = document.getElementById('edit_id');
@@ -743,9 +732,6 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
         const editAddHijoButton = document.getElementById('edit-add-hijo');
         const usuariosTableBody = document.getElementById('usuarios-table-body');
         const feedbackContainer = document.getElementById('usuarios-feedback');
-        const confirmDeleteButton = document.getElementById('confirmDeleteButton');
-        let pendingDeleteId = null;
-        let pendingDeleteRow = null;
 
         const toggleEditHijosSection = () => {
             if (!editHijosSection) return;
@@ -764,7 +750,6 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
 
         document.querySelectorAll('[data-close-modal]').forEach((button) => {
             button.addEventListener('click', () => {
-                closeAdminModal(deleteModal);
                 closeAdminModal(editModal);
             });
         });
@@ -789,12 +774,19 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
         };
 
         const renderFeedback = (type, messages) => {
+            const messageArray = Array.isArray(messages) ? messages : [messages];
+            const messageText = messageArray.filter(Boolean).join(' ');
+
+            if (typeof window.showAlert === 'function' && messageText) {
+                window.showAlert(type, messageText);
+                return;
+            }
+
             if (!feedbackContainer) return;
-            if (!messages || (Array.isArray(messages) && messages.length === 0)) {
+            if (!messageText) {
                 feedbackContainer.innerHTML = '';
                 return;
             }
-            const messageArray = Array.isArray(messages) ? messages : [messages];
             const borderColor = type === 'success' ? '#16a34a' : '#dc2626';
             const title = type === 'success' ? 'Listo:' : 'Hubo un problema:';
             const listHtml = messageArray.length > 1
@@ -822,18 +814,72 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
             });
         };
 
-        const bindDeleteButton = (button, row) => {
+        const updateEstadoUI = (row, usuarioData) => {
+            if (!row || !usuarioData) return;
+            const estadoLabel = usuarioData.estado === 'inactivo' ? 'inactivo' : 'activo';
+            const estadoClass = estadoLabel === 'inactivo' ? 'danger' : 'success';
+            const badge = row.querySelector('.badge');
+            if (badge) {
+                badge.classList.remove('success', 'danger');
+                badge.classList.add(estadoClass);
+                badge.textContent = estadoLabel;
+            }
+
+            const toggleButton = row.querySelector('.action-toggle');
+            if (toggleButton) {
+                const icon = toggleButton.querySelector('.material-icons');
+                if (icon) {
+                    icon.textContent = estadoLabel === 'inactivo' ? 'toggle_off' : 'toggle_on';
+                    icon.style.color = estadoLabel === 'inactivo' ? '#dc2626' : '#16a34a';
+                }
+                toggleButton.dataset.usuario = JSON.stringify(usuarioData);
+            }
+
+            const editButton = row.querySelector('.action-edit');
+            if (editButton) {
+                editButton.dataset.usuario = JSON.stringify(usuarioData);
+            }
+        };
+
+        const bindToggleButton = (button, row) => {
             if (!button) return;
             button.addEventListener('click', () => {
                 const usuario = parseJson(button.dataset.usuario);
-                pendingDeleteId = usuario && usuario.id ? Number(usuario.id) : null;
-                pendingDeleteRow = row || null;
-                if (deleteModalText) {
-                    deleteModalText.textContent = usuario && usuario.nombre
-                        ? `Confirma la eliminacion del usuario ${usuario.nombre}.`
-                        : 'Confirma la eliminacion del usuario.';
-                }
-                openAdminModal(deleteModal);
+                if (!usuario || !usuario.id) return;
+
+                const estadoActual = usuario.estado === 'inactivo' ? 'inactivo' : 'activo';
+                const nuevoEstado = estadoActual === 'inactivo' ? 'activo' : 'inactivo';
+
+                const formData = new FormData();
+                formData.append('action', 'toggle_estado');
+                formData.append('usuario_id', String(usuario.id));
+                formData.append('estado', nuevoEstado);
+                formData.append('ajax', '1');
+
+                button.disabled = true;
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.ok) {
+                            usuario.estado = data.estado || nuevoEstado;
+                            updateEstadoUI(row, usuario);
+                            renderFeedback('success', data.mensaje || 'Usuario actualizado correctamente.');
+                        } else {
+                            renderFeedback('error', data.errores || 'No se pudo actualizar el usuario.');
+                        }
+                    })
+                    .catch(() => {
+                        renderFeedback('error', 'No se pudo actualizar el usuario.');
+                    })
+                    .finally(() => {
+                        button.disabled = false;
+                    });
             });
         };
 
@@ -879,8 +925,10 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                 <td><span class="badge ${estadoClass}">${escapeHtml(estadoLabel)}</span></td>
                 <td>
                     <div class="action-buttons">
-                        <button type="button" class="action-btn action-delete">
-                            <span class="material-icons" style="color: #dc2626;">delete</span>
+                        <button type="button" class="action-btn action-toggle" aria-label="Cambiar estado">
+                            <span class="material-icons" style="color: ${estadoLabel === 'inactivo' ? '#dc2626' : '#16a34a'};">
+                                ${estadoLabel === 'inactivo' ? 'toggle_off' : 'toggle_on'}
+                            </span>
                         </button>
                         <button type="button" class="action-btn action-edit">
                             <span class="material-icons" style="color: #2563eb;">edit</span>
@@ -894,11 +942,11 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
             if (cells[1]) appendWrappedWords(cells[1], usuarioData.nombre || '');
             if (cells[2]) appendWrappedWords(cells[2], usuarioData.usuario || '');
 
-            const deleteButton = row.querySelector('.action-delete');
+            const toggleButton = row.querySelector('.action-toggle');
             const editButton = row.querySelector('.action-edit');
-            if (deleteButton) {
-                deleteButton.dataset.usuario = JSON.stringify(usuarioData);
-                bindDeleteButton(deleteButton, row);
+            if (toggleButton) {
+                toggleButton.dataset.usuario = JSON.stringify(usuarioData);
+                bindToggleButton(toggleButton, row);
             }
             if (editButton) {
                 editButton.dataset.usuario = JSON.stringify(usuarioData);
@@ -1025,8 +1073,8 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
             });
         }
 
-        document.querySelectorAll('.action-delete').forEach((button) => {
-            bindDeleteButton(button, button.closest('tr'));
+        document.querySelectorAll('.action-toggle').forEach((button) => {
+            bindToggleButton(button, button.closest('tr'));
         });
 
         document.querySelectorAll('.action-edit').forEach((button) => {
@@ -1039,53 +1087,6 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                     editHijosContainer.innerHTML = '';
                 }
                 toggleEditHijosSection();
-            });
-        }
-
-        if (confirmDeleteButton) {
-            confirmDeleteButton.addEventListener('click', () => {
-                if (!pendingDeleteId) return;
-                const formData = new FormData();
-                formData.append('action', 'desactivar');
-                formData.append('usuario_id', String(pendingDeleteId));
-                formData.append('ajax', '1');
-
-                fetch(window.location.href, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        if (data.ok) {
-                            if (pendingDeleteRow) {
-                                const badge = pendingDeleteRow.querySelector('.badge');
-                                if (badge) {
-                                    badge.classList.remove('success');
-                                    badge.classList.add('danger');
-                                    badge.textContent = 'inactivo';
-                                }
-                                const usuarioButton = pendingDeleteRow.querySelector('.action-delete');
-                                const editButton = pendingDeleteRow.querySelector('.action-edit');
-                                const usuarioData = usuarioButton ? parseJson(usuarioButton.dataset.usuario) : null;
-                                if (usuarioData) {
-                                    usuarioData.estado = 'inactivo';
-                                    const updatedJson = JSON.stringify(usuarioData);
-                                    if (usuarioButton) usuarioButton.dataset.usuario = updatedJson;
-                                    if (editButton) editButton.dataset.usuario = updatedJson;
-                                }
-                            }
-                            renderFeedback('success', data.mensaje || 'Usuario actualizado correctamente.');
-                            closeAdminModal(deleteModal);
-                        } else {
-                            renderFeedback('error', data.errores || 'No se pudo actualizar el usuario.');
-                        }
-                    })
-                    .catch(() => {
-                        renderFeedback('error', 'No se pudo actualizar el usuario.');
-                    });
             });
         }
 

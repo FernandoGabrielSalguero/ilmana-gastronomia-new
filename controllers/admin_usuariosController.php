@@ -71,12 +71,19 @@ if (!isset($preferenciasLookup[$preferenciaDefaultId])) {
 $isAjax = strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest'
     || ($_POST['ajax'] ?? '') === '1';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'desactivar') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['desactivar', 'toggle_estado'], true)) {
     $usuarioId = (int) ($_POST['usuario_id'] ?? 0);
-    if ($usuarioId <= 0) {
+    $estado = 'inactivo';
+    if (($_POST['action'] ?? '') === 'toggle_estado') {
+        $estado = strtolower(trim((string) ($_POST['estado'] ?? '')));
+    }
+
+    if (!in_array($estado, ['activo', 'inactivo'], true)) {
+        $errores[] = 'Estado invalido.';
+    } elseif ($usuarioId <= 0) {
         $errores[] = 'Usuario invalido.';
     } else {
-        $ok = $model->actualizarEstadoUsuario($usuarioId, 'inactivo');
+        $ok = $model->actualizarEstadoUsuario($usuarioId, $estado);
         if ($ok) {
             $mensaje = 'Usuario actualizado correctamente.';
         } else {
@@ -90,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'desac
             'ok' => empty($errores),
             'mensaje' => $mensaje,
             'errores' => $errores,
-            'estado' => empty($errores) ? 'inactivo' : null
+            'estado' => empty($errores) ? $estado : null
         ]);
         exit;
     }
