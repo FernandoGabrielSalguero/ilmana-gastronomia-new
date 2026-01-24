@@ -4,6 +4,7 @@ $selectedNiveles = $_POST['nivel_educativo'] ?? [];
 if (!is_array($selectedNiveles)) {
     $selectedNiveles = [$selectedNiveles];
 }
+$estadoSeleccionado = $_POST['estado'] ?? 'En venta';
 ?>
 
 <!DOCTYPE html>
@@ -35,6 +36,37 @@ if (!is_array($selectedNiveles)) {
 
     <!-- Graficos (Chart.js) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        .chip-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .chip-option input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .chip-option span {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.85rem;
+            border-radius: 999px;
+            border: 1px solid #d1d5db;
+            background: #f8fafc;
+            font-size: 0.92rem;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .chip-option input:checked+span {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #fff;
+        }
+    </style>
 </head>
 
 <body>
@@ -107,7 +139,8 @@ if (!is_array($selectedNiveles)) {
                         <div class="form-grid grid-4">
                             <div class="input-group">
                                 <label for="nombre">Nombre</label>
-                                <div class="input-icon input-icon-name">
+                                <div class="input-icon">
+                                    <span class="material-icons">restaurant_menu</span>
                                     <input type="text" id="nombre" name="nombre" maxlength="100" required
                                         value="<?= htmlspecialchars($_POST['nombre'] ?? '') ?>" />
                                 </div>
@@ -141,6 +174,7 @@ if (!is_array($selectedNiveles)) {
                             <div class="input-group">
                                 <label for="precio">Precio</label>
                                 <div class="input-icon">
+                                    <span class="material-icons">attach_money</span>
                                     <input type="number" id="precio" name="precio" step="0.01" min="0"
                                         value="<?= htmlspecialchars($_POST['precio'] ?? '') ?>" />
                                 </div>
@@ -151,39 +185,36 @@ if (!is_array($selectedNiveles)) {
                                 <div class="input-icon input-icon-globe">
                                     <select id="estado" name="estado" required>
                                         <option value="">Seleccionar</option>
-                                        <option value="En venta" <?= (($_POST['estado'] ?? '') === 'En venta') ? 'selected' : '' ?>>En venta</option>
-                                        <option value="Sin stock" <?= (($_POST['estado'] ?? '') === 'Sin stock') ? 'selected' : '' ?>>Sin stock</option>
+                                        <option value="En venta" <?= ($estadoSeleccionado === 'En venta') ? 'selected' : '' ?>>En venta</option>
+                                        <option value="Sin stock" <?= ($estadoSeleccionado === 'Sin stock') ? 'selected' : '' ?>>Sin stock</option>
                                     </select>
                                 </div>
                             </div>
 
-                            <div class="input-group" style="grid-column: span 4;">
+                            <div class="input-group" style="grid-column: span 3;">
                                 <label>Nivel educativo</label>
-                                <details class="selector-dropdown">
-                                    <summary>Seleccionar niveles</summary>
-                                    <div class="selector-list">
-                                        <label>
-                                            <input type="checkbox" name="nivel_educativo[]" value="Inicial"
-                                                <?= in_array('Inicial', $selectedNiveles, true) ? 'checked' : '' ?> />
-                                            <span>Inicial</span>
-                                        </label>
-                                        <label>
-                                            <input type="checkbox" name="nivel_educativo[]" value="Primaria"
-                                                <?= in_array('Primaria', $selectedNiveles, true) ? 'checked' : '' ?> />
-                                            <span>Primaria</span>
-                                        </label>
-                                        <label>
-                                            <input type="checkbox" name="nivel_educativo[]" value="Secundaria"
-                                                <?= in_array('Secundaria', $selectedNiveles, true) ? 'checked' : '' ?> />
-                                            <span>Secundaria</span>
-                                        </label>
-                                        <label>
-                                            <input type="checkbox" name="nivel_educativo[]" value="Sin Curso Asignado"
-                                                <?= in_array('Sin Curso Asignado', $selectedNiveles, true) ? 'checked' : '' ?> />
-                                            <span>Sin Curso Asignado</span>
-                                        </label>
-                                    </div>
-                                </details>
+                                <div class="chip-options">
+                                    <label class="chip-option">
+                                        <input type="checkbox" name="nivel_educativo[]" value="Inicial"
+                                            <?= in_array('Inicial', $selectedNiveles, true) ? 'checked' : '' ?> />
+                                        <span>Inicial</span>
+                                    </label>
+                                    <label class="chip-option">
+                                        <input type="checkbox" name="nivel_educativo[]" value="Primaria"
+                                            <?= in_array('Primaria', $selectedNiveles, true) ? 'checked' : '' ?> />
+                                        <span>Primaria</span>
+                                    </label>
+                                    <label class="chip-option">
+                                        <input type="checkbox" name="nivel_educativo[]" value="Secundaria"
+                                            <?= in_array('Secundaria', $selectedNiveles, true) ? 'checked' : '' ?> />
+                                        <span>Secundaria</span>
+                                    </label>
+                                    <label class="chip-option">
+                                        <input type="checkbox" name="nivel_educativo[]" value="Sin Curso Asignado"
+                                            <?= in_array('Sin Curso Asignado', $selectedNiveles, true) ? 'checked' : '' ?> />
+                                        <span>Sin Curso Asignado</span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
