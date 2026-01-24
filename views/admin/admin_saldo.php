@@ -123,8 +123,7 @@ $observacionesLabel = function ($texto) {
             min-width: 32px;
         }
 
-        .saldo-icon-btn .material-icons,
-        .saldo-icon-btn .material-symbols-outlined {
+        .saldo-icon-btn .material-icons {
             font-size: 18px;
         }
 
@@ -132,6 +131,44 @@ $observacionesLabel = function ($texto) {
             width: 18px;
             height: 18px;
             fill: #25D366;
+        }
+
+        .saldo-dialog::backdrop {
+            background: rgba(15, 23, 42, 0.45);
+        }
+
+        .saldo-dialog {
+            border: none;
+            border-radius: 12px;
+            padding: 20px;
+            width: min(420px, 92vw);
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+        }
+
+        .saldo-dialog h3 {
+            margin: 0 0 8px;
+        }
+
+        .saldo-dialog p {
+            margin: 0 0 12px;
+            color: #475569;
+        }
+
+        .saldo-dialog textarea {
+            width: 100%;
+            min-height: 90px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .saldo-dialog-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 14px;
         }
     </style>
 </head>
@@ -242,7 +279,8 @@ $observacionesLabel = function ($texto) {
                                                     <div class="saldo-user">
                                                         <span><?= htmlspecialchars($solicitud['UsuarioNombre'] ?? '') ?></span>
                                                         <small><?= htmlspecialchars($solicitud['UsuarioCorreo'] ?? $solicitud['UsuarioLogin'] ?? '') ?></small>
-                                                        <small><?= htmlspecialchars($solicitud['UsuarioTelefono'] ?? '') ?></small>
+                                                        <small>Cel: <?= htmlspecialchars($solicitud['UsuarioTelefono'] ?? '-') ?></small>
+                                                        <small>Saldo: $<?= number_format((float) ($solicitud['UsuarioSaldo'] ?? 0), 2, ',', '.') ?></small>
                                                     </div>
                                                 </td>
                                                 <td>$<?= number_format((float) ($solicitud['Saldo'] ?? 0), 2, ',', '.') ?></td>
@@ -258,7 +296,7 @@ $observacionesLabel = function ($texto) {
                                                 <td>
                                                     <?php if ($comprobanteFile): ?>
                                                         <a href="../../uploads/comprobantes_inbox/<?= htmlspecialchars($comprobanteFile) ?>" target="_blank" class="saldo-icon-btn" title="Ver comprobante">
-                                                            <span class="material-symbols-outlined">request_quote</span>
+                                                            <span class="material-icons">receipt</span>
                                                         </a>
                                                     <?php else: ?>
                                                         -
@@ -268,10 +306,10 @@ $observacionesLabel = function ($texto) {
                                                     <?php if ($estadoActual === 'Pendiente de aprobacion'): ?>
                                                         <div class="saldo-actions">
                                                             <button type="button" class="btn btn-small btn-aceptar saldo-icon-btn" data-action="aprobar" title="Aprobar">
-                                                                <span class="material-symbols-outlined">task_alt</span>
+                                                                <span class="material-icons">check_circle</span>
                                                             </button>
                                                             <button type="button" class="btn btn-small btn-cancelar saldo-icon-btn" data-action="cancelar" title="Cancelar">
-                                                                <span class="material-symbols-outlined">block</span>
+                                                                <span class="material-icons">cancel</span>
                                                             </button>
                                                             <?php
                                                             $telefonoRaw = $solicitud['UsuarioTelefono'] ?? '';
@@ -317,10 +355,39 @@ $observacionesLabel = function ($texto) {
         </div>
     </div>
 
+    <dialog class="saldo-dialog" id="saldo-cancel-dialog">
+        <form method="dialog">
+            <h3>Cancelar solicitud</h3>
+            <p>Indicá el motivo de cancelación.</p>
+            <textarea id="saldo-cancel-reason" placeholder="Motivo de cancelación" required></textarea>
+            <div class="saldo-dialog-actions">
+                <button type="button" class="btn btn-cancelar" id="saldo-cancel-close">Cerrar</button>
+                <button type="submit" class="btn btn-aceptar" id="saldo-cancel-confirm">Confirmar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog class="saldo-dialog" id="saldo-approve-dialog">
+        <form method="dialog">
+            <h3>Solicitud aprobada</h3>
+            <p id="saldo-approve-text">Saldo final del usuario: $0,00</p>
+            <div class="saldo-dialog-actions">
+                <button type="submit" class="btn btn-aceptar">Listo</button>
+            </div>
+        </form>
+    </dialog>
+
     <script>
         const saldoEndpoint = 'admin_saldo.php';
         const tableBody = document.getElementById('saldo-table-body');
         const filterForm = document.getElementById('saldo-filter-form');
+        const cancelDialog = document.getElementById('saldo-cancel-dialog');
+        const cancelReasonInput = document.getElementById('saldo-cancel-reason');
+        const cancelCloseButton = document.getElementById('saldo-cancel-close');
+        const approveDialog = document.getElementById('saldo-approve-dialog');
+        const approveText = document.getElementById('saldo-approve-text');
+        let pendingCancelId = null;
+        let pendingCancelObservaciones = '';
 
         function escapeHtml(value) {
             return String(value ?? '')
@@ -394,16 +461,16 @@ $observacionesLabel = function ($texto) {
                 const comprobanteFile = comprobante ? comprobante.split(/[\\/]/).pop() : '';
                 const comprobanteHtml = comprobanteFile
                     ? `<a href="../../uploads/comprobantes_inbox/${escapeHtml(comprobanteFile)}" target="_blank" class="saldo-icon-btn" title="Ver comprobante">
-                            <span class="material-symbols-outlined">request_quote</span>
+                            <span class="material-icons">receipt</span>
                        </a>`
                     : '-';
                 const acciones = estado === 'Pendiente de aprobacion'
                     ? `<div class="saldo-actions">
                             <button type="button" class="btn btn-small btn-aceptar saldo-icon-btn" data-action="aprobar" title="Aprobar">
-                                <span class="material-symbols-outlined">task_alt</span>
+                                <span class="material-icons">check_circle</span>
                             </button>
                             <button type="button" class="btn btn-small btn-cancelar saldo-icon-btn" data-action="cancelar" title="Cancelar">
-                                <span class="material-symbols-outlined">block</span>
+                                <span class="material-icons">cancel</span>
                             </button>
                             ${whatsappLinkHtml(item.UsuarioTelefono)}
                         </div>`
@@ -418,7 +485,8 @@ $observacionesLabel = function ($texto) {
                             <div class="saldo-user">
                                 <span>${escapeHtml(item.UsuarioNombre)}</span>
                                 <small>${escapeHtml(item.UsuarioCorreo || item.UsuarioLogin || '')}</small>
-                                <small>${escapeHtml(item.UsuarioTelefono || '')}</small>
+                                <small>Cel: ${escapeHtml(item.UsuarioTelefono || '-')}</small>
+                                <small>Saldo: $${Number(item.UsuarioSaldo || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</small>
                             </div>
                         </td>
                         <td>$${Number(item.Saldo || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
@@ -448,6 +516,58 @@ $observacionesLabel = function ($texto) {
             }
         }
 
+        function formatMoney(value) {
+            return Number(value || 0).toLocaleString('es-AR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function openCancelDialog(pedidoId, observaciones) {
+            pendingCancelId = pedidoId;
+            pendingCancelObservaciones = observaciones || '';
+            if (cancelReasonInput) {
+                cancelReasonInput.value = pendingCancelObservaciones;
+                cancelReasonInput.focus();
+            }
+            if (cancelDialog) {
+                cancelDialog.showModal();
+            }
+        }
+
+        async function sendAction(action, pedidoId, observaciones) {
+            const formData = new FormData();
+            formData.set('action', action);
+            formData.set('id', pedidoId);
+            formData.set('observaciones', observaciones || '');
+            formData.set('ajax', '1');
+
+            try {
+                const response = await fetch(saldoEndpoint, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.ok) {
+                    showAlertSafe('success', data.mensaje || 'Solicitud actualizada.');
+                    if (action === 'aprobar' && approveDialog && approveText) {
+                        const saldoFinal = data.saldo_final;
+                        if (saldoFinal !== null && saldoFinal !== undefined) {
+                            approveText.textContent = `Saldo final del usuario: $${formatMoney(saldoFinal)}`;
+                            approveDialog.showModal();
+                        }
+                    }
+                    fetchSolicitudes();
+                } else {
+                    const errores = data.errores || [];
+                    showAlertSafe('error', errores.join(' ') || 'No se pudo actualizar la solicitud.');
+                }
+            } catch (error) {
+                showAlertSafe('error', 'No se pudo actualizar la solicitud.');
+            }
+        }
+
         if (tableBody) {
             tableBody.addEventListener('click', async (event) => {
                 const button = event.target.closest('button[data-action]');
@@ -458,37 +578,40 @@ $observacionesLabel = function ($texto) {
                 const pedidoId = row.dataset.id;
                 if (!pedidoId) return;
 
-                const mensajeBase = action === 'aprobar'
-                    ? 'Observaciones (opcional) para aprobar:'
-                    : 'Observaciones (opcional) para cancelar:';
-                const observaciones = prompt(mensajeBase, row.dataset.observaciones || '');
-                if (observaciones === null) {
+                if (action === 'cancelar') {
+                    openCancelDialog(pedidoId, row.dataset.observaciones || '');
                     return;
                 }
 
-                const formData = new FormData();
-                formData.set('action', action);
-                formData.set('id', pedidoId);
-                formData.set('observaciones', observaciones);
-                formData.set('ajax', '1');
+                const observaciones = prompt('Observaciones (opcional) para aprobar:', row.dataset.observaciones || '');
+                if (observaciones === null) return;
+                sendAction(action, pedidoId, observaciones);
+            });
+        }
 
-                try {
-                    const response = await fetch(saldoEndpoint, {
-                        method: 'POST',
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                        body: formData
-                    });
-                    const data = await response.json();
-                    if (data.ok) {
-                        showAlertSafe('success', data.mensaje || 'Solicitud actualizada.');
-                        fetchSolicitudes();
-                    } else {
-                        const errores = data.errores || [];
-                        showAlertSafe('error', errores.join(' ') || 'No se pudo actualizar la solicitud.');
-                    }
-                } catch (error) {
-                    showAlertSafe('error', 'No se pudo actualizar la solicitud.');
+        if (cancelCloseButton && cancelDialog) {
+            cancelCloseButton.addEventListener('click', () => cancelDialog.close());
+        }
+
+        if (cancelDialog) {
+            cancelDialog.addEventListener('close', () => {
+                pendingCancelId = null;
+                pendingCancelObservaciones = '';
+            });
+        }
+
+        const cancelForm = cancelDialog ? cancelDialog.querySelector('form') : null;
+        if (cancelForm) {
+            cancelForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                if (!pendingCancelId) return;
+                const motivo = cancelReasonInput ? cancelReasonInput.value.trim() : '';
+                if (!motivo) {
+                    showAlertSafe('error', 'Debes indicar el motivo de cancelación.');
+                    return;
                 }
+                cancelDialog.close();
+                sendAction('cancelar', pendingCancelId, motivo);
             });
         }
     </script>

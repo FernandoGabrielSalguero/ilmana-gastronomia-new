@@ -57,7 +57,8 @@ class AdminSaldoModel
         }
 
         $sql = "SELECT ps.Id, ps.Usuario_Id, ps.Saldo, ps.Estado, ps.Comprobante, ps.Observaciones, ps.Fecha_pedido,
-                    u.Nombre AS UsuarioNombre, u.Usuario AS UsuarioLogin, u.Correo AS UsuarioCorreo
+                    u.Nombre AS UsuarioNombre, u.Usuario AS UsuarioLogin, u.Correo AS UsuarioCorreo,
+                    u.Telefono AS UsuarioTelefono, u.Saldo AS UsuarioSaldo
                 FROM Pedidos_Saldo ps
                 JOIN Usuarios u ON u.Id = ps.Usuario_Id";
 
@@ -104,6 +105,7 @@ class AdminSaldoModel
                 'id' => $pedidoId
             ]);
 
+            $saldoFinal = null;
             if ($estado === 'Aprobado') {
                 $stmt = $this->db->prepare("UPDATE Usuarios
                     SET Saldo = Saldo + :monto
@@ -112,10 +114,18 @@ class AdminSaldoModel
                     'monto' => $pedido['Saldo'],
                     'usuarioId' => $pedido['Usuario_Id']
                 ]);
+
+                $stmt = $this->db->prepare("SELECT Saldo FROM Usuarios WHERE Id = :usuarioId");
+                $stmt->execute(['usuarioId' => $pedido['Usuario_Id']]);
+                $saldoFinal = $stmt->fetchColumn();
             }
 
             $this->db->commit();
-            return ['ok' => true, 'mensaje' => 'Solicitud actualizada correctamente.'];
+            return [
+                'ok' => true,
+                'mensaje' => 'Solicitud actualizada correctamente.',
+                'saldo_final' => $saldoFinal
+            ];
         } catch (Exception $e) {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();

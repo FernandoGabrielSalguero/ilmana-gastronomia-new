@@ -68,6 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, ['aprobar', 'canc
         $resultado = $model->actualizarEstadoSaldo($pedidoId, $nuevoEstado, $observaciones);
         if ($resultado['ok']) {
             $mensaje = $resultado['mensaje'];
+            $saldoFinal = $resultado['saldo_final'] ?? null;
         } else {
             $errores[] = $resultado['mensaje'];
         }
@@ -77,7 +78,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, ['aprobar', 'canc
         $respondJson([
             'ok' => empty($errores),
             'mensaje' => $mensaje,
-            'errores' => $errores
+            'errores' => $errores,
+            'saldo_final' => $saldoFinal ?? null
         ]);
     }
 }
