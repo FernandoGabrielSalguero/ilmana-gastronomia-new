@@ -14,7 +14,8 @@ class AdminViandasColegioModel
     {
         $sql = "SELECT Id, Nombre, Fecha_entrega, Fecha_hora_compra, Fecha_hora_cancelacion, Precio, Estado, Nivel_Educativo
                 FROM `Menú`
-                ORDER BY Fecha_entrega DESC, Id DESC";
+                ORDER BY Id DESC
+                LIMIT 100";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -61,6 +62,66 @@ class AdminViandasColegioModel
         return [
             'ok' => true,
             'mensaje' => 'Menu guardado correctamente.'
+        ];
+    }
+
+    public function actualizarMenu(int $id, array $data, string $nivel)
+    {
+        $sql = "UPDATE `Menú`
+                SET Nombre = :nombre,
+                    Fecha_entrega = :fecha_entrega,
+                    Fecha_hora_compra = :fecha_hora_compra,
+                    Fecha_hora_cancelacion = :fecha_hora_cancelacion,
+                    Precio = :precio,
+                    Estado = :estado,
+                    Nivel_Educativo = :nivel
+                WHERE Id = :id
+                LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+
+        try {
+            $stmt->execute([
+                'nombre' => $data['nombre'],
+                'fecha_entrega' => $data['fecha_entrega'],
+                'fecha_hora_compra' => $data['fecha_hora_compra'],
+                'fecha_hora_cancelacion' => $data['fecha_hora_cancelacion'],
+                'precio' => $data['precio'],
+                'estado' => $data['estado'],
+                'nivel' => $nivel,
+                'id' => $id
+            ]);
+        } catch (Exception $e) {
+            return [
+                'ok' => false,
+                'mensaje' => 'No se pudo actualizar el menu.'
+            ];
+        }
+
+        return [
+            'ok' => true,
+            'mensaje' => 'Menu actualizado correctamente.'
+        ];
+    }
+
+    public function eliminarMenu(int $id)
+    {
+        $sql = "DELETE FROM `Menú` WHERE Id = :id LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+
+        try {
+            $stmt->execute([
+                'id' => $id
+            ]);
+        } catch (Exception $e) {
+            return [
+                'ok' => false,
+                'mensaje' => 'No se pudo eliminar el menu.'
+            ];
+        }
+
+        return [
+            'ok' => true,
+            'mensaje' => 'Menu eliminado correctamente.'
         ];
     }
 }

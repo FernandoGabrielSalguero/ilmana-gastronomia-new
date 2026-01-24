@@ -220,7 +220,8 @@ $formatDateTime = function ($value) {
                         </div>
                     <?php endif; ?>
 
-                    <form class="form-modern" method="post">
+                    <form class="form-modern" method="post" id="menuForm">
+                        <input type="hidden" name="action" value="crear" />
                         <div class="form-grid grid-4">
                             <div class="input-group">
                                 <label for="nombre">Nombre</label>
@@ -276,7 +277,7 @@ $formatDateTime = function ($value) {
                                 </div>
                             </div>
 
-                            <div class="input-group" style="grid-column: span 3;">
+                            <div class="input-group" style="grid-column: span 2;">
                                 <label>Nivel educativo</label>
                                 <div class="chip-options">
                                     <label class="chip-option">
@@ -305,7 +306,6 @@ $formatDateTime = function ($value) {
 
                         <div class="form-buttons">
                             <button class="btn btn-aceptar" type="submit">Guardar</button>
-                            <button class="btn btn-cancelar" type="reset">Cancelar</button>
                         </div>
                     </form>
                 </div>
@@ -315,29 +315,36 @@ $formatDateTime = function ($value) {
                         <h3 class="card-title">Listado</h3>
                     </div>
                     <div class="card-body">
-                        <?php if (!empty($menuItems)): ?>
-                            <div class="tabla-wrapper">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th class="col-nombre">Nombre</th>
-                                            <th class="col-fecha">Fecha entrega</th>
-                                            <th class="col-fecha">Fecha limite de compra</th>
-                                            <th class="col-fecha">Fecha limite de venta</th>
-                                            <th>Precio</th>
-                                            <th>Estado</th>
-                                            <th>Nivel educativo</th>
-                                            <th>Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                        <div class="tabla-wrapper">
+                            <table class="data-table" id="menuTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th class="col-nombre">Nombre</th>
+                                        <th class="col-fecha">Fecha entrega</th>
+                                        <th class="col-fecha">Fecha limite de compra</th>
+                                        <th class="col-fecha">Fecha limite de venta</th>
+                                        <th>Precio</th>
+                                        <th>Estado</th>
+                                        <th>Nivel educativo</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="menuTableBody">
+                                    <?php if (!empty($menuItems)): ?>
                                         <?php foreach ($menuItems as $item): ?>
                                             <?php
                                             $estado = $item['Estado'] ?? '';
                                             $badgeClass = $estado === 'En venta' ? 'success' : ($estado === 'Sin stock' ? 'warning' : '');
                                             ?>
-                                            <tr>
+                                            <tr data-id="<?= htmlspecialchars($item['Id'] ?? '') ?>"
+                                                data-nombre="<?= htmlspecialchars($item['Nombre'] ?? '') ?>"
+                                                data-fecha-entrega="<?= htmlspecialchars($item['Fecha_entrega'] ?? '') ?>"
+                                                data-fecha-compra="<?= htmlspecialchars($item['Fecha_hora_compra'] ?? '') ?>"
+                                                data-fecha-cancelacion="<?= htmlspecialchars($item['Fecha_hora_cancelacion'] ?? '') ?>"
+                                                data-precio="<?= htmlspecialchars($item['Precio'] ?? '') ?>"
+                                                data-estado="<?= htmlspecialchars($item['Estado'] ?? '') ?>"
+                                                data-nivel="<?= htmlspecialchars($item['Nivel_Educativo'] ?? '') ?>">
                                                 <td><?= htmlspecialchars($item['Id'] ?? '') ?></td>
                                                 <td class="col-nombre"><?= htmlspecialchars($item['Nombre'] ?? '') ?></td>
                                                 <td class="col-fecha"><?= $formatDateTime($item['Fecha_entrega'] ?? '') ?></td>
@@ -351,20 +358,23 @@ $formatDateTime = function ($value) {
                                                 </td>
                                                 <td><?= htmlspecialchars($item['Nivel_Educativo'] ?? '') ?></td>
                                                 <td class="table-actions">
-                                                    <button type="button" class="icon-action"
-                                                        aria-label="Editar menu"
-                                                        onclick="openMenuModal()">
+                                                    <button type="button" class="icon-action" data-action="editar" aria-label="Editar menu">
                                                         <span class="material-icons">edit</span>
+                                                    </button>
+                                                    <button type="button" class="icon-action" data-action="eliminar" aria-label="Eliminar menu">
+                                                        <span class="material-icons">delete</span>
                                                     </button>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        <?php else: ?>
-                            <p>Sin datos cargados todavia.</p>
-                        <?php endif; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="9">Sin datos cargados todavia.</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -374,18 +384,93 @@ $formatDateTime = function ($value) {
     <div id="modal-editar-menu" class="modal hidden">
         <div class="modal-content">
             <h3>Editar menu</h3>
-            <p>Contenido pendiente.</p>
-            <div class="form-buttons">
-                <button class="btn btn-cancelar" type="button" onclick="closeMenuModal()">Cerrar</button>
-            </div>
+            <form class="form-modern" id="editMenuForm">
+                <input type="hidden" name="action" value="actualizar" />
+                <input type="hidden" name="id" id="edit_id" />
+                <div class="form-grid grid-4">
+                    <div class="input-group">
+                        <label for="edit_nombre">Nombre</label>
+                        <div class="input-icon">
+                            <span class="material-icons">restaurant_menu</span>
+                            <input type="text" id="edit_nombre" name="nombre" maxlength="100" required />
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="edit_fecha_entrega">Fecha entrega</label>
+                        <div class="input-icon input-icon-date">
+                            <input type="date" id="edit_fecha_entrega" name="fecha_entrega" required />
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="edit_fecha_hora_compra">Fecha y hora compra</label>
+                        <div class="input-icon">
+                            <input type="text" id="edit_fecha_hora_compra" name="fecha_hora_compra" />
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="edit_fecha_hora_cancelacion">Fecha y hora cancelacion</label>
+                        <div class="input-icon">
+                            <input type="text" id="edit_fecha_hora_cancelacion" name="fecha_hora_cancelacion" />
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="edit_precio">Precio</label>
+                        <div class="input-icon">
+                            <span class="material-icons">attach_money</span>
+                            <input type="number" id="edit_precio" name="precio" step="0.01" min="0" />
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="edit_estado">Estado</label>
+                        <div class="input-icon input-icon-globe">
+                            <select id="edit_estado" name="estado" required>
+                                <option value="">Seleccionar</option>
+                                <option value="En venta">En venta</option>
+                                <option value="Sin stock">Sin stock</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="edit_nivel">Nivel educativo</label>
+                        <div class="input-icon input-icon-globe">
+                            <select id="edit_nivel" name="nivel_educativo" required>
+                                <option value="">Seleccionar</option>
+                                <option value="Inicial">Inicial</option>
+                                <option value="Primaria">Primaria</option>
+                                <option value="Secundaria">Secundaria</option>
+                                <option value="Sin Curso Asignado">Sin Curso Asignado</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-buttons">
+                    <button class="btn btn-aceptar" type="submit">Guardar cambios</button>
+                    <button class="btn btn-cancelar" type="button" onclick="closeMenuModal()">Cerrar</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const menuEndpoint = '../../controllers/admin_viandasColegioController.php';
+            const menuForm = document.getElementById('menuForm');
+            const editForm = document.getElementById('editMenuForm');
+            const tableBody = document.getElementById('menuTableBody');
+
             const fechaEntrega = document.getElementById('fecha_entrega');
             const fechaCompra = document.getElementById('fecha_hora_compra');
             const fechaCancelacion = document.getElementById('fecha_hora_cancelacion');
+
+            const editFechaEntrega = document.getElementById('edit_fecha_entrega');
+            const editFechaCompra = document.getElementById('edit_fecha_hora_compra');
+            const editFechaCancelacion = document.getElementById('edit_fecha_hora_cancelacion');
 
             const pickerConfig = {
                 enableTime: true,
@@ -397,6 +482,8 @@ $formatDateTime = function ($value) {
 
             const compraPicker = fechaCompra ? flatpickr(fechaCompra, pickerConfig) : null;
             const cancelacionPicker = fechaCancelacion ? flatpickr(fechaCancelacion, pickerConfig) : null;
+            const editCompraPicker = editFechaCompra ? flatpickr(editFechaCompra, pickerConfig) : null;
+            const editCancelacionPicker = editFechaCancelacion ? flatpickr(editFechaCancelacion, pickerConfig) : null;
 
             const getTimePart = (value) => {
                 if (!value) {
@@ -406,12 +493,12 @@ $formatDateTime = function ($value) {
                 return partes[1] || '00:00:00';
             };
 
-            const syncFecha = (picker, input) => {
-                if (!fechaEntrega || !fechaEntrega.value || !input) {
+            const syncFecha = (picker, input, baseInput) => {
+                if (!baseInput || !baseInput.value || !input) {
                     return;
                 }
                 const timePart = getTimePart(input.value);
-                const nextValue = `${fechaEntrega.value} ${timePart}`;
+                const nextValue = `${baseInput.value} ${timePart}`;
                 if (picker) {
                     picker.setDate(nextValue, true);
                 } else {
@@ -421,23 +508,245 @@ $formatDateTime = function ($value) {
 
             if (fechaEntrega) {
                 fechaEntrega.addEventListener('change', () => {
-                    syncFecha(compraPicker, fechaCompra);
-                    syncFecha(cancelacionPicker, fechaCancelacion);
+                    syncFecha(compraPicker, fechaCompra, fechaEntrega);
+                    syncFecha(cancelacionPicker, fechaCancelacion, fechaEntrega);
+                });
+            }
+
+            if (editFechaEntrega) {
+                editFechaEntrega.addEventListener('change', () => {
+                    syncFecha(editCompraPicker, editFechaCompra, editFechaEntrega);
+                    syncFecha(editCancelacionPicker, editFechaCancelacion, editFechaEntrega);
                 });
             }
 
             if (fechaEntrega && fechaEntrega.value) {
-                syncFecha(compraPicker, fechaCompra);
-                syncFecha(cancelacionPicker, fechaCancelacion);
+                syncFecha(compraPicker, fechaCompra, fechaEntrega);
+                syncFecha(cancelacionPicker, fechaCancelacion, fechaEntrega);
             }
+
+            const escapeHtml = (value) => {
+                return String(value ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            };
+
+            const formatDateTimeCell = (value) => {
+                if (!value) {
+                    return '';
+                }
+                const parts = String(value).trim().split(' ');
+                const datePart = parts[0] || '';
+                const timePart = parts[1] || '';
+                return `<span class="cell-date"><span class="cell-date-date">${escapeHtml(datePart)}</span><span class="cell-date-time">${escapeHtml(timePart)}</span></span>`;
+            };
+
+            const renderRows = (items) => {
+                if (!tableBody) {
+                    return;
+                }
+                if (!items || items.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="9">Sin datos cargados todavia.</td></tr>';
+                    return;
+                }
+                tableBody.innerHTML = items.map((item) => {
+                    const estado = item.Estado || '';
+                    const badgeClass = estado === 'En venta' ? 'success' : (estado === 'Sin stock' ? 'warning' : '');
+                    const badgeHtml = estado ? `<span class="badge ${badgeClass}">${escapeHtml(estado)}</span>` : '';
+                    return `
+                        <tr data-id="${escapeHtml(item.Id)}"
+                            data-nombre="${escapeHtml(item.Nombre)}"
+                            data-fecha-entrega="${escapeHtml(item.Fecha_entrega)}"
+                            data-fecha-compra="${escapeHtml(item.Fecha_hora_compra)}"
+                            data-fecha-cancelacion="${escapeHtml(item.Fecha_hora_cancelacion)}"
+                            data-precio="${escapeHtml(item.Precio)}"
+                            data-estado="${escapeHtml(item.Estado)}"
+                            data-nivel="${escapeHtml(item.Nivel_Educativo)}">
+                            <td>${escapeHtml(item.Id)}</td>
+                            <td class="col-nombre">${escapeHtml(item.Nombre)}</td>
+                            <td class="col-fecha">${formatDateTimeCell(item.Fecha_entrega)}</td>
+                            <td class="col-fecha">${formatDateTimeCell(item.Fecha_hora_compra)}</td>
+                            <td class="col-fecha">${formatDateTimeCell(item.Fecha_hora_cancelacion)}</td>
+                            <td>${escapeHtml(item.Precio)}</td>
+                            <td>${badgeHtml}</td>
+                            <td>${escapeHtml(item.Nivel_Educativo)}</td>
+                            <td class="table-actions">
+                                <button type="button" class="icon-action" data-action="editar" aria-label="Editar menu">
+                                    <span class="material-icons">edit</span>
+                                </button>
+                                <button type="button" class="icon-action" data-action="eliminar" aria-label="Eliminar menu">
+                                    <span class="material-icons">delete</span>
+                                </button>
+                            </td>
+                        </tr>`;
+                }).join('');
+            };
+
+            const fetchMenuItems = async () => {
+                try {
+                    const response = await fetch(`${menuEndpoint}?action=list&ajax=1`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const data = await response.json();
+                    if (data.ok) {
+                        renderRows(data.items);
+                    }
+                } catch (error) {
+                    console.error('Error al cargar el listado:', error);
+                }
+            };
+
+            const showErrorAlert = (payload, fallback) => {
+                const errors = payload?.errores || [];
+                const message = errors.length ? errors.join(' ') : (payload?.mensaje || fallback);
+                showAlert('error', message);
+            };
+
+            if (menuForm) {
+                menuForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    const formData = new FormData(menuForm);
+                    formData.set('action', 'crear');
+                    formData.set('ajax', '1');
+
+                    try {
+                        const response = await fetch(menuEndpoint, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
+                        });
+                        const data = await response.json();
+                        if (data.ok) {
+                            showAlert('success', data.mensaje || 'Menu guardado correctamente.');
+                            menuForm.reset();
+                        } else {
+                            showErrorAlert(data, 'No se pudo guardar el menu.');
+                        }
+                        await fetchMenuItems();
+                    } catch (error) {
+                        showAlert('error', 'No se pudo guardar el menu.');
+                    }
+                });
+            }
+
+            if (editForm) {
+                editForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    const formData = new FormData(editForm);
+                    formData.set('action', 'actualizar');
+                    formData.set('ajax', '1');
+
+                    try {
+                        const response = await fetch(menuEndpoint, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
+                        });
+                        const data = await response.json();
+                        if (data.ok) {
+                            showAlert('success', data.mensaje || 'Menu actualizado correctamente.');
+                            closeMenuModal();
+                        } else {
+                            showErrorAlert(data, 'No se pudo actualizar el menu.');
+                        }
+                        await fetchMenuItems();
+                    } catch (error) {
+                        showAlert('error', 'No se pudo actualizar el menu.');
+                    }
+                });
+            }
+
+            if (tableBody) {
+                tableBody.addEventListener('click', async (event) => {
+                    const button = event.target.closest('button[data-action]');
+                    if (!button) {
+                        return;
+                    }
+                    const row = button.closest('tr');
+                    if (!row) {
+                        return;
+                    }
+                    const action = button.dataset.action;
+
+                    if (action === 'editar') {
+                        openMenuModal(row);
+                    }
+
+                    if (action === 'eliminar') {
+                        const id = row.dataset.id;
+                        if (!id) {
+                            return;
+                        }
+                        if (!confirm('Eliminar menu?')) {
+                            return;
+                        }
+                        const formData = new FormData();
+                        formData.set('action', 'eliminar');
+                        formData.set('id', id);
+                        formData.set('ajax', '1');
+
+                        try {
+                            const response = await fetch(menuEndpoint, {
+                                method: 'POST',
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                body: formData
+                            });
+                            const data = await response.json();
+                            if (data.ok) {
+                                showAlert('success', data.mensaje || 'Menu eliminado correctamente.');
+                            } else {
+                                showErrorAlert(data, 'No se pudo eliminar el menu.');
+                            }
+                            await fetchMenuItems();
+                        } catch (error) {
+                            showAlert('error', 'No se pudo eliminar el menu.');
+                        }
+                    }
+                });
+            }
+
+            fetchMenuItems();
+            setInterval(fetchMenuItems, 10000);
         });
-    </script>
-    <script>
-        const openMenuModal = () => {
+
+        const openMenuModal = (row) => {
             const modal = document.getElementById('modal-editar-menu');
-            if (modal) {
-                modal.classList.remove('hidden');
+            if (!modal || !row) {
+                return;
             }
+            const idInput = document.getElementById('edit_id');
+            const nombreInput = document.getElementById('edit_nombre');
+            const fechaEntregaInput = document.getElementById('edit_fecha_entrega');
+            const fechaCompraInput = document.getElementById('edit_fecha_hora_compra');
+            const fechaCancelacionInput = document.getElementById('edit_fecha_hora_cancelacion');
+            const precioInput = document.getElementById('edit_precio');
+            const estadoInput = document.getElementById('edit_estado');
+            const nivelInput = document.getElementById('edit_nivel');
+
+            const fechaEntrega = row.dataset.fechaEntrega || '';
+            const fechaEntregaDate = fechaEntrega ? fechaEntrega.split(' ')[0] : '';
+
+            if (idInput) idInput.value = row.dataset.id || '';
+            if (nombreInput) nombreInput.value = row.dataset.nombre || '';
+            if (fechaEntregaInput) fechaEntregaInput.value = fechaEntregaDate;
+            if (fechaCompraInput) fechaCompraInput.value = row.dataset.fechaCompra || '';
+            if (fechaCancelacionInput) fechaCancelacionInput.value = row.dataset.fechaCancelacion || '';
+            if (precioInput) precioInput.value = row.dataset.precio || '';
+            if (estadoInput) estadoInput.value = row.dataset.estado || '';
+            if (nivelInput) nivelInput.value = row.dataset.nivel || '';
+
+            modal.classList.remove('hidden');
         };
 
         const closeMenuModal = () => {
@@ -450,3 +759,9 @@ $formatDateTime = function ($value) {
 </body>
 
 </html>
+
+
+
+
+
+
