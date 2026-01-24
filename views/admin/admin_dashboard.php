@@ -398,9 +398,6 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                                         </div>
                                     </div>
 
-                                    <div class="form-buttons">
-                                        <button class="btn btn-cancelar" type="button">Limpiar</button>
-                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -522,10 +519,6 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                                             <span class="material-icons">event</span>
                                             <input type="date" name="fecha_hasta" value="<?= htmlspecialchars($fechaHasta) ?>">
                                         </div>
-                                    </div>
-
-                                    <div class="form-buttons">
-                                        <button class="btn btn-cancelar" type="button">Limpiar</button>
                                     </div>
                                 </form>
                             </div>
