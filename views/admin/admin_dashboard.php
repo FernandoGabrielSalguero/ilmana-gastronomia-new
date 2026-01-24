@@ -714,9 +714,12 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                                 const value = tooltip.dataPoints?.[0]?.formattedValue ?? "0";
                                 tooltipEl.innerHTML = `${title}<br><strong>Pedidos: ${value}</strong>`;
                                 const canvasRect = chart.canvas.getBoundingClientRect();
+                                const point = tooltip.dataPoints?.[0]?.element;
+                                const pointX = point ? point.x : tooltip.caretX;
+                                const pointY = point ? point.y : tooltip.caretY;
                                 tooltipEl.style.opacity = 1;
-                                tooltipEl.style.left = `${canvasRect.left + window.scrollX + tooltip.caretX}px`;
-                                tooltipEl.style.top = `${canvasRect.top + window.scrollY + tooltip.caretY}px`;
+                                tooltipEl.style.left = `${canvasRect.left + window.scrollX + pointX}px`;
+                                tooltipEl.style.top = `${canvasRect.top + window.scrollY + pointY - 8}px`;
                             }
                         }
                     },
