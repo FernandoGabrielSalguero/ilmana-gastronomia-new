@@ -261,9 +261,9 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
 
             <nav class="sidebar-menu">
                 <ul>
-                    <li onclick="location.href='admin_dashboard.php'" data-tutorial="menu-inicio">
+                    <!-- <li onclick="location.href='admin_dashboard.php'" data-tutorial="menu-inicio">
                         <span class="material-icons" style="color: #5b21b6;">home</span><span class="link-text">Inicio</span>
-                    </li>
+                    </li> -->
                     <li onclick="abrirModalSaldo()" data-tutorial="menu-saldo">
                         <span class="material-icons" style="color: #5b21b6;">attach_money</span><span class="link-text">Cargar Saldo</span>
                     </li>

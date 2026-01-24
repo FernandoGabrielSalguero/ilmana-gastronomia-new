@@ -91,6 +91,14 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
             padding: 6px 12px;
             font-size: 0.85rem;
         }
+
+        #hijos-section {
+            margin-top: 16px;
+        }
+
+        #hijos-section h3 {
+            margin: 0 0 12px;
+        }
     </style>
 </head>
 
@@ -200,12 +208,14 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                             </div>
 
                             <div class="input-group">
-                                <label for="telefono">Telefono</label>
+                                <label for="telefono_display">Telefono</label>
                                 <div class="input-icon input-icon-phone">
-                                    <input type="tel" id="telefono" name="telefono" inputmode="numeric" pattern="\\d{8,15}"
+                                    <input type="tel" id="telefono_display" name="telefono_display" inputmode="numeric"
+                                        value="<?= htmlspecialchars($formData['telefono']) ?>" />
+                                    <input type="hidden" id="telefono" name="telefono"
                                         value="<?= htmlspecialchars($formData['telefono']) ?>" />
                                 </div>
-                                <small class="gform-helper">Solo numeros. Se guarda normalizado para WhatsApp.</small>
+                                <small class="gform-helper">Ingresá tu número sin 0 y sin 15 (ej: 2611234567)</small>
                             </div>
 
                             <div class="input-group">
@@ -241,17 +251,8 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
 
                         </div>
 
-                        <div class="form-buttons">
-                            <button class="btn btn-aceptar" type="submit">Guardar</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="card" id="hijos-section">
-                    <div class="card-header">
-                        <h3 class="card-title">Hijos (solo para rol papas)</h3>
-                    </div>
-                    <div class="card-body">
+                        <div id="hijos-section">
+                            <h3>Hijos (solo para rol papas)</h3>
                         <div class="hijos-wrapper" id="hijos-container">
                             <?php
                             $mostrarHijos = $formData['rol'] === 'papas';
@@ -313,6 +314,11 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                             <button type="button" class="btn btn-info" id="add-hijo">Agregar hijo</button>
                         </div>
                     </div>
+
+                        <div class="form-buttons">
+                            <button class="btn btn-aceptar" type="submit">Guardar</button>
+                        </div>
+                    </form>
                 </div>
             </section>
         </div>
@@ -323,6 +329,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
         const nombreInput = document.getElementById('nombre');
         const usuarioInput = document.getElementById('usuario');
         const telefonoInput = document.getElementById('telefono');
+        const telefonoDisplayInput = document.getElementById('telefono_display');
         const hijosSection = document.getElementById('hijos-section');
         const hijosContainer = document.getElementById('hijos-container');
         const addHijoButton = document.getElementById('add-hijo');
@@ -447,20 +454,32 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
             }
         };
 
-        const sanitizeTelefono = () => {
-            if (!telefonoInput) return;
-            const digits = telefonoInput.value.replace(/\D+/g, '');
-            telefonoInput.value = digits;
+        const formatTelefono = (digits) => {
+            if (!digits) return '';
+            const clean = digits.replace(/\D+/g, '');
+            const parts = [];
+            parts.push(clean.slice(0, 3));
+            if (clean.length > 3) parts.push(clean.slice(3, 6));
+            if (clean.length > 6) parts.push(clean.slice(6, 10));
+            if (clean.length > 10) parts.push(clean.slice(10));
+            return parts.filter(Boolean).join('-');
         };
 
-        if (telefonoInput) {
-            telefonoInput.addEventListener('input', sanitizeTelefono);
+        const syncTelefono = () => {
+            if (!telefonoInput || !telefonoDisplayInput) return;
+            const digits = telefonoDisplayInput.value.replace(/\D+/g, '');
+            telefonoInput.value = digits;
+            telefonoDisplayInput.value = formatTelefono(digits);
+        };
+
+        if (telefonoDisplayInput) {
+            telefonoDisplayInput.addEventListener('input', syncTelefono);
         }
 
         const usuarioForm = document.getElementById('usuarioForm');
         if (usuarioForm) {
             usuarioForm.addEventListener('submit', () => {
-                sanitizeTelefono();
+                syncTelefono();
             });
         }
 
@@ -472,7 +491,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                 }
             });
             usuarioInput.addEventListener('input', () => {
-                if (usuarioInput.value === nombreInput.value || usuarioInput.value === lastAutoUsuario) {
+                if (usuarioInput.value.trim() === '' || usuarioInput.value === nombreInput.value || usuarioInput.value === lastAutoUsuario) {
                     autoUsuario = true;
                 } else {
                     autoUsuario = false;
@@ -497,6 +516,10 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
             Array.from(hijosContainer.children).forEach((row) => {
                 bindRow(row);
             });
+        }
+
+        if (telefonoDisplayInput) {
+            syncTelefono();
         }
 
         toggleHijosSection();
