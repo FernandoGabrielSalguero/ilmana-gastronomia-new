@@ -584,14 +584,17 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                 canvas.chartInstance.destroy();
             }
             canvas.chartInstance = new Chart(canvas, {
-                type: "bar",
+                type: "line",
                 data: {
                     labels,
                     datasets: [{
                         data: values,
-                        backgroundColor: "#6366f1",
-                        borderRadius: 4,
-                        barThickness: 10
+                        borderColor: "#6366f1",
+                        backgroundColor: "rgba(99, 102, 241, 0.15)",
+                        borderWidth: 2,
+                        tension: 0.35,
+                        pointRadius: 0,
+                        fill: true
                     }]
                 },
                 options: {
