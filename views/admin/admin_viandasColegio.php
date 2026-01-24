@@ -12,7 +12,14 @@ $formatDateTime = function ($value) {
     $parts = explode(' ', trim($value), 2);
     $date = $parts[0] ?? '';
     $time = $parts[1] ?? '';
-    return '<span class="cell-date"><span class="cell-date-date">' . htmlspecialchars($date) .
+    $formattedDate = $date;
+    if ($date) {
+        $dateParts = explode('-', $date);
+        if (count($dateParts) === 3) {
+            $formattedDate = $dateParts[1] . '-' . $dateParts[2] . '-' . $dateParts[0];
+        }
+    }
+    return '<span class="cell-date"><span class="cell-date-date">' . htmlspecialchars($formattedDate) .
         '</span><span class="cell-date-time">' . htmlspecialchars($time) . '</span></span>';
 };
 ?>
@@ -150,6 +157,11 @@ $formatDateTime = function ($value) {
             align-items: center;
             justify-content: center;
             padding: 4px;
+        }
+
+        #modal-editar-menu .modal-content {
+            width: 80%;
+            max-width: 1200px;
         }
     </style>
 </head>
@@ -295,11 +307,6 @@ $formatDateTime = function ($value) {
                                             <?= in_array('Secundaria', $selectedNiveles, true) ? 'checked' : '' ?> />
                                         <span>Secundaria</span>
                                     </label>
-                                    <label class="chip-option">
-                                        <input type="checkbox" name="nivel_educativo[]" value="Sin Curso Asignado"
-                                            <?= in_array('Sin Curso Asignado', $selectedNiveles, true) ? 'checked' : '' ?> />
-                                        <span>Sin Curso Asignado</span>
-                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -361,7 +368,7 @@ $formatDateTime = function ($value) {
                                                     <button type="button" class="icon-action" data-action="editar" aria-label="Editar menu">
                                                         <span class="material-icons">edit</span>
                                                     </button>
-                                                    <button type="button" class="icon-action" data-action="eliminar" aria-label="Eliminar menu">
+                                                    <button type="button" class="icon-action" data-action="eliminar" aria-label="Cambiar estado">
                                                         <span class="material-icons">delete</span>
                                                     </button>
                                                 </td>
@@ -444,7 +451,6 @@ $formatDateTime = function ($value) {
                                 <option value="Inicial">Inicial</option>
                                 <option value="Primaria">Primaria</option>
                                 <option value="Secundaria">Secundaria</option>
-                                <option value="Sin Curso Asignado">Sin Curso Asignado</option>
                             </select>
                         </div>
                     </div>
@@ -541,7 +547,14 @@ $formatDateTime = function ($value) {
                 const parts = String(value).trim().split(' ');
                 const datePart = parts[0] || '';
                 const timePart = parts[1] || '';
-                return `<span class="cell-date"><span class="cell-date-date">${escapeHtml(datePart)}</span><span class="cell-date-time">${escapeHtml(timePart)}</span></span>`;
+                let formattedDate = datePart;
+                if (datePart) {
+                    const datePieces = datePart.split('-');
+                    if (datePieces.length === 3) {
+                        formattedDate = `${datePieces[1]}-${datePieces[2]}-${datePieces[0]}`;
+                    }
+                }
+                return `<span class="cell-date"><span class="cell-date-date">${escapeHtml(formattedDate)}</span><span class="cell-date-time">${escapeHtml(timePart)}</span></span>`;
             };
 
             const renderRows = (items) => {
@@ -577,7 +590,7 @@ $formatDateTime = function ($value) {
                                 <button type="button" class="icon-action" data-action="editar" aria-label="Editar menu">
                                     <span class="material-icons">edit</span>
                                 </button>
-                                <button type="button" class="icon-action" data-action="eliminar" aria-label="Eliminar menu">
+                                <button type="button" class="icon-action" data-action="eliminar" aria-label="Cambiar estado">
                                     <span class="material-icons">delete</span>
                                 </button>
                             </td>
@@ -686,13 +699,19 @@ $formatDateTime = function ($value) {
                         if (!id) {
                             return;
                         }
-                        if (!confirm('Eliminar menu?')) {
-                            return;
-                        }
+                        const currentEstado = row.dataset.estado || '';
+                        const nextEstado = currentEstado === 'En venta' ? 'Sin stock' : 'En venta';
                         const formData = new FormData();
-                        formData.set('action', 'eliminar');
-                        formData.set('id', id);
+                        formData.set('action', 'actualizar');
                         formData.set('ajax', '1');
+                        formData.set('id', id);
+                        formData.set('nombre', row.dataset.nombre || '');
+                        formData.set('fecha_entrega', row.dataset.fechaEntrega || '');
+                        formData.set('fecha_hora_compra', row.dataset.fechaCompra || '');
+                        formData.set('fecha_hora_cancelacion', row.dataset.fechaCancelacion || '');
+                        formData.set('precio', row.dataset.precio || '');
+                        formData.set('estado', nextEstado);
+                        formData.set('nivel_educativo', row.dataset.nivel || '');
 
                         try {
                             const response = await fetch(menuEndpoint, {
@@ -704,13 +723,13 @@ $formatDateTime = function ($value) {
                             });
                             const data = await response.json();
                             if (data.ok) {
-                                showAlert('success', data.mensaje || 'Menu eliminado correctamente.');
+                                showAlert('success', data.mensaje || 'Estado actualizado correctamente.');
                             } else {
-                                showErrorAlert(data, 'No se pudo eliminar el menu.');
+                                showErrorAlert(data, 'No se pudo actualizar el estado.');
                             }
                             await fetchMenuItems();
                         } catch (error) {
-                            showAlert('error', 'No se pudo eliminar el menu.');
+                            showAlert('error', 'No se pudo actualizar el estado.');
                         }
                     }
                 });
