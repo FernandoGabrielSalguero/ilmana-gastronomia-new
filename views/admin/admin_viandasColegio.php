@@ -16,7 +16,7 @@ $formatDateTime = function ($value) {
     if ($date) {
         $dateParts = explode('-', $date);
         if (count($dateParts) === 3) {
-            $formattedDate = $dateParts[1] . '-' . $dateParts[2] . '-' . $dateParts[0];
+            $formattedDate = $dateParts[2] . '-' . $dateParts[1] . '-' . $dateParts[0];
         }
     }
     return '<span class="cell-date"><span class="cell-date-date">' . htmlspecialchars($formattedDate) .
@@ -551,7 +551,7 @@ $formatDateTime = function ($value) {
                 if (datePart) {
                     const datePieces = datePart.split('-');
                     if (datePieces.length === 3) {
-                        formattedDate = `${datePieces[1]}-${datePieces[2]}-${datePieces[0]}`;
+                        formattedDate = `${datePieces[2]}-${datePieces[1]}-${datePieces[0]}`;
                     }
                 }
                 return `<span class="cell-date"><span class="cell-date-date">${escapeHtml(formattedDate)}</span><span class="cell-date-time">${escapeHtml(timePart)}</span></span>`;
