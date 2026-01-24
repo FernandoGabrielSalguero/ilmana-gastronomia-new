@@ -184,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="text" name="usuario" id="usuario" required>
             </div>
             <div class="form-group password-container">
-                <label for="contrasena">ContraseÃ±a:</label>
+                <label for="contrasena">Contraseña:</label>
                 <input type="password" name="contrasena" id="contrasena" required>
                 <span class="toggle-password" role="button" aria-label="Mostrar contrasena">Mostrar</span>
             </div>
@@ -195,7 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script>
-        // visualizador de contraseÃ±a
+        // visualizador de Contraseña
         const togglePassword = document.querySelector('.toggle-password');
         const passwordField = document.getElementById('contrasena');
 
