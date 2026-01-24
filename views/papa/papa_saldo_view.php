@@ -119,7 +119,7 @@ if ($esModal) {
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <span class="material-icons logo-icon">dashboard</span>
-                <span class="logo-text">AMPD</span>
+                <span class="logo-text">Il'Mana</span>
             </div>
 
             <nav class="sidebar-menu">
