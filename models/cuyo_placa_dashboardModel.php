@@ -16,13 +16,13 @@ class CuyoPlacaDashboardModel
         $where = [];
 
         if ($fechaDesde) {
-            $where[] = "pc.created_at >= :fechaDesde";
-            $params['fechaDesde'] = $fechaDesde . ' 00:00:00';
+            $where[] = "pc.fecha >= :fechaDesde";
+            $params['fechaDesde'] = $fechaDesde;
         }
 
         if ($fechaHasta) {
-            $where[] = "pc.created_at <= :fechaHasta";
-            $params['fechaHasta'] = $fechaHasta . ' 23:59:59';
+            $where[] = "pc.fecha <= :fechaHasta";
+            $params['fechaHasta'] = $fechaHasta;
         }
 
         $sql = "SELECT COUNT(*) FROM Pedidos_Cuyo_Placa pc";
@@ -41,13 +41,13 @@ class CuyoPlacaDashboardModel
         $where = [];
 
         if ($fechaDesde) {
-            $where[] = "pc.created_at >= :fechaDesde";
-            $params['fechaDesde'] = $fechaDesde . ' 00:00:00';
+            $where[] = "pc.fecha >= :fechaDesde";
+            $params['fechaDesde'] = $fechaDesde;
         }
 
         if ($fechaHasta) {
-            $where[] = "pc.created_at <= :fechaHasta";
-            $params['fechaHasta'] = $fechaHasta . ' 23:59:59';
+            $where[] = "pc.fecha <= :fechaHasta";
+            $params['fechaHasta'] = $fechaHasta;
         }
 
         if ($plantas) {
@@ -81,13 +81,13 @@ class CuyoPlacaDashboardModel
         $where = [];
 
         if ($fechaDesde) {
-            $where[] = "pc.created_at >= :fechaDesde";
-            $params['fechaDesde'] = $fechaDesde . ' 00:00:00';
+            $where[] = "pc.fecha >= :fechaDesde";
+            $params['fechaDesde'] = $fechaDesde;
         }
 
         if ($fechaHasta) {
-            $where[] = "pc.created_at <= :fechaHasta";
-            $params['fechaHasta'] = $fechaHasta . ' 23:59:59';
+            $where[] = "pc.fecha <= :fechaHasta";
+            $params['fechaHasta'] = $fechaHasta;
         }
 
         if ($plantas) {
@@ -121,13 +121,13 @@ class CuyoPlacaDashboardModel
         $where = [];
 
         if ($fechaDesde) {
-            $where[] = "pc.created_at >= :fechaDesde";
-            $params['fechaDesde'] = $fechaDesde . ' 00:00:00';
+            $where[] = "pc.fecha >= :fechaDesde";
+            $params['fechaDesde'] = $fechaDesde;
         }
 
         if ($fechaHasta) {
-            $where[] = "pc.created_at <= :fechaHasta";
-            $params['fechaHasta'] = $fechaHasta . ' 23:59:59';
+            $where[] = "pc.fecha <= :fechaHasta";
+            $params['fechaHasta'] = $fechaHasta;
         }
 
         if ($plantas) {
