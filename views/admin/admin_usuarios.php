@@ -129,6 +129,23 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
         #edit-hijos-section {
             margin-top: 16px;
         }
+
+        .tabla-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filtro-usuarios {
+            min-width: 220px;
+            max-width: 320px;
+        }
+
+        .filtro-usuarios input {
+            width: 100%;
+        }
     </style>
 </head>
 
@@ -354,7 +371,15 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                 </div>
 
                 <div class="card tabla-card">
-                    <h3>Usuarios registrados</h3>
+                    <div class="tabla-header">
+                        <h3>Usuarios registrados</h3>
+                        <div class="input-group filtro-usuarios">
+                            <label for="usuarios-search">Buscar por nombre</label>
+                            <div class="input-icon input-icon-name">
+                                <input type="text" id="usuarios-search" name="usuarios-search" placeholder="Escribe un nombre" autocomplete="off" />
+                            </div>
+                        </div>
+                    </div>
                     <div class="tabla-wrapper">
                         <table class="data-table">
                             <thead>
@@ -395,7 +420,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                                         $usuarioJson = htmlspecialchars(json_encode($usuarioPayload), ENT_QUOTES, 'UTF-8');
                                         $hijosJson = htmlspecialchars(json_encode($usuario['hijos'] ?? []), ENT_QUOTES, 'UTF-8');
                                         ?>
-                                    <tr>
+                                    <tr data-usuario-id="<?= htmlspecialchars((string) ($usuario['Id'] ?? '')) ?>">
                                         <td><?= htmlspecialchars((string) ($usuario['Id'] ?? '')) ?></td>
                                         <td class="wrap-text"><?= $nombreWrapped !== '' ? $nombreWrapped : htmlspecialchars((string) ($usuario['Nombre'] ?? '')) ?></td>
                                         <td class="wrap-text"><?= $usuarioWrapped !== '' ? $usuarioWrapped : htmlspecialchars((string) ($usuario['Usuario'] ?? '')) ?></td>
@@ -435,7 +460,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
         <div class="modal-content">
             <h3>Editar usuario</h3>
             <form class="form-modern" id="editUsuarioForm" autocomplete="off" onsubmit="return false;">
-                <input type="hidden" id="edit_id" />
+                <input type="hidden" id="edit_id" name="edit_id" />
                 <div class="form-grid grid-4">
                     <div class="input-group">
                         <label for="edit_nombre">Nombre</label>
@@ -505,7 +530,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
 
                 <div class="form-buttons">
                     <button type="button" class="btn btn-cancelar" data-close-modal>Cancelar</button>
-                    <button type="button" class="btn btn-aceptar" data-close-modal>Guardar cambios</button>
+                    <button type="submit" class="btn btn-aceptar">Guardar cambios</button>
                 </div>
             </form>
         </div>
@@ -732,6 +757,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
         const editAddHijoButton = document.getElementById('edit-add-hijo');
         const usuariosTableBody = document.getElementById('usuarios-table-body');
         const feedbackContainer = document.getElementById('usuarios-feedback');
+        const usuariosSearchInput = document.getElementById('usuarios-search');
 
         const toggleEditHijosSection = () => {
             if (!editHijosSection) return;
@@ -912,6 +938,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
         const buildUsuarioRow = (usuarioData, hijosData) => {
             if (!usuariosTableBody || !usuarioData) return null;
             const row = document.createElement('tr');
+            row.dataset.usuarioId = usuarioData.id || '';
             const estadoLabel = usuarioData.estado === 'inactivo' ? 'inactivo' : 'activo';
             const estadoClass = estadoLabel === 'inactivo' ? 'danger' : 'success';
             row.innerHTML = `
@@ -954,6 +981,39 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                 bindEditButton(editButton);
             }
             return row;
+        };
+
+        const renderUsuariosTable = (usuarios) => {
+            if (!usuariosTableBody) return;
+            usuariosTableBody.innerHTML = '';
+            if (!Array.isArray(usuarios) || usuarios.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = '<td colspan="9">No hay usuarios cargados.</td>';
+                usuariosTableBody.appendChild(emptyRow);
+                return;
+            }
+            usuarios.forEach((item) => {
+                const row = buildUsuarioRow(item.usuario, item.hijos);
+                if (row) {
+                    usuariosTableBody.appendChild(row);
+                }
+            });
+        };
+
+        const replaceUsuarioRow = (usuarioData, hijosData) => {
+            if (!usuariosTableBody || !usuarioData) return;
+            const newRow = buildUsuarioRow(usuarioData, hijosData);
+            if (!newRow) return;
+            const existingRow = usuariosTableBody.querySelector(`tr[data-usuario-id="${usuarioData.id}"]`);
+            if (existingRow) {
+                existingRow.replaceWith(newRow);
+                return;
+            }
+            const emptyRow = usuariosTableBody.querySelector('tr td[colspan]');
+            if (emptyRow) {
+                emptyRow.closest('tr').remove();
+            }
+            usuariosTableBody.prepend(newRow);
         };
 
         const updateEditHijoTitles = () => {
@@ -1090,6 +1150,39 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
             });
         }
 
+        if (editForm) {
+            editForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const formData = new FormData(editForm);
+                formData.append('action', 'editar');
+                formData.append('ajax', '1');
+                if (editIdInput && !formData.get('edit_id')) {
+                    formData.append('edit_id', editIdInput.value);
+                }
+
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.ok && data.usuario) {
+                            replaceUsuarioRow(data.usuario, data.hijos || []);
+                            closeAdminModal(editModal);
+                            renderFeedback('success', data.mensaje || 'Usuario actualizado correctamente.');
+                        } else {
+                            renderFeedback('error', data.errores || 'No se pudo actualizar el usuario.');
+                        }
+                    })
+                    .catch(() => {
+                        renderFeedback('error', 'No se pudo actualizar el usuario.');
+                    });
+            });
+        }
+
         if (usuarioForm && usuariosTableBody) {
             usuarioForm.addEventListener('submit', (event) => {
                 event.preventDefault();
@@ -1128,6 +1221,54 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                     .catch(() => {
                         renderFeedback('error', 'No se pudo crear el usuario.');
                     });
+            });
+        }
+
+        if (usuariosSearchInput) {
+            let searchTimeout = null;
+            let lastSearchValue = '';
+
+            const fetchUsuarios = (termino) => {
+                const formData = new FormData();
+                formData.append('action', 'buscar');
+                formData.append('termino', termino);
+                formData.append('ajax', '1');
+
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.ok) {
+                            renderUsuariosTable(data.usuarios || []);
+                        } else {
+                            renderFeedback('error', data.errores || 'No se pudo filtrar los usuarios.');
+                        }
+                    })
+                    .catch(() => {
+                        renderFeedback('error', 'No se pudo filtrar los usuarios.');
+                    });
+            };
+
+            usuariosSearchInput.addEventListener('input', () => {
+                const termino = usuariosSearchInput.value.trim();
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
+                }
+                if (termino.length >= 3 || (termino.length === 0 && lastSearchValue.length >= 3)) {
+                    searchTimeout = setTimeout(() => {
+                        fetchUsuarios(termino);
+                        lastSearchValue = termino;
+                    }, 300);
+                    return;
+                }
+                if (termino.length === 0) {
+                    lastSearchValue = '';
+                }
             });
         }
     </script>
