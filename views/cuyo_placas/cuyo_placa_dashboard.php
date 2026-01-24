@@ -100,7 +100,10 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
                             <p class="resumen-subtitle">Rango: <?= htmlspecialchars($rangoTexto) ?></p>
                         </div>
                         <div class="resumen-actions">
-                            <button class="btn-icon" id="toggleFiltros" type="button" data-tooltip="<?= htmlspecialchars($tooltipFiltros) ?>">
+                            <button class="btn-icon" type="button" data-tooltip="<?= htmlspecialchars($tooltipFiltros) ?>">
+                                <span class="material-icons">help_outline</span>
+                            </button>
+                            <button class="btn-icon" id="toggleFiltros" type="button">
                                 <span class="material-icons">tune</span>
                             </button>
                             <div class="filtros-panel" id="panelFiltros">
@@ -369,4 +372,3 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
 </body>
 
 </html>
-
