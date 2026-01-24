@@ -51,6 +51,31 @@ $saldoPendiente = $model->obtenerSaldoPendiente($colegioId, $cursoId, $fechaDesd
 $totalSaldoAprobado = $model->obtenerTotalSaldoAprobado($colegioId, $cursoId, $fechaDesde, $fechaHasta);
 $totalPapas = $model->obtenerTotalPapas($colegioId, $cursoId);
 $totalHijos = $model->obtenerTotalHijos($colegioId, $cursoId);
+$pedidosPorCurso = $model->obtenerPedidosPorCurso($colegioId, $cursoId, $fechaDesde, $fechaHasta);
+$pedidosDiarios = $model->obtenerPedidosDiariosPorCurso($colegioId, $cursoId, $fechaDesde, $fechaHasta);
+
+$seriesPorCurso = [];
+foreach ($pedidosDiarios as $row) {
+    $key = $row['ColegioId'] . '-' . $row['CursoId'];
+    if (!isset($seriesPorCurso[$key])) {
+        $seriesPorCurso[$key] = [];
+    }
+    $seriesPorCurso[$key][] = [
+        'dia' => $row['Dia'],
+        'total' => (int) $row['Total'],
+    ];
+}
+
+$tablaPedidos = [];
+foreach ($pedidosPorCurso as $row) {
+    $key = $row['ColegioId'] . '-' . $row['CursoId'];
+    $tablaPedidos[] = [
+        'colegio' => $row['ColegioNombre'] ?? '',
+        'curso' => $row['CursoNombre'] ?? '',
+        'total' => (int) $row['Total'],
+        'series' => $seriesPorCurso[$key] ?? [],
+    ];
+}
 
 if (isset($_GET['ajax'])) {
     header('Content-Type: application/json; charset=utf-8');
@@ -61,6 +86,7 @@ if (isset($_GET['ajax'])) {
         'totalPedidosComida' => $totalPedidosComida,
         'totalPapas' => $totalPapas,
         'totalHijos' => $totalHijos,
+        'tablaPedidos' => $tablaPedidos,
         'cursos' => $cursos,
         'cursoId' => $cursoId,
     ]);

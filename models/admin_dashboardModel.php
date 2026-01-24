@@ -215,6 +215,80 @@ class AdminDashboardModel
         return (int) $stmt->fetchColumn();
     }
 
+    public function obtenerPedidosPorCurso($colegioId, $cursoId, $fechaDesde, $fechaHasta)
+    {
+        $params = [];
+        $where = [];
+
+        if ($colegioId) {
+            $where[] = "h.Colegio_Id = :pc_colegio";
+            $params['pc_colegio'] = $colegioId;
+        }
+        if ($cursoId) {
+            $where[] = "h.Curso_Id = :pc_curso";
+            $params['pc_curso'] = $cursoId;
+        }
+        if ($fechaDesde) {
+            $where[] = "pc.Fecha_pedido >= :pc_fechaDesde";
+            $params['pc_fechaDesde'] = $fechaDesde . ' 00:00:00';
+        }
+        if ($fechaHasta) {
+            $where[] = "pc.Fecha_pedido <= :pc_fechaHasta";
+            $params['pc_fechaHasta'] = $fechaHasta . ' 23:59:59';
+        }
+
+        $sql = "SELECT c.Id AS ColegioId, c.Nombre AS ColegioNombre, cu.Id AS CursoId, cu.Nombre AS CursoNombre, COUNT(*) AS Total
+                FROM Pedidos_Comida pc
+                JOIN Hijos h ON h.Id = pc.Hijo_Id
+                JOIN Colegios c ON c.Id = h.Colegio_Id
+                JOIN Cursos cu ON cu.Id = h.Curso_Id";
+        if ($where) {
+            $sql .= " WHERE " . implode(' AND ', $where);
+        }
+        $sql .= " GROUP BY c.Id, cu.Id ORDER BY c.Nombre, cu.Nombre";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerPedidosDiariosPorCurso($colegioId, $cursoId, $fechaDesde, $fechaHasta)
+    {
+        $params = [];
+        $where = [];
+
+        if ($colegioId) {
+            $where[] = "h.Colegio_Id = :pcd_colegio";
+            $params['pcd_colegio'] = $colegioId;
+        }
+        if ($cursoId) {
+            $where[] = "h.Curso_Id = :pcd_curso";
+            $params['pcd_curso'] = $cursoId;
+        }
+        if ($fechaDesde) {
+            $where[] = "pc.Fecha_pedido >= :pcd_fechaDesde";
+            $params['pcd_fechaDesde'] = $fechaDesde . ' 00:00:00';
+        }
+        if ($fechaHasta) {
+            $where[] = "pc.Fecha_pedido <= :pcd_fechaHasta";
+            $params['pcd_fechaHasta'] = $fechaHasta . ' 23:59:59';
+        }
+
+        $sql = "SELECT c.Id AS ColegioId, cu.Id AS CursoId, DATE(pc.Fecha_pedido) AS Dia, COUNT(*) AS Total
+                FROM Pedidos_Comida pc
+                JOIN Hijos h ON h.Id = pc.Hijo_Id
+                JOIN Colegios c ON c.Id = h.Colegio_Id
+                JOIN Cursos cu ON cu.Id = h.Curso_Id";
+        if ($where) {
+            $sql .= " WHERE " . implode(' AND ', $where);
+        }
+        $sql .= " GROUP BY c.Id, cu.Id, DATE(pc.Fecha_pedido) ORDER BY Dia";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     private function buildUsuarioFilter($usuarioField, $colegioId, $cursoId, &$params, $prefix)
     {
         $cond = [];

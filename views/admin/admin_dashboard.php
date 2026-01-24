@@ -29,6 +29,9 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
     <!-- Tablas con saltos de pagina prolijos (autoTable) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
+    <!-- Graficos (Chart.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
     <style>
         .kpi-group-card {
             padding: 22px;
@@ -158,6 +161,40 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
             font-weight: 700;
             color: #111827;
         }
+
+        .kpi-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .kpi-table thead th {
+            text-align: left;
+            font-size: 13px;
+            color: #6b7280;
+            padding: 10px 8px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .kpi-table tbody td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+
+        .kpi-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .kpi-table-count {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .sparkline {
+            width: 140px;
+            height: 34px;
+            display: block;
+        }
     </style>
 </head>
 
@@ -229,12 +266,12 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                                 <span class="material-icons">more_horiz</span>
                             </button>
                             <div class="kpi-menu-panel" role="menu">
-                                <form class="form-modern" id="kpi-filters-form">
+                                <form class="form-modern kpi-filters" data-filter-scope="global">
                                     <div class="input-group">
                                         <label>Colegio</label>
                                         <div class="input-icon">
                                             <span class="material-icons">school</span>
-                                            <select name="colegio" id="kpi-colegio">
+                                            <select name="colegio" class="kpi-colegio">
                                                 <option value="">Todos</option>
                                                 <?php foreach ($colegios as $colegio): ?>
                                                     <option value="<?= (int) $colegio['Id'] ?>" <?= $colegioId === (int) $colegio['Id'] ? 'selected' : '' ?>>
@@ -249,7 +286,7 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                                         <label>Curso</label>
                                         <div class="input-icon">
                                             <span class="material-icons">class</span>
-                                            <select name="curso" id="kpi-curso">
+                                            <select name="curso" class="kpi-curso">
                                                 <option value="">Todos</option>
                                                 <?php foreach ($cursos as $curso): ?>
                                                     <option value="<?= (int) $curso['Id'] ?>" <?= $cursoId === (int) $curso['Id'] ? 'selected' : '' ?>>
@@ -278,7 +315,7 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
 
                                     <div class="form-buttons">
                                         <button class="btn btn-aceptar" type="submit">Aplicar</button>
-                                        <button class="btn btn-cancelar" type="button" id="kpi-clear">Limpiar</button>
+                                        <button class="btn btn-cancelar kpi-clear" type="button">Limpiar</button>
                                     </div>
                                 </form>
                             </div>
@@ -348,6 +385,102 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
                     </div>
                 </div>
 
+                <div class="card kpi-group-card">
+                    <div class="kpi-group-header">
+                        <h3 class="kpi-group-title">Pedidos por curso</h3>
+                        <div class="kpi-menu">
+                            <button class="btn-icon kpi-menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false">
+                                <span class="material-icons">more_horiz</span>
+                            </button>
+                            <div class="kpi-menu-panel" role="menu">
+                                <form class="form-modern kpi-filters" data-filter-scope="table">
+                                    <div class="input-group">
+                                        <label>Colegio</label>
+                                        <div class="input-icon">
+                                            <span class="material-icons">school</span>
+                                            <select name="colegio" class="kpi-colegio">
+                                                <option value="">Todos</option>
+                                                <?php foreach ($colegios as $colegio): ?>
+                                                    <option value="<?= (int) $colegio['Id'] ?>" <?= $colegioId === (int) $colegio['Id'] ? 'selected' : '' ?>>
+                                                        <?= htmlspecialchars($colegio['Nombre'] ?? '') ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="input-group">
+                                        <label>Curso</label>
+                                        <div class="input-icon">
+                                            <span class="material-icons">class</span>
+                                            <select name="curso" class="kpi-curso">
+                                                <option value="">Todos</option>
+                                                <?php foreach ($cursos as $curso): ?>
+                                                    <option value="<?= (int) $curso['Id'] ?>" <?= $cursoId === (int) $curso['Id'] ? 'selected' : '' ?>>
+                                                        <?= htmlspecialchars($curso['Nombre'] ?? '') ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="input-group">
+                                        <label>Fecha desde</label>
+                                        <div class="input-icon">
+                                            <span class="material-icons">event</span>
+                                            <input type="date" name="fecha_desde" value="<?= htmlspecialchars($fechaDesde) ?>">
+                                        </div>
+                                    </div>
+
+                                    <div class="input-group">
+                                        <label>Fecha hasta</label>
+                                        <div class="input-icon">
+                                            <span class="material-icons">event</span>
+                                            <input type="date" name="fecha_hasta" value="<?= htmlspecialchars($fechaHasta) ?>">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-buttons">
+                                        <button class="btn btn-aceptar" type="submit">Aplicar</button>
+                                        <button class="btn btn-cancelar kpi-clear" type="button">Limpiar</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="kpi-table">
+                            <thead>
+                                <tr>
+                                    <th>Colegio</th>
+                                    <th>Curso</th>
+                                    <th>Pedidos</th>
+                                    <th>Por dia</th>
+                                </tr>
+                            </thead>
+                            <tbody id="kpi-table-body">
+                                <?php if (!empty($tablaPedidos)): ?>
+                                    <?php foreach ($tablaPedidos as $index => $row): ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars($row['colegio'] ?? '') ?></td>
+                                            <td><?= htmlspecialchars($row['curso'] ?? '') ?></td>
+                                            <td class="kpi-table-count" data-kpi-table="count"><?= number_format((int) ($row['total'] ?? 0), 0, ',', '.') ?></td>
+                                            <td>
+                                                <canvas class="sparkline" data-series='<?= htmlspecialchars(json_encode($row['series'] ?? [])) ?>' aria-label="Pedidos por dia"></canvas>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="4">Sin datos para mostrar.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </section>
 
         </div>
@@ -359,34 +492,35 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
         console.log(<?php echo json_encode($_SESSION); ?>);
     </script>
     <script>
-        const kpiMenuToggle = document.querySelector(".kpi-menu-toggle");
-        const kpiMenuPanel = document.querySelector(".kpi-menu-panel");
-        const kpiFiltersForm = document.getElementById("kpi-filters-form");
-        const kpiClearBtn = document.getElementById("kpi-clear");
-        const kpiColegioSelect = document.getElementById("kpi-colegio");
-        const kpiCursoSelect = document.getElementById("kpi-curso");
-
-        if (kpiMenuToggle && kpiMenuPanel) {
-            kpiMenuToggle.addEventListener("click", (event) => {
+        const kpiMenus = document.querySelectorAll(".kpi-menu");
+        kpiMenus.forEach((menu) => {
+            const toggle = menu.querySelector(".kpi-menu-toggle");
+            const panel = menu.querySelector(".kpi-menu-panel");
+            if (!toggle || !panel) {
+                return;
+            }
+            toggle.addEventListener("click", (event) => {
                 event.stopPropagation();
-                const isOpen = kpiMenuPanel.classList.toggle("is-open");
-                kpiMenuToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+                const isOpen = panel.classList.toggle("is-open");
+                toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
             });
 
-            kpiMenuPanel.addEventListener("click", (event) => {
+            panel.addEventListener("click", (event) => {
                 event.stopPropagation();
             });
 
             document.addEventListener("click", () => {
-                if (kpiMenuPanel.classList.contains("is-open")) {
-                    kpiMenuPanel.classList.remove("is-open");
-                    kpiMenuToggle.setAttribute("aria-expanded", "false");
+                if (panel.classList.contains("is-open")) {
+                    panel.classList.remove("is-open");
+                    toggle.setAttribute("aria-expanded", "false");
                 }
             });
-        }
+        });
     </script>
     <script>
         const kpiFields = document.querySelectorAll("[data-kpi]");
+        const kpiTableBody = document.getElementById("kpi-table-body");
+        const kpiFilterForms = document.querySelectorAll(".kpi-filters");
 
         const formatValue = (value, type) => {
             if (type === "currency") {
@@ -427,17 +561,87 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
         };
 
         const renderCursos = (cursos, selectedId) => {
-            if (!kpiCursoSelect) {
+            const selectedValue = selectedId ? String(selectedId) : "";
+            kpiFilterForms.forEach((form) => {
+                const cursoSelect = form.querySelector(".kpi-curso");
+                if (!cursoSelect) {
+                    return;
+                }
+                const options = [`<option value="">Todos</option>`];
+                cursos.forEach((curso) => {
+                    const value = String(curso.Id);
+                    const isSelected = value === selectedValue ? "selected" : "";
+                    options.push(`<option value="${value}" ${isSelected}>${curso.Nombre ?? ""}</option>`);
+                });
+                cursoSelect.innerHTML = options.join("");
+            });
+        };
+
+        const renderSparkline = (canvas, series) => {
+            const labels = series.map((item) => item.dia);
+            const values = series.map((item) => item.total);
+            if (canvas.chartInstance) {
+                canvas.chartInstance.destroy();
+            }
+            canvas.chartInstance = new Chart(canvas, {
+                type: "bar",
+                data: {
+                    labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: "#6366f1",
+                        borderRadius: 4,
+                        barThickness: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: (items) => (items[0] ? items[0].label : ""),
+                                label: (item) => `Pedidos: ${item.raw ?? 0}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false, beginAtZero: true }
+                    }
+                }
+            });
+        };
+
+        const renderTablaPedidos = (rows) => {
+            if (!kpiTableBody) {
                 return;
             }
-            const selectedValue = selectedId ? String(selectedId) : "";
-            const options = [`<option value="">Todos</option>`];
-            cursos.forEach((curso) => {
-                const value = String(curso.Id);
-                const isSelected = value === selectedValue ? "selected" : "";
-                options.push(`<option value="${value}" ${isSelected}>${curso.Nombre ?? ""}</option>`);
+            if (!rows.length) {
+                kpiTableBody.innerHTML = "<tr><td colspan=\"4\">Sin datos para mostrar.</td></tr>";
+                return;
+            }
+            const html = rows.map((row) => {
+                const seriesJson = JSON.stringify(row.series || []);
+                return `
+                    <tr>
+                        <td>${row.colegio ?? ""}</td>
+                        <td>${row.curso ?? ""}</td>
+                        <td class="kpi-table-count" data-kpi-table="count">${Number(row.total || 0).toLocaleString("es-AR")}</td>
+                        <td><canvas class="sparkline" data-series='${seriesJson.replace(/'/g, "&#39;")}' aria-label="Pedidos por dia"></canvas></td>
+                    </tr>
+                `;
+            }).join("");
+            kpiTableBody.innerHTML = html;
+            kpiTableBody.querySelectorAll(".sparkline").forEach((canvas) => {
+                const series = JSON.parse(canvas.dataset.series || "[]");
+                renderSparkline(canvas, series);
             });
-            kpiCursoSelect.innerHTML = options.join("");
+            kpiTableBody.querySelectorAll("[data-kpi-table]").forEach((cell) => {
+                const nextValue = Number(cell.textContent.replace(/\./g, "").replace(",", ".")) || 0;
+                animateValue(cell, 0, nextValue, "count");
+            });
         };
 
         const fetchKpiData = async (formData) => {
@@ -454,42 +658,82 @@ require_once __DIR__ . '/../../controllers/admin_dashboardController.php';
             if (Array.isArray(data.cursos)) {
                 renderCursos(data.cursos, data.cursoId);
             }
+            if (Array.isArray(data.tablaPedidos)) {
+                renderTablaPedidos(data.tablaPedidos);
+            }
         };
 
         const scheduleFetch = () => {
-            if (!kpiFiltersForm) {
-                return;
-            }
             if (window.kpiFetchTimer) {
                 clearTimeout(window.kpiFetchTimer);
             }
             window.kpiFetchTimer = setTimeout(() => {
-                fetchKpiData(new FormData(kpiFiltersForm));
+                if (kpiFilterForms.length) {
+                    fetchKpiData(new FormData(kpiFilterForms[0]));
+                }
             }, 150);
         };
 
-        if (kpiFiltersForm) {
-            kpiFiltersForm.addEventListener("submit", (event) => {
-                event.preventDefault();
-                scheduleFetch();
-            });
-
-            kpiFiltersForm.addEventListener("change", (event) => {
-                if (event.target === kpiColegioSelect && kpiCursoSelect) {
-                    kpiCursoSelect.value = "";
+        const syncForms = (sourceForm) => {
+            const data = new FormData(sourceForm);
+            kpiFilterForms.forEach((form) => {
+                if (form === sourceForm) {
+                    return;
                 }
+                form.querySelectorAll("input, select").forEach((field) => {
+                    if (!field.name) {
+                        return;
+                    }
+                    const value = data.get(field.name) ?? "";
+                    field.value = value;
+                });
+            });
+        };
+
+        kpiFilterForms.forEach((form) => {
+            const colegioSelect = form.querySelector(".kpi-colegio");
+            const cursoSelect = form.querySelector(".kpi-curso");
+            const clearBtn = form.querySelector(".kpi-clear");
+
+            form.addEventListener("submit", (event) => {
+                event.preventDefault();
+                syncForms(form);
                 scheduleFetch();
             });
-        }
 
-        if (kpiClearBtn && kpiFiltersForm) {
-            kpiClearBtn.addEventListener("click", () => {
-                kpiFiltersForm.reset();
+            form.addEventListener("change", (event) => {
+                if (event.target === colegioSelect && cursoSelect) {
+                    cursoSelect.value = "";
+                }
+                syncForms(form);
                 scheduleFetch();
             });
-        }
 
-        
+            form.addEventListener("input", (event) => {
+                if (event.target.type === "date") {
+                    syncForms(form);
+                    scheduleFetch();
+                }
+            });
+
+            if (clearBtn) {
+                clearBtn.addEventListener("click", () => {
+                    form.reset();
+                    syncForms(form);
+                    scheduleFetch();
+                });
+            }
+        });
+
+        document.querySelectorAll(".sparkline").forEach((canvas) => {
+            const series = JSON.parse(canvas.dataset.series || "[]");
+            renderSparkline(canvas, series);
+        });
+
+        document.querySelectorAll("[data-kpi-table]").forEach((cell) => {
+            const nextValue = Number(cell.textContent.replace(/\./g, "").replace(",", ".")) || 0;
+            animateValue(cell, 0, nextValue, "count");
+        });
     </script>
 </body>
 
