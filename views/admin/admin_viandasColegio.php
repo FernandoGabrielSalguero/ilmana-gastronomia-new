@@ -111,9 +111,10 @@ $formatDateTime = function ($value) {
         }
 
         .col-nombre {
-            max-width: 180px;
-            white-space: normal;
+            max-width: 160px;
+            white-space: normal !important;
             word-break: break-word;
+            line-height: 1.25;
         }
 
         .col-fecha {
