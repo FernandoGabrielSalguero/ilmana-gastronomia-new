@@ -13,7 +13,7 @@ class AdminViandasColegioModel
     public function obtenerMenuActual()
     {
         $sql = "SELECT Id, Nombre, Fecha_entrega, Fecha_hora_compra, Fecha_hora_cancelacion, Precio, Estado, Nivel_Educativo
-                FROM MenÃº
+                FROM Menu
                 ORDER BY Fecha_entrega DESC, Id DESC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
@@ -30,7 +30,7 @@ class AdminViandasColegioModel
             ];
         }
 
-        $sql = "INSERT INTO MenÃº (Nombre, Fecha_entrega, Fecha_hora_compra, Fecha_hora_cancelacion, Precio, Estado, Nivel_Educativo)
+        $sql = "INSERT INTO Menu (Nombre, Fecha_entrega, Fecha_hora_compra, Fecha_hora_cancelacion, Precio, Estado, Nivel_Educativo)
                 VALUES (:nombre, :fecha_entrega, :fecha_hora_compra, :fecha_hora_cancelacion, :precio, :estado, :nivel)";
         $stmt = $this->db->prepare($sql);
 
