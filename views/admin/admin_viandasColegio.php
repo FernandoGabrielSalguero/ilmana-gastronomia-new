@@ -69,6 +69,53 @@ $estadoSeleccionado = $_POST['estado'] ?? 'En venta';
             border-color: var(--primary-color);
             color: #fff;
         }
+
+        .tabla-wrapper {
+            max-height: 700px;
+            overflow-y: auto;
+        }
+
+        .tabla-wrapper table {
+            border-collapse: collapse;
+            width: 100%;
+            table-layout: auto;
+        }
+
+        .tabla-wrapper thead th {
+            position: sticky;
+            top: 0;
+            background-color: #fff;
+            z-index: 2;
+        }
+
+        .tabla-wrapper tbody tr {
+            height: 44px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 8px 10px;
+            vertical-align: middle;
+            border-bottom: 1px solid #e5e7eb;
+            white-space: nowrap;
+        }
+
+        .table-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-action {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: var(--icon-color);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+        }
     </style>
 </head>
 
@@ -234,38 +281,68 @@ $estadoSeleccionado = $_POST['estado'] ?? 'En venta';
                     </div>
                     <div class="card-body">
                         <?php if (!empty($menuItems)): ?>
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Fecha entrega</th>
-                                        <th>Compra</th>
-                                        <th>Cancelacion</th>
-                                        <th>Nombre</th>
-                                        <th>Precio</th>
-                                        <th>Estado</th>
-                                        <th>Nivel educativo</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($menuItems as $item): ?>
+                            <div class="tabla-wrapper">
+                                <table class="data-table">
+                                    <thead>
                                         <tr>
-                                            <td><?= htmlspecialchars($item['Fecha_entrega'] ?? '') ?></td>
-                                            <td><?= htmlspecialchars($item['Fecha_hora_compra'] ?? '') ?></td>
-                                            <td><?= htmlspecialchars($item['Fecha_hora_cancelacion'] ?? '') ?></td>
-                                            <td><?= htmlspecialchars($item['Nombre'] ?? '') ?></td>
-                                            <td><?= htmlspecialchars($item['Precio'] ?? '') ?></td>
-                                            <td><?= htmlspecialchars($item['Estado'] ?? '') ?></td>
-                                            <td><?= htmlspecialchars($item['Nivel_Educativo'] ?? '') ?></td>
+                                            <th>ID</th>
+                                            <th>Nombre</th>
+                                            <th>Fecha entrega</th>
+                                            <th>Fecha limite de compra</th>
+                                            <th>Fecha limite de venta</th>
+                                            <th>Precio</th>
+                                            <th>Estado</th>
+                                            <th>Nivel educativo</th>
+                                            <th>Acciones</th>
                                         </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($menuItems as $item): ?>
+                                            <?php
+                                            $estado = $item['Estado'] ?? '';
+                                            $badgeClass = $estado === 'En venta' ? 'success' : ($estado === 'Sin stock' ? 'warning' : '');
+                                            ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($item['Id'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($item['Nombre'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($item['Fecha_entrega'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($item['Fecha_hora_compra'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($item['Fecha_hora_cancelacion'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($item['Precio'] ?? '') ?></td>
+                                                <td>
+                                                    <?php if ($estado !== ''): ?>
+                                                        <span class="badge <?= htmlspecialchars($badgeClass) ?>"><?= htmlspecialchars($estado) ?></span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td><?= htmlspecialchars($item['Nivel_Educativo'] ?? '') ?></td>
+                                                <td class="table-actions">
+                                                    <button type="button" class="icon-action"
+                                                        aria-label="Editar menu"
+                                                        onclick="openMenuModal()">
+                                                        <span class="material-icons">edit</span>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         <?php else: ?>
                             <p>Sin datos cargados todavia.</p>
                         <?php endif; ?>
                     </div>
                 </div>
             </section>
+        </div>
+    </div>
+
+    <div id="modal-editar-menu" class="modal hidden">
+        <div class="modal-content">
+            <h3>Editar menu</h3>
+            <p>Contenido pendiente.</p>
+            <div class="form-buttons">
+                <button class="btn btn-cancelar" type="button" onclick="closeMenuModal()">Cerrar</button>
+            </div>
         </div>
     </div>
 
@@ -319,6 +396,21 @@ $estadoSeleccionado = $_POST['estado'] ?? 'En venta';
                 syncFecha(cancelacionPicker, fechaCancelacion);
             }
         });
+    </script>
+    <script>
+        const openMenuModal = () => {
+            const modal = document.getElementById('modal-editar-menu');
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        };
+
+        const closeMenuModal = () => {
+            const modal = document.getElementById('modal-editar-menu');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        };
     </script>
 </body>
 
