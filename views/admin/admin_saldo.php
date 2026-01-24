@@ -246,6 +246,7 @@ $observacionesLabel = function ($texto) {
                         <textarea id="saldo-cancel-reason" required></textarea>
                     </div>
                 </div>
+                <br>
                 <div class="form-buttons">
                     <button type="button" class="btn btn-cancelar" id="saldo-cancel-close">Cerrar</button>
                     <button type="submit" class="btn btn-aceptar" id="saldo-cancel-confirm">Confirmar</button>
@@ -370,7 +371,9 @@ $observacionesLabel = function ($texto) {
                         <td>
                             <div class="saldo-user">
                                 <span>${escapeHtml(item.UsuarioNombre)}</span>
+                                <br>
                                 <small>${escapeHtml(item.UsuarioCorreo || item.UsuarioLogin || '')}</small>
+                                <br>
                                 <small>Cel: ${escapeHtml(item.UsuarioTelefono || '-')}</small>
                             </div>
                         </td>
