@@ -103,6 +103,9 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
                             <button class="btn-icon" type="button" data-tooltip="<?= htmlspecialchars($tooltipFiltros) ?>">
                                 <span class="material-icons">help_outline</span>
                             </button>
+                            <button class="btn-icon" id="descargarExcel" type="button" data-tooltip="Descargar Excel">
+                                <span class="material-icons">download</span>
+                            </button>
                             <button class="btn-icon" id="toggleFiltros" type="button">
                                 <span class="material-icons">tune</span>
                             </button>
@@ -248,6 +251,15 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
     <script>
         console.log(<?php echo json_encode($_SESSION); ?>);
 
+        const detallePedidosExcel = <?php echo json_encode($detallePedidosExcel); ?>;
+        const filtrosExcel = <?php
+        echo json_encode([
+            'fecha_desde' => $fechaDesde ?: '',
+            'fecha_hasta' => $fechaHasta ?: '',
+            'plantas' => $usarTodasLasPlantas ? 'Todas' : $plantasFiltro,
+        ]);
+        ?>;
+
         const toggleFiltros = document.getElementById('toggleFiltros');
         const panelFiltros = document.getElementById('panelFiltros');
         const filtroTodos = panelFiltros.querySelector('input[value="todos"]');
@@ -281,6 +293,47 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
                     filtroTodos.checked = true;
                 }
             });
+        });
+
+        const botonDescarga = document.getElementById('descargarExcel');
+        botonDescarga.addEventListener('click', () => {
+            if (!Array.isArray(detallePedidosExcel) || detallePedidosExcel.length === 0) {
+                alert('No hay datos para exportar con los filtros actuales.');
+                return;
+            }
+
+            const filas = detallePedidosExcel.map((fila) => ({
+                'Pedido ID': fila.pedido_id ?? '',
+                'Fecha entrega': fila.fecha_entrega ?? '',
+                'Fecha creacion': fila.fecha_creacion ?? '',
+                'Usuario ID': fila.usuario_id ?? '',
+                'Usuario': fila.usuario_nombre ?? '',
+                'Planta': fila.planta ?? '',
+                'Turno': fila.turno ?? '',
+                'Menu': fila.menu ?? '',
+                'Cantidad': Number(fila.cantidad ?? 0),
+            }));
+
+            const hoja = XLSX.utils.json_to_sheet(filas);
+            hoja['!cols'] = [
+                { wch: 12 },
+                { wch: 14 },
+                { wch: 20 },
+                { wch: 12 },
+                { wch: 24 },
+                { wch: 16 },
+                { wch: 12 },
+                { wch: 26 },
+                { wch: 10 },
+            ];
+
+            const libro = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(libro, hoja, 'Pedidos y plantas');
+
+            const rangoDesde = filtrosExcel.fecha_desde ? filtrosExcel.fecha_desde.replace(/-/g, '') : 'inicio';
+            const rangoHasta = filtrosExcel.fecha_hasta ? filtrosExcel.fecha_hasta.replace(/-/g, '') : 'hoy';
+            const nombreArchivo = `cuyo_placa_pedidos_${rangoDesde}_${rangoHasta}.xlsx`;
+            XLSX.writeFile(libro, nombreArchivo);
         });
     </script>
 

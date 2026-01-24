@@ -114,4 +114,53 @@ class CuyoPlacaDashboardModel
         $stmt->execute($params);
         return $stmt->fetchAll();
     }
+
+    public function obtenerDetallePedidosExcel($fechaDesde = '', $fechaHasta = '', array $plantas = [])
+    {
+        $params = [];
+        $where = [];
+
+        if ($fechaDesde) {
+            $where[] = "pc.created_at >= :fechaDesde";
+            $params['fechaDesde'] = $fechaDesde . ' 00:00:00';
+        }
+
+        if ($fechaHasta) {
+            $where[] = "pc.created_at <= :fechaHasta";
+            $params['fechaHasta'] = $fechaHasta . ' 23:59:59';
+        }
+
+        if ($plantas) {
+            $placeholders = [];
+            foreach ($plantas as $index => $planta) {
+                $key = "planta{$index}";
+                $placeholders[] = ':' . $key;
+                $params[$key] = $planta;
+            }
+            $where[] = "dp.planta IN (" . implode(', ', $placeholders) . ")";
+        }
+
+        $sql = "SELECT pc.id AS pedido_id,
+                pc.fecha AS fecha_entrega,
+                pc.created_at AS fecha_creacion,
+                pc.usuario_id,
+                u.Nombre AS usuario_nombre,
+                dp.planta,
+                dp.turno,
+                dp.menu,
+                dp.cantidad
+            FROM Pedidos_Cuyo_Placa pc
+            INNER JOIN Detalle_Pedidos_Cuyo_Placa dp ON pc.id = dp.pedido_id
+            LEFT JOIN Usuarios u ON u.Id = pc.usuario_id";
+
+        if ($where) {
+            $sql .= " WHERE " . implode(' AND ', $where);
+        }
+
+        $sql .= " ORDER BY pc.id, dp.planta, dp.turno, dp.menu";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
 }

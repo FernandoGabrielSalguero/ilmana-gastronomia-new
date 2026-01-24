@@ -76,6 +76,7 @@ $plantasFiltro = $usarTodasLasPlantas ? [] : array_values(array_intersect($plant
 $model = new CuyoPlacaDashboardModel($pdo);
 $resumenMenus = $model->obtenerResumenMenus($fechaDesde, $fechaHasta, $plantasFiltro);
 $pedidosPorPlanta = $model->obtenerPedidosPorPlanta($fechaDesde, $fechaHasta, $plantasFiltro);
+$detallePedidosExcel = $model->obtenerDetallePedidosExcel($fechaDesde, $fechaHasta, $plantasFiltro);
 
 $menuOrden = [
     'Refrigerio sandwich almuerzo',
