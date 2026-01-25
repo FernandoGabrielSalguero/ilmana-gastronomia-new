@@ -34,6 +34,121 @@ $nombre = $_SESSION['nombre'] ?? 'Sin nombre';
 $correo = $_SESSION['correo'] ?? 'Sin correo';
 $usuario = $_SESSION['usuario'] ?? 'Sin usuario';
 $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
+
+function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel)
+{
+    ?>
+    <div class="resumen-body">
+        <div class="resumen-lateral">
+            <div class="card curso-card resumen-total-card is-primary">
+                <div class="curso-card-header">
+                    <h4>Pedidos del dia</h4>
+                </div>
+                <div class="curso-meta">
+                    <span class="curso-icon">
+                        <span class="material-icons">receipt_long</span>
+                    </span>
+                    <span class="curso-count">Total</span>
+                </div>
+                <div class="resumen-total-number">
+                    <?= number_format($totalPedidosDia, 0, ',', '.') ?>
+                </div>
+                <div class="resumen-metrics">
+                    <div class="resumen-metric">
+                        <span class="resumen-metric-label">Total</span>
+                        <span class="resumen-metric-value">
+                            <?= number_format($totalPedidosDia, 0, ',', '.') ?>
+                        </span>
+                    </div>
+                    <div class="resumen-metric">
+                        <span class="resumen-metric-label">Inicial</span>
+                        <span class="resumen-metric-value">
+                            <?= number_format((int) ($totalesPorNivel['Inicial'] ?? 0), 0, ',', '.') ?>
+                        </span>
+                    </div>
+                    <div class="resumen-metric">
+                        <span class="resumen-metric-label">Primaria</span>
+                        <span class="resumen-metric-value">
+                            <?= number_format((int) ($totalesPorNivel['Primaria'] ?? 0), 0, ',', '.') ?>
+                        </span>
+                    </div>
+                    <div class="resumen-metric">
+                        <span class="resumen-metric-label">Secundaria</span>
+                        <span class="resumen-metric-value">
+                            <?= number_format((int) ($totalesPorNivel['Secundaria'] ?? 0), 0, ',', '.') ?>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <?php if (!empty($nivelesList)): ?>
+                <?php foreach ($nivelesList as $nivelData): ?>
+                    <div class="nivel-section">
+                        <div class="nivel-header">
+                            <h4 class="nivel-title"><?= htmlspecialchars($nivelData['nivel'] ?? '') ?></h4>
+                            <span class="nivel-total">
+                                <?= number_format((int) ($nivelData['total'] ?? 0), 0, ',', '.') ?> viandas
+                            </span>
+                        </div>
+                        <div class="cursos-grid">
+                            <?php if (!empty($nivelData['menus'])): ?>
+                                <?php foreach ($nivelData['menus'] as $menu): ?>
+                                    <div class="card curso-card">
+                                        <div class="curso-card-header">
+                                            <h4><?= htmlspecialchars($menu['nombre']) ?></h4>
+                                        </div>
+                                        <div class="curso-meta">
+                                            <span class="curso-icon">
+                                                <span class="material-icons">restaurant</span>
+                                            </span>
+                                            <span class="curso-count">
+                                                <?= number_format((int) ($menu['total'] ?? 0), 0, ',', '.') ?> menus
+                                            </span>
+                                        </div>
+                                        <?php if (!empty($menu['cursos'])): ?>
+                                            <ul class="curso-menus">
+                                                <?php foreach ($menu['cursos'] as $curso): ?>
+                                                    <li>
+                                                        <span><?= htmlspecialchars($curso['nombre'] ?? '') ?></span>
+                                                        <span class="menu-count">
+                                                            <?= number_format((int) ($curso['cantidad'] ?? 0), 0, ',', '.') ?>
+                                                        </span>
+                                                    </li>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                        <?php else: ?>
+                                            <div class="curso-empty">Sin cursos para este menu.</div>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="curso-empty">Sin menus para este nivel.</div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="curso-empty">No hay cursos con pedidos para la fecha seleccionada.</div>
+            <?php endif; ?>
+        </div>
+    </div>
+    <?php
+}
+
+$fechaEntregaTexto = date('d/m/Y', strtotime($fechaEntrega));
+if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
+    ob_start();
+    renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel);
+    $bodyHtml = ob_get_clean();
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'ok' => true,
+        'bodyHtml' => $bodyHtml,
+        'fechaTexto' => $fechaEntregaTexto
+    ]);
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -65,6 +180,40 @@ $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
             gap: 16px;
             margin-bottom: 16px;
             flex-wrap: wrap;
+        }
+
+        .resumen-actions {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .resumen-panel {
+            position: fixed;
+            min-width: 240px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(8px);
+            transition: all 0.2s ease;
+            z-index: 200000 !important;
+        }
+
+        .resumen-panel.is-open {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .resumen-panel,
+        [data-tooltip]::after {
+            z-index: 200000 !important;
         }
 
         .resumen-title {
@@ -282,6 +431,12 @@ $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
             white-space: nowrap;
         }
 
+        @media (max-width: 960px) {
+            .resumen-body {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .filtros-form {
             display: flex;
             gap: 16px;
@@ -350,118 +505,35 @@ $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
                     <div class="resumen-header">
                         <div>
                             <h3 class="resumen-title">Viandas por escuela y curso</h3>
-                            <p class="resumen-subtitle">Fecha: <?= htmlspecialchars(date('d/m/Y', strtotime($fechaEntrega))) ?></p>
+                            <p class="resumen-subtitle" id="viandas-fecha-texto">
+                                Fecha: <?= htmlspecialchars($fechaEntregaTexto) ?>
+                            </p>
+                        </div>
+                        <div class="resumen-actions">
+                            <button class="btn-icon" id="toggleViandasFiltros" type="button" data-tooltip="Filtros">
+                                <span class="material-icons">tune</span>
+                            </button>
+                            <div class="resumen-panel" id="panelViandasFiltros">
+                                <form class="form-modern" method="get" action="cocina_dashboard.php" id="viandas-filtros-form">
+                                    <div class="input-group">
+                                        <label>Fecha de entrega</label>
+                                        <div class="input-icon">
+                                            <span class="material-icons">event</span>
+                                            <input type="date" name="fecha_entrega" id="viandas-fecha-input"
+                                                value="<?= htmlspecialchars($fechaEntrega) ?>">
+                                        </div>
+                                    </div>
+                                    <div class="form-buttons">
+                                        <button class="btn btn-aceptar" type="submit">Aplicar</button>
+                                        <a class="btn btn-cancelar" href="cocina_dashboard.php">Limpiar</a>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
 
-                    <form class="form-modern filtros-form" method="get" action="cocina_dashboard.php">
-                        <div class="input-group">
-                            <label>Fecha de entrega</label>
-                            <div class="input-icon">
-                                <span class="material-icons">event</span>
-                                <input type="date" name="fecha_entrega" value="<?= htmlspecialchars($fechaEntrega) ?>">
-                            </div>
-                        </div>
-                        <div class="form-buttons">
-                            <button class="btn btn-aceptar" type="submit">Aplicar</button>
-                            <a class="btn btn-cancelar" href="cocina_dashboard.php">Limpiar</a>
-                        </div>
-                    </form>
-
-                    <div class="resumen-body">
-                        <div class="resumen-lateral">
-                            <div class="card curso-card resumen-total-card is-primary">
-                                <div class="curso-card-header">
-                                    <h4>Pedidos del dia</h4>
-                                </div>
-                                <div class="curso-meta">
-                                    <span class="curso-icon">
-                                        <span class="material-icons">receipt_long</span>
-                                    </span>
-                                    <span class="curso-count">Total</span>
-                                </div>
-                                <div class="resumen-total-number">
-                                    <?= number_format($totalPedidosDia, 0, ',', '.') ?>
-                                </div>
-                                <div class="resumen-metrics">
-                                    <div class="resumen-metric">
-                                        <span class="resumen-metric-label">Total</span>
-                                        <span class="resumen-metric-value">
-                                            <?= number_format($totalPedidosDia, 0, ',', '.') ?>
-                                        </span>
-                                    </div>
-                                    <div class="resumen-metric">
-                                        <span class="resumen-metric-label">Inicial</span>
-                                        <span class="resumen-metric-value">
-                                            <?= number_format((int) ($totalesPorNivel['Inicial'] ?? 0), 0, ',', '.') ?>
-                                        </span>
-                                    </div>
-                                    <div class="resumen-metric">
-                                        <span class="resumen-metric-label">Primaria</span>
-                                        <span class="resumen-metric-value">
-                                            <?= number_format((int) ($totalesPorNivel['Primaria'] ?? 0), 0, ',', '.') ?>
-                                        </span>
-                                    </div>
-                                    <div class="resumen-metric">
-                                        <span class="resumen-metric-label">Secundaria</span>
-                                        <span class="resumen-metric-value">
-                                            <?= number_format((int) ($totalesPorNivel['Secundaria'] ?? 0), 0, ',', '.') ?>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <?php if (!empty($nivelesList)): ?>
-                                <?php foreach ($nivelesList as $nivelData): ?>
-                                    <div class="nivel-section">
-                                        <div class="nivel-header">
-                                            <h4 class="nivel-title"><?= htmlspecialchars($nivelData['nivel'] ?? '') ?></h4>
-                                            <span class="nivel-total">
-                                                <?= number_format((int) ($nivelData['total'] ?? 0), 0, ',', '.') ?> viandas
-                                            </span>
-                                        </div>
-                                        <div class="cursos-grid">
-                                            <?php if (!empty($nivelData['menus'])): ?>
-                                                <?php foreach ($nivelData['menus'] as $menu): ?>
-                                                    <div class="card curso-card">
-                                                        <div class="curso-card-header">
-                                                            <h4><?= htmlspecialchars($menu['nombre']) ?></h4>
-                                                        </div>
-                                                        <div class="curso-meta">
-                                                            <span class="curso-icon">
-                                                                <span class="material-icons">restaurant</span>
-                                                            </span>
-                                                            <span class="curso-count">
-                                                                <?= number_format((int) ($menu['total'] ?? 0), 0, ',', '.') ?> menus
-                                                            </span>
-                                                        </div>
-                                                        <?php if (!empty($menu['cursos'])): ?>
-                                                            <ul class="curso-menus">
-                                                                <?php foreach ($menu['cursos'] as $curso): ?>
-                                                                    <li>
-                                                                        <span><?= htmlspecialchars($curso['nombre'] ?? '') ?></span>
-                                                                        <span class="menu-count">
-                                                                            <?= number_format((int) ($curso['cantidad'] ?? 0), 0, ',', '.') ?>
-                                                                        </span>
-                                                                    </li>
-                                                                <?php endforeach; ?>
-                                                            </ul>
-                                                        <?php else: ?>
-                                                            <div class="curso-empty">Sin cursos para este menu.</div>
-                                                        <?php endif; ?>
-                                                    </div>
-                                                <?php endforeach; ?>
-                                            <?php else: ?>
-                                                <div class="curso-empty">Sin menus para este nivel.</div>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <div class="curso-empty">No hay cursos con pedidos para la fecha seleccionada.</div>
-                            <?php endif; ?>
-                        </div>
+                    <div id="viandas-resumen-body">
+                        <?php renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel); ?>
                     </div>
                 </div>
 
@@ -480,6 +552,87 @@ $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
 
     <!-- Spinner Global -->
     <script src="../../views/partials/spinner-global.js"></script>
+    <script>
+        const toggleViandasFiltros = document.getElementById('toggleViandasFiltros');
+        const panelViandasFiltros = document.getElementById('panelViandasFiltros');
+        const viandasForm = document.getElementById('viandas-filtros-form');
+        const viandasFechaInput = document.getElementById('viandas-fecha-input');
+        const viandasBody = document.getElementById('viandas-resumen-body');
+        const viandasFechaTexto = document.getElementById('viandas-fecha-texto');
+
+        const togglePanelViandas = () => {
+            if (!panelViandasFiltros || !toggleViandasFiltros) return;
+            if (!panelViandasFiltros.classList.contains('is-open')) {
+                const rect = toggleViandasFiltros.getBoundingClientRect();
+                const panelWidth = panelViandasFiltros.offsetWidth || 240;
+                const top = rect.bottom + 8;
+                const left = Math.max(16, rect.right - panelWidth);
+                panelViandasFiltros.style.top = `${top}px`;
+                panelViandasFiltros.style.left = `${left}px`;
+            }
+            panelViandasFiltros.classList.toggle('is-open');
+        };
+
+        if (toggleViandasFiltros && panelViandasFiltros) {
+            toggleViandasFiltros.addEventListener('click', togglePanelViandas);
+            document.addEventListener('click', (event) => {
+                if (!panelViandasFiltros.contains(event.target) && !toggleViandasFiltros.contains(event.target)) {
+                    panelViandasFiltros.classList.remove('is-open');
+                }
+            });
+        }
+
+        const cargarViandasAjax = (fecha) => {
+            if (!fecha) return;
+            const params = new URLSearchParams({
+                ajax: '1',
+                fecha_entrega: fecha
+            });
+
+            fetch(`cocina_dashboard.php?${params.toString()}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(async (res) => {
+                    if (!res.ok) {
+                        const body = await res.text();
+                        console.error('Error cargando viandas:', {
+                            status: res.status,
+                            statusText: res.statusText,
+                            body
+                        });
+                        throw new Error('Error cargando viandas');
+                    }
+                    return res.json();
+                })
+                .then((data) => {
+                    if (!data || data.ok !== true) {
+                        throw new Error('Respuesta invalida');
+                    }
+                    if (viandasBody && typeof data.bodyHtml === 'string') {
+                        viandasBody.innerHTML = data.bodyHtml;
+                    }
+                    if (viandasFechaTexto && typeof data.fechaTexto === 'string') {
+                        viandasFechaTexto.textContent = `Fecha: ${data.fechaTexto}`;
+                    }
+                    if (panelViandasFiltros) {
+                        panelViandasFiltros.classList.remove('is-open');
+                    }
+                })
+                .catch((err) => {
+                    console.error('Error cargando viandas:', err);
+                });
+        };
+
+        if (viandasForm) {
+            viandasForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const fecha = viandasFechaInput ? viandasFechaInput.value : '';
+                cargarViandasAjax(fecha);
+            });
+        }
+    </script>
 </body>
 
 </html>
