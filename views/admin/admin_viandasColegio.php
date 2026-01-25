@@ -192,6 +192,9 @@ $formatDateTime = function ($value) {
                     <li onclick="location.href='admin_usuarios.php'">
                         <span class="material-icons" style="color: #5b21b6;">people</span><span class="link-text">Usuarios</span>
                     </li>
+                    <li onclick="location.href='admin_cuyoPlacas.php'">
+                        <span class="material-icons" style="color: #5b21b6;">factory</span><span class="link-text">Cuyo Placas</span>
+                    </li>
                     <li onclick="location.href='../../../logout.php'">
                         <span class="material-icons" style="color: red;">logout</span><span class="link-text">Salir</span>
                     </li>
