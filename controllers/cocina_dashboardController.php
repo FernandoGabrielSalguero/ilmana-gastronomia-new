@@ -95,12 +95,30 @@ foreach ($resumenMenusRaw as $row) {
                 'Inicial' => 0,
                 'Primaria' => 0,
                 'Secundaria' => 0
+            ],
+            'niveles_prefs' => [
+                'Inicial' => [],
+                'Primaria' => [],
+                'Secundaria' => []
             ]
         ];
     }
 
     $menusResumen[$menuNombre]['total'] += $cantidad;
     $menusResumen[$menuNombre]['niveles'][$nivel] += $cantidad;
+
+    $prefRaw = trim((string) ($row['Preferencias'] ?? ''));
+    if ($prefRaw !== '') {
+        $prefItems = array_map('trim', explode(',', $prefRaw));
+        foreach ($prefItems as $prefItem) {
+            if ($prefItem === '') {
+                continue;
+            }
+            if (!in_array($prefItem, $menusResumen[$menuNombre]['niveles_prefs'][$nivel], true)) {
+                $menusResumen[$menuNombre]['niveles_prefs'][$nivel][] = $prefItem;
+            }
+        }
+    }
 }
 
 $menusResumenList = array_values($menusResumen);

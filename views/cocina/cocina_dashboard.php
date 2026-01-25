@@ -63,18 +63,24 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
                         foreach ($nivelesOrden as $nivelNombre):
                             $tituloNivel = $nivelNombre === 'Inicial' ? 'Nivel inicial' : $nivelNombre;
                             ?>
-                            <div class="resumen-section">
-                                <div class="resumen-section-title"><?= htmlspecialchars($tituloNivel) ?></div>
-                                <?php foreach ($menusResumenList as $menuResumen): ?>
-                                    <?php $nivelCantidad = (int) ($menuResumen['niveles'][$nivelNombre] ?? 0); ?>
-                                    <?php if ($nivelCantidad > 0): ?>
-                                        <div class="resumen-metric">
-                                            <span class="resumen-metric-label"><?= htmlspecialchars($menuResumen['nombre']) ?></span>
-                                            <span class="resumen-metric-value">
-                                                <?= number_format($nivelCantidad, 0, ',', '.') ?>
-                                            </span>
-                                        </div>
-                                    <?php endif; ?>
+                                <div class="resumen-section">
+                                    <div class="resumen-section-title"><?= htmlspecialchars($tituloNivel) ?></div>
+                                    <?php foreach ($menusResumenList as $menuResumen): ?>
+                                        <?php $nivelCantidad = (int) ($menuResumen['niveles'][$nivelNombre] ?? 0); ?>
+                                        <?php if ($nivelCantidad > 0): ?>
+                                            <?php $prefList = $menuResumen['niveles_prefs'][$nivelNombre] ?? []; ?>
+                                            <div class="resumen-metric">
+                                                <span class="resumen-metric-label">
+                                                    <?= htmlspecialchars($menuResumen['nombre']) ?>
+                                                    <?php if (!empty($prefList)): ?>
+                                                        <span class="resumen-pref"><?= htmlspecialchars(implode(', ', $prefList)) ?></span>
+                                                    <?php endif; ?>
+                                                </span>
+                                                <span class="resumen-metric-value">
+                                                    <?= number_format($nivelCantidad, 0, ',', '.') ?>
+                                                </span>
+                                            </div>
+                                        <?php endif; ?>
                                 <?php endforeach; ?>
                             </div>
                         <?php endforeach; ?>
@@ -443,6 +449,15 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             font-size: 11px;
             color: #0f172a;
             opacity: 1;
+        }
+
+        .resumen-pref {
+            font-size: 10px;
+            font-weight: 600;
+            color: #dc2626;
+            text-transform: none;
+            letter-spacing: 0;
+            margin-left: 6px;
         }
 
         .resumen-metric-value {

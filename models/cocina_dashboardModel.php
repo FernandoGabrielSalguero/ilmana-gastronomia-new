@@ -17,11 +17,13 @@ class CocinaDashboardModel
                 c.Id AS Curso_Id,
                 c.Nivel_Educativo AS Nivel_Educativo,
                 m.Nombre AS Menu_Nombre,
+                GROUP_CONCAT(DISTINCT COALESCE(pa.Nombre, h.Preferencias_Alimenticias) SEPARATOR ', ') AS Preferencias,
                 COUNT(pc.Id) AS Total
             FROM Pedidos_Comida pc
             JOIN Hijos h ON h.Id = pc.Hijo_Id
             LEFT JOIN Cursos c ON c.Id = h.Curso_Id
             JOIN Menú m ON m.Id = pc.Menú_Id
+            LEFT JOIN Preferencias_Alimenticias pa ON pa.Id = h.Preferencias_Alimenticias
             WHERE pc.Fecha_entrega = :fechaEntrega
               AND pc.Estado <> 'Cancelado'
             GROUP BY c.Id, c.Nombre, m.Id, m.Nombre
