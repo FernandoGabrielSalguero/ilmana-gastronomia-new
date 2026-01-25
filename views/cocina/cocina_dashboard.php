@@ -50,35 +50,40 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
                     </span>
                     <span class="curso-count">Total</span>
                 </div>
-                <div class="resumen-total-number">
+                <div class="resumen-total-number resumen-total-center">
                     <?= number_format($totalPedidosDia, 0, ',', '.') ?>
                 </div>
                 <div class="resumen-metrics">
                     <?php if (!empty($menusResumenList)): ?>
                         <?php foreach ($menusResumenList as $menuResumen): ?>
-                            <div class="resumen-metric">
-                                <span class="resumen-metric-label"><?= htmlspecialchars($menuResumen['nombre']) ?></span>
-                                <span class="resumen-metric-value">
-                                    <?= number_format((int) ($menuResumen['total'] ?? 0), 0, ',', '.') ?>
-                                </span>
+                            <div class="resumen-metric resumen-metric-highlight">
+                                <span>Total <?= htmlspecialchars($menuResumen['nombre']) ?></span>
+                                <span><?= number_format((int) ($menuResumen['total'] ?? 0), 0, ',', '.') ?></span>
                             </div>
-                            <?php if (!empty($menuResumen['niveles'])): ?>
-                                <?php foreach ($menuResumen['niveles'] as $nivelNombre => $nivelCantidad): ?>
+                        <?php endforeach; ?>
+
+                        <?php
+                        $nivelesOrden = ['Inicial', 'Primaria', 'Secundaria'];
+                        foreach ($nivelesOrden as $nivelNombre):
+                            $tituloNivel = $nivelNombre === 'Inicial' ? 'Nivel inicial' : $nivelNombre;
+                            ?>
+                            <div class="resumen-section">
+                                <div class="resumen-section-title"><?= htmlspecialchars($tituloNivel) ?></div>
+                                <?php foreach ($menusResumenList as $menuResumen): ?>
+                                    <?php $nivelCantidad = (int) ($menuResumen['niveles'][$nivelNombre] ?? 0); ?>
                                     <div class="resumen-metric">
-                                        <span class="resumen-metric-label">
-                                            <?= htmlspecialchars($menuResumen['nombre']) ?> - <?= htmlspecialchars($nivelNombre) ?>
-                                        </span>
+                                        <span class="resumen-metric-label"><?= htmlspecialchars($menuResumen['nombre']) ?></span>
                                         <span class="resumen-metric-value">
-                                            <?= number_format((int) $nivelCantidad, 0, ',', '.') ?>
+                                            <?= number_format($nivelCantidad, 0, ',', '.') ?>
                                         </span>
                                     </div>
                                 <?php endforeach; ?>
-                            <?php endif; ?>
+                            </div>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <div class="resumen-metric">
-                            <span class="resumen-metric-label">Sin menus</span>
-                            <span class="resumen-metric-value">0</span>
+                        <div class="resumen-metric resumen-metric-highlight">
+                            <span>Sin menus</span>
+                            <span>0</span>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -364,6 +369,12 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             color: #0f172a;
         }
 
+        .resumen-total-center {
+            align-self: center;
+            text-align: center;
+            width: 100%;
+        }
+
         .resumen-body {
             display: grid;
             grid-template-columns: 240px 1fr;
@@ -392,6 +403,32 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             gap: 8px;
             font-size: 13px;
             color: #0f172a;
+        }
+
+        .resumen-metric-highlight {
+            font-weight: 700;
+            color: #0f172a;
+            background: #e0f2fe;
+            border-radius: 999px;
+            padding: 4px 10px;
+        }
+
+        .resumen-section {
+            margin-top: 8px;
+            display: grid;
+            gap: 6px;
+        }
+
+        .resumen-section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #0f172a;
+            background: #f1f5f9;
+            border-radius: 999px;
+            padding: 4px 10px;
+            display: inline-flex;
+            align-self: flex-start;
         }
 
         .resumen-metric-label {
