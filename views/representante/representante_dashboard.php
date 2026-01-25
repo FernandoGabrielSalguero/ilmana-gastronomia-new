@@ -284,7 +284,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
         }
 
         .alumnos-table-wrapper {
-            max-height: 320px;
+            max-height: 520px;
             overflow: auto;
             border: 1px solid #e5e7eb;
             border-radius: 12px;
