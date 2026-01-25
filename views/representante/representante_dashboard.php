@@ -164,22 +164,49 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
 
         .resumen-detalle {
             display: grid;
-            gap: 8px;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 12px;
         }
 
         .resumen-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            border-radius: 10px;
+            border-radius: 14px;
             background: #ffffff;
             border: 1px solid #e5e7eb;
-            font-size: 14px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 120px;
         }
 
-        .resumen-item span {
-            color: #374151;
+        .resumen-item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .resumen-item-title {
+            font-size: 14px;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .resumen-item-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: #e0f2fe;
+            color: #0369a1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .resumen-item-total {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
         }
 
         .resumen-empty {
@@ -380,8 +407,15 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                         <?php if (!empty($resumenCursos)): ?>
                             <?php foreach ($resumenCursos as $curso): ?>
                                 <div class="resumen-item">
-                                    <span><?= htmlspecialchars($curso['nombre']) ?></span>
-                                    <strong><?= number_format((int) $curso['total'], 0, ',', '.') ?></strong>
+                                    <div class="resumen-item-header">
+                                        <h4 class="resumen-item-title"><?= htmlspecialchars($curso['nombre']) ?></h4>
+                                        <span class="resumen-item-icon">
+                                            <span class="material-icons">restaurant</span>
+                                        </span>
+                                    </div>
+                                    <div class="resumen-item-total">
+                                        <?= number_format((int) $curso['total'], 0, ',', '.') ?>
+                                    </div>
                                 </div>
                             <?php endforeach; ?>
                         <?php else: ?>

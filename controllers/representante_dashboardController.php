@@ -64,8 +64,15 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
         foreach ($resumenCursos as $curso) {
             ?>
             <div class="resumen-item">
-                <span><?= htmlspecialchars($curso['nombre']) ?></span>
-                <strong><?= number_format((int) $curso['total'], 0, ',', '.') ?></strong>
+                <div class="resumen-item-header">
+                    <h4 class="resumen-item-title"><?= htmlspecialchars($curso['nombre']) ?></h4>
+                    <span class="resumen-item-icon">
+                        <span class="material-icons">restaurant</span>
+                    </span>
+                </div>
+                <div class="resumen-item-total">
+                    <?= number_format((int) $curso['total'], 0, ',', '.') ?>
+                </div>
             </div>
             <?php
         }
