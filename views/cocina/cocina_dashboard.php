@@ -45,9 +45,6 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
                     <h4>Pedidos del dia</h4>
                 </div>
                 <div class="curso-meta">
-                    <span class="curso-icon">
-                        <span class="material-icons">receipt_long</span>
-                    </span>
                     <span class="curso-count is-total">
                         Total <?= number_format($totalPedidosDia, 0, ',', '.') ?>
                     </span>
@@ -290,8 +287,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
         }
 
         .curso-count.is-total {
-            font-size: 14px;
-            padding: 6px 12px;
+            font-size: 18px;
+            padding: 8px 16px;
         }
 
         .curso-meta {
