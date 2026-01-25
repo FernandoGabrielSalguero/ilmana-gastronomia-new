@@ -83,13 +83,88 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
             arsort($preferenciasResumen[$nivel]['prefs']);
         }
     }
+
+    $menuPrefsResumen = [];
+    $menuPrefsPorNivel = [];
+    foreach ($nivelesOrden as $nivel) {
+        $menuPrefsPorNivel[$nivel] = [];
+    }
+
+    foreach ($menusResumenList as $menuResumen) {
+        $menuNombre = (string) ($menuResumen['nombre'] ?? '');
+        if ($menuNombre === '') {
+            $menuNombre = 'Menu sin nombre';
+        }
+
+        if (!isset($menuPrefsResumen[$menuNombre])) {
+            $menuPrefsResumen[$menuNombre] = [
+                'sin' => 0,
+                'prefs' => [],
+                'total_pref' => 0,
+                'has_pref' => false
+            ];
+        }
+
+        foreach ($nivelesOrden as $nivel) {
+            $prefInfo = $menuResumen['niveles_pref_counts'][$nivel] ?? null;
+            if (!$prefInfo) {
+                continue;
+            }
+            if (!isset($menuPrefsPorNivel[$nivel][$menuNombre])) {
+                $menuPrefsPorNivel[$nivel][$menuNombre] = [
+                    'sin' => 0,
+                    'prefs' => [],
+                    'total_pref' => 0,
+                    'has_pref' => false
+                ];
+            }
+
+            $sin = (int) ($prefInfo['sin'] ?? 0);
+            $menuPrefsResumen[$menuNombre]['sin'] += $sin;
+            $menuPrefsPorNivel[$nivel][$menuNombre]['sin'] += $sin;
+
+            if (!empty($prefInfo['prefs'])) {
+                foreach ($prefInfo['prefs'] as $prefNombre => $prefCantidad) {
+                    $prefCantidad = (int) $prefCantidad;
+                    if (!isset($menuPrefsResumen[$menuNombre]['prefs'][$prefNombre])) {
+                        $menuPrefsResumen[$menuNombre]['prefs'][$prefNombre] = 0;
+                    }
+                    $menuPrefsResumen[$menuNombre]['prefs'][$prefNombre] += $prefCantidad;
+                    $menuPrefsResumen[$menuNombre]['total_pref'] += $prefCantidad;
+
+                    if (!isset($menuPrefsPorNivel[$nivel][$menuNombre]['prefs'][$prefNombre])) {
+                        $menuPrefsPorNivel[$nivel][$menuNombre]['prefs'][$prefNombre] = 0;
+                    }
+                    $menuPrefsPorNivel[$nivel][$menuNombre]['prefs'][$prefNombre] += $prefCantidad;
+                    $menuPrefsPorNivel[$nivel][$menuNombre]['total_pref'] += $prefCantidad;
+                }
+            }
+        }
+
+        if (!empty($menuPrefsResumen[$menuNombre]['prefs'])) {
+            arsort($menuPrefsResumen[$menuNombre]['prefs']);
+            $menuPrefsResumen[$menuNombre]['has_pref'] = true;
+        }
+    }
+
+    foreach ($nivelesOrden as $nivel) {
+        if (empty($menuPrefsPorNivel[$nivel])) {
+            continue;
+        }
+        foreach ($menuPrefsPorNivel[$nivel] as $menuNombre => $prefData) {
+            if (!empty($prefData['prefs'])) {
+                arsort($menuPrefsPorNivel[$nivel][$menuNombre]['prefs']);
+                $menuPrefsPorNivel[$nivel][$menuNombre]['has_pref'] = true;
+            }
+        }
+    }
     ?>
     <div class="resumen-body">
         <div class="resumen-lateral">
             <div class="card curso-card resumen-total-card is-primary">
                 <div class="curso-card-header">
                     <button class="btn-icon resumen-icon-button" type="button" data-resumen-modal="open"
-                        data-tooltip="Ver resumen claro">
+                        data-tooltip="Ver resumen">
                         <span class="material-icons">summarize</span>
                     </button>
                     <h4>Resumen de pedidos del día</h4>
@@ -239,11 +314,38 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
                     <?php if (!empty($menusResumenOrden)): ?>
                         <ul class="resumen-modal-list">
                             <?php foreach ($menusResumenOrden as $menuResumen): ?>
-                                <li>
-                                    <span><?= htmlspecialchars($menuResumen['nombre']) ?></span>
-                                    <span class="resumen-modal-pill">
-                                        <?= number_format((int) ($menuResumen['total'] ?? 0), 0, ',', '.') ?>
-                                    </span>
+                                <?php
+                                $menuNombre = (string) ($menuResumen['nombre'] ?? '');
+                                if ($menuNombre === '') {
+                                    $menuNombre = 'Menu sin nombre';
+                                }
+                                $menuPrefData = $menuPrefsResumen[$menuNombre] ?? null;
+                                ?>
+                                <li class="resumen-modal-menu">
+                                    <div class="resumen-modal-menu-row">
+                                        <span><?= htmlspecialchars($menuNombre) ?></span>
+                                        <span class="resumen-modal-pill">
+                                            <?= number_format((int) ($menuResumen['total'] ?? 0), 0, ',', '.') ?>
+                                        </span>
+                                    </div>
+                                    <?php if ($menuPrefData && !empty($menuPrefData['has_pref'])): ?>
+                                        <ul class="resumen-modal-pref-list">
+                                            <li>
+                                                <span>Sin preferencias</span>
+                                                <span class="resumen-modal-pill is-danger">
+                                                    <?= number_format((int) ($menuPrefData['sin'] ?? 0), 0, ',', '.') ?>
+                                                </span>
+                                            </li>
+                                            <?php foreach ($menuPrefData['prefs'] as $prefNombre => $prefCantidad): ?>
+                                                <li>
+                                                    <span><?= htmlspecialchars($prefNombre) ?></span>
+                                                    <span class="resumen-modal-pill is-danger">
+                                                        <?= number_format((int) $prefCantidad, 0, ',', '.') ?>
+                                                    </span>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    <?php endif; ?>
                                 </li>
                             <?php endforeach; ?>
                         </ul>
@@ -259,6 +361,7 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
                             <?php
                             $nivelTitulo = $nivelNombre === 'Inicial' ? 'Nivel inicial' : $nivelNombre;
                             $nivelData = $preferenciasResumen[$nivelNombre];
+                            $nivelMenusPref = $menuPrefsPorNivel[$nivelNombre] ?? [];
                             ?>
                             <div class="resumen-modal-nivel">
                                 <div class="resumen-modal-nivel-header">
@@ -267,17 +370,47 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
                                         <?= number_format((int) ($nivelData['total_pref'] ?? 0), 0, ',', '.') ?> con preferencias
                                     </span>
                                 </div>
-                                <?php if (!empty($nivelData['prefs'])): ?>
-                                    <ul class="resumen-modal-list is-compact">
-                                        <?php foreach ($nivelData['prefs'] as $prefNombre => $prefCantidad): ?>
-                                            <li>
-                                                <span><?= htmlspecialchars($prefNombre) ?></span>
-                                                <span class="resumen-modal-pill is-danger">
-                                                    <?= number_format((int) $prefCantidad, 0, ',', '.') ?>
-                                                </span>
-                                            </li>
+                                <?php
+                                $nivelTienePreferencias = false;
+                                foreach ($nivelMenusPref as $menuNombre => $prefData) {
+                                    if (!empty($prefData['has_pref'])) {
+                                        $nivelTienePreferencias = true;
+                                        break;
+                                    }
+                                }
+                                ?>
+                                <?php if ($nivelTienePreferencias): ?>
+                                    <div class="resumen-modal-menu-list">
+                                        <?php foreach ($nivelMenusPref as $menuNombre => $prefData): ?>
+                                            <?php if (empty($prefData['has_pref'])): ?>
+                                                <?php continue; ?>
+                                            <?php endif; ?>
+                                            <div class="resumen-modal-menu">
+                                                <div class="resumen-modal-menu-row">
+                                                    <span><?= htmlspecialchars($menuNombre) ?></span>
+                                                    <span class="resumen-modal-pill is-danger">
+                                                        <?= number_format((int) ($prefData['total_pref'] ?? 0), 0, ',', '.') ?>
+                                                    </span>
+                                                </div>
+                                                <ul class="resumen-modal-pref-list">
+                                                    <li>
+                                                        <span>Sin preferencias</span>
+                                                        <span class="resumen-modal-pill is-danger">
+                                                            <?= number_format((int) ($prefData['sin'] ?? 0), 0, ',', '.') ?>
+                                                        </span>
+                                                    </li>
+                                                    <?php foreach ($prefData['prefs'] as $prefNombre => $prefCantidad): ?>
+                                                        <li>
+                                                            <span><?= htmlspecialchars($prefNombre) ?></span>
+                                                            <span class="resumen-modal-pill is-danger">
+                                                                <?= number_format((int) $prefCantidad, 0, ',', '.') ?>
+                                                            </span>
+                                                        </li>
+                                                    <?php endforeach; ?>
+                                                </ul>
+                                            </div>
                                         <?php endforeach; ?>
-                                    </ul>
+                                    </div>
                                 <?php else: ?>
                                     <div class="curso-empty">Sin preferencias registradas.</div>
                                 <?php endif; ?>
@@ -497,6 +630,41 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             align-items: center;
             gap: 10px;
             font-size: 14px;
+        }
+
+        .resumen-modal-menu {
+            display: grid;
+            gap: 6px;
+        }
+
+        .resumen-modal-menu-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .resumen-modal-menu-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .resumen-modal-pref-list {
+            list-style: none;
+            margin: 0;
+            padding: 0 0 0 12px;
+            display: grid;
+            gap: 6px;
+            color: #b91c1c;
+        }
+
+        .resumen-modal-pref-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
         }
 
         .resumen-modal-list.is-compact li {
