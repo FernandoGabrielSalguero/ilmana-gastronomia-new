@@ -91,7 +91,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
             background: #ffffff;
             display: flex;
             flex-direction: column;
-            min-height: 210px;
+            min-height: 190px;
             min-width: 0;
             overflow-x: hidden;
         }
@@ -143,7 +143,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
             list-style: none;
             margin: 0;
             padding: 0;
-            max-height: 220px;
+            max-height: 180px;
             overflow-y: auto;
             overflow-x: hidden;
         }
@@ -210,6 +210,33 @@ $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
             font-size: 32px;
             font-weight: 700;
             color: #0f172a;
+        }
+
+        .resumen-metrics {
+            display: grid;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .resumen-metric {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 13px;
+            color: #0f172a;
+        }
+
+        .resumen-metric-label {
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .resumen-metric-value {
+            font-weight: 700;
         }
 
         .nivel-section {
@@ -339,6 +366,32 @@ $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
                             </div>
                             <div class="resumen-total-number">
                                 <?= number_format($totalPedidosDia, 0, ',', '.') ?>
+                            </div>
+                            <div class="resumen-metrics">
+                                <div class="resumen-metric">
+                                    <span class="resumen-metric-label">Total</span>
+                                    <span class="resumen-metric-value">
+                                        <?= number_format($totalPedidosDia, 0, ',', '.') ?>
+                                    </span>
+                                </div>
+                                <div class="resumen-metric">
+                                    <span class="resumen-metric-label">Inicial</span>
+                                    <span class="resumen-metric-value">
+                                        <?= number_format((int) ($totalesPorNivel['Inicial'] ?? 0), 0, ',', '.') ?>
+                                    </span>
+                                </div>
+                                <div class="resumen-metric">
+                                    <span class="resumen-metric-label">Primaria</span>
+                                    <span class="resumen-metric-value">
+                                        <?= number_format((int) ($totalesPorNivel['Primaria'] ?? 0), 0, ',', '.') ?>
+                                    </span>
+                                </div>
+                                <div class="resumen-metric">
+                                    <span class="resumen-metric-label">Secundaria</span>
+                                    <span class="resumen-metric-value">
+                                        <?= number_format((int) ($totalesPorNivel['Secundaria'] ?? 0), 0, ',', '.') ?>
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -61,3 +61,9 @@ foreach ($nivelesOrden as $nivel) {
     $nivelData['cursos'] = array_values($nivelData['cursos']);
     $nivelesList[] = $nivelData;
 }
+
+$totalesPorNivel = [
+    'Inicial' => $nivelesTarjetas['Inicial']['total'] ?? 0,
+    'Primaria' => $nivelesTarjetas['Primaria']['total'] ?? 0,
+    'Secundaria' => $nivelesTarjetas['Secundaria']['total'] ?? 0
+];
