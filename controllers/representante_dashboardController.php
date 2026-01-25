@@ -36,10 +36,21 @@ if ($representanteId) {
         }
 
         $alumnoNombre = trim((string) ($row['Alumno'] ?? ''));
+        $estado = trim((string) ($row['Estado'] ?? ''));
+        $cancelado = ($estado === 'Cancelado');
         if ($alumnoNombre !== '') {
             $idx = $cursoIndex[$cursoId];
-            if (!in_array($alumnoNombre, $cursosTarjetas[$idx]['alumnos'], true)) {
-                $cursosTarjetas[$idx]['alumnos'][] = $alumnoNombre;
+            $claveAlumno = $alumnoNombre . '|' . ($cancelado ? '1' : '0');
+            $alumnoItem = [
+                'nombre' => $alumnoNombre,
+                'cancelado' => $cancelado
+            ];
+            if (!isset($cursosTarjetas[$idx]['alumnos_map'])) {
+                $cursosTarjetas[$idx]['alumnos_map'] = [];
+            }
+            if (!isset($cursosTarjetas[$idx]['alumnos_map'][$claveAlumno])) {
+                $cursosTarjetas[$idx]['alumnos_map'][$claveAlumno] = true;
+                $cursosTarjetas[$idx]['alumnos'][] = $alumnoItem;
             }
         }
     }
@@ -76,7 +87,9 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
                 <?php if (!empty($curso['alumnos'])): ?>
                     <ul class="curso-alumnos">
                         <?php foreach ($curso['alumnos'] as $alumno): ?>
-                            <li><?= htmlspecialchars($alumno) ?></li>
+                            <li class="<?= !empty($alumno['cancelado']) ? 'is-cancelado' : '' ?>">
+                                <?= htmlspecialchars($alumno['nombre']) ?>
+                            </li>
                         <?php endforeach; ?>
                     </ul>
                 <?php else: ?>

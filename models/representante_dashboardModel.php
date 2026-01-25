@@ -16,14 +16,14 @@ class RepresentanteDashboardModel
                 c.Id AS Curso_Id,
                 c.Nombre AS Curso_Nombre,
                 h.Id AS Hijo_Id,
-                h.Nombre AS Alumno
+                h.Nombre AS Alumno,
+                pc.Estado
             FROM Pedidos_Comida pc
             JOIN Hijos h ON h.Id = pc.Hijo_Id
             LEFT JOIN Cursos c ON c.Id = h.Curso_Id
             JOIN Representantes_Colegios rc ON rc.Colegio_Id = h.Colegio_Id
             WHERE rc.Representante_Id = :representanteId
               AND pc.Fecha_entrega = :fechaEntrega
-              AND pc.Estado <> 'Cancelado'
             ORDER BY c.Nombre, h.Nombre";
 
         $stmt = $this->db->prepare($sql);

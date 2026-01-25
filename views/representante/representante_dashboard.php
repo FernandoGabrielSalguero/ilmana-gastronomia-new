@@ -240,6 +240,11 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             color: #374151;
         }
 
+        .curso-alumnos li.is-cancelado {
+            text-decoration: line-through;
+            color: #9ca3af;
+        }
+
         .curso-alumnos li:last-child {
             border-bottom: none;
         }
@@ -372,7 +377,9 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                                     <?php if (!empty($curso['alumnos'])): ?>
                                         <ul class="curso-alumnos">
                                             <?php foreach ($curso['alumnos'] as $alumno): ?>
-                                                <li><?= htmlspecialchars($alumno) ?></li>
+                                                <li class="<?= !empty($alumno['cancelado']) ? 'is-cancelado' : '' ?>">
+                                                    <?= htmlspecialchars($alumno['nombre']) ?>
+                                                </li>
                                             <?php endforeach; ?>
                                         </ul>
                                     <?php else: ?>
