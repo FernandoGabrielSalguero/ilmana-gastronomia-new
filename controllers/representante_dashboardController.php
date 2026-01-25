@@ -83,6 +83,11 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
             <div class="card curso-card">
                 <div class="curso-card-header">
                     <h4><?= htmlspecialchars($curso['nombre']) ?></h4>
+                </div>
+                <div class="curso-meta">
+                    <span class="curso-icon">
+                        <span class="material-icons">restaurant</span>
+                    </span>
                     <span class="curso-count"><?= count($curso['alumnos']) ?> alumnos</span>
                 </div>
                 <?php if (!empty($curso['alumnos'])): ?>

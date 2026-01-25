@@ -189,17 +189,18 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
 
         .cursos-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
             gap: 16px;
         }
 
         .curso-card {
             border: 1px solid #e5e7eb;
             border-radius: 16px;
-            padding: 16px;
+            padding: 14px;
             background: #ffffff;
             display: flex;
             flex-direction: column;
+            min-height: 210px;
         }
 
         .curso-card-header {
@@ -216,6 +217,17 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             color: #0f172a;
         }
 
+        .curso-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: #fef9c3;
+            color: #a16207;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .curso-count {
             padding: 2px 10px;
             border-radius: 999px;
@@ -225,11 +237,19 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             font-weight: 600;
         }
 
+        .curso-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
         .curso-alumnos {
             list-style: none;
             margin: 0;
             padding: 0;
-            max-height: 308px;
+            max-height: 220px;
             overflow-y: auto;
         }
 
@@ -383,6 +403,11 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                                 <div class="card curso-card">
                                     <div class="curso-card-header">
                                         <h4><?= htmlspecialchars($curso['nombre']) ?></h4>
+                                    </div>
+                                    <div class="curso-meta">
+                                        <span class="curso-icon">
+                                            <span class="material-icons">restaurant</span>
+                                        </span>
                                         <span class="curso-count"><?= count($curso['alumnos']) ?> alumnos</span>
                                     </div>
                                     <?php if (!empty($curso['alumnos'])): ?>
@@ -496,4 +521,3 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
 </body>
 
 </html>
-
