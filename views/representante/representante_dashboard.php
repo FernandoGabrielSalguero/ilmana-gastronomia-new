@@ -393,7 +393,8 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                                                     <?= htmlspecialchars($alumno['nombre']) ?>
                                                     <?php if (!empty($alumno['cancelado'])): ?>
                                                         <span class="cancelacion-icon material-icons"
-                                                            data-tooltip="<?= htmlspecialchars($alumno['motivo'] ?: 'Sin motivo') ?>">help_outline</span>
+                                                            data-tooltip="<?= htmlspecialchars($alumno['motivo'] ?: 'Sin motivo') ?>"
+                                                            title="<?= htmlspecialchars($alumno['motivo'] ?: 'Sin motivo') ?>">help_outline</span>
                                                     <?php endif; ?>
                                                 </li>
                                             <?php endforeach; ?>
