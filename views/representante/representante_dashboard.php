@@ -604,8 +604,10 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             });
         }
 
-        const cargarResumenAjax = (fecha) => {
+        const cargarResumenAjax = (fecha, options = {}) => {
             if (!fecha) return;
+            const silent = options && options.silent === true;
+            const skipTable = options && options.skipTable === true;
             const params = new URLSearchParams({
                 ajax: '1',
                 fecha_entrega: fecha
@@ -633,7 +635,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                         cursosGrid.innerHTML = data.cursosGridHtml;
                         bindDescargaCursos(cursosGrid);
                     }
-                    if (alumnosTablaBody && typeof data.alumnosTablaHtml === 'string') {
+                    if (!skipTable && alumnosTablaBody && typeof data.alumnosTablaHtml === 'string') {
                         alumnosTablaBody.innerHTML = data.alumnosTablaHtml;
                         bindCursoSelects(alumnosTablaBody);
                         if (typeof window.initInputIcons === 'function') {
@@ -651,11 +653,15 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                         panelResumenFiltros.classList.remove('is-open');
                     }
                     tablaFiltradaPorFecha = true;
-                    showAlertSafe('success', `Filtro aplicado: ${data.fechaTexto || fecha}`);
+                    if (!silent) {
+                        showAlertSafe('success', `Filtro aplicado: ${data.fechaTexto || fecha}`);
+                    }
                 })
                 .catch((err) => {
                     console.error('Error de conexion cargando resumen:', err);
-                    showAlertSafe('error', 'No se pudo aplicar el filtro.');
+                    if (!silent) {
+                        showAlertSafe('error', 'No se pudo aplicar el filtro.');
+                    }
                 });
         };
 
@@ -874,6 +880,12 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                         cursoCell.textContent = data.cursoNombre || 'Sin curso asignado';
                     }
                     showAlertSafe('success', 'Curso actualizado correctamente.');
+                    if (fechaEntregaInput && fechaEntregaInput.value) {
+                        cargarResumenAjax(fechaEntregaInput.value, {
+                            silent: true,
+                            skipTable: true
+                        });
+                    }
                 });
             });
         };
