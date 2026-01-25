@@ -93,7 +93,6 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
                                 <?= htmlspecialchars($alumno['nombre']) ?>
                                 <?php if (!empty($alumno['cancelado'])): ?>
                                     <span class="cancelacion-icon material-icons"
-                                        data-tooltip="<?= htmlspecialchars($alumno['motivo'] ?: 'Sin motivo') ?>"
                                         title="<?= htmlspecialchars($alumno['motivo'] ?: 'Sin motivo') ?>">help_outline</span>
                                 <?php endif; ?>
                             </li>
