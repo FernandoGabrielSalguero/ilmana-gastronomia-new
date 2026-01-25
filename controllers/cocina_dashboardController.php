@@ -8,6 +8,7 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaEntrega)) {
 
 $model = new CocinaDashboardModel($pdo);
 $resumenMenusRaw = $model->obtenerMenusPorCurso($fechaEntrega);
+$preferenciasRaw = $model->obtenerPreferenciasPorMenuNivel($fechaEntrega);
 $totalPedidosDia = $model->obtenerTotalPedidosDia($fechaEntrega);
 
 $nivelesOrden = ['Inicial', 'Primaria', 'Secundaria'];
@@ -125,3 +126,68 @@ foreach ($resumenMenusRaw as $row) {
 }
 
 $menusResumenList = array_values($menusResumen);
+
+$prefCounts = [];
+foreach ($preferenciasRaw as $row) {
+    $nivelRaw = trim((string) ($row['Nivel_Educativo'] ?? ''));
+    $nivel = in_array($nivelRaw, $nivelesOrden, true) ? $nivelRaw : 'Inicial';
+
+    $menuNombre = trim((string) ($row['Menu_Nombre'] ?? ''));
+    if ($menuNombre === '') {
+        $menuNombre = 'Menu sin nombre';
+    }
+
+    $prefId = $row['Preferencia_Id'] ?? null;
+    $prefNombre = trim((string) ($row['Preferencia_Nombre'] ?? ''));
+    if ($prefNombre === '') {
+        $prefNombre = 'Sin preferencias';
+    }
+
+    $cantidad = (int) ($row['Total'] ?? 0);
+    if ($cantidad <= 0) {
+        continue;
+    }
+
+    if (!isset($prefCounts[$menuNombre])) {
+        $prefCounts[$menuNombre] = [];
+    }
+    if (!isset($prefCounts[$menuNombre][$nivel])) {
+        $prefCounts[$menuNombre][$nivel] = [
+            'sin' => 0,
+            'prefs' => [],
+            'has_pref' => false
+        ];
+    }
+
+    $prefIsSin = false;
+    if ($prefId !== null && (string) $prefId === '6') {
+        $prefIsSin = true;
+    }
+    if (mb_strtolower($prefNombre) === 'sin preferencias') {
+        $prefIsSin = true;
+    }
+
+    if ($prefIsSin) {
+        $prefCounts[$menuNombre][$nivel]['sin'] += $cantidad;
+        continue;
+    }
+
+    if (!isset($prefCounts[$menuNombre][$nivel]['prefs'][$prefNombre])) {
+        $prefCounts[$menuNombre][$nivel]['prefs'][$prefNombre] = 0;
+    }
+    $prefCounts[$menuNombre][$nivel]['prefs'][$prefNombre] += $cantidad;
+    $prefCounts[$menuNombre][$nivel]['has_pref'] = true;
+}
+
+foreach ($menusResumenList as &$menuResumen) {
+    $menuNombre = $menuResumen['nombre'];
+    $menuResumen['niveles_pref_counts'] = [];
+    foreach ($nivelesOrden as $nivel) {
+        $menuResumen['niveles_pref_counts'][$nivel] = $prefCounts[$menuNombre][$nivel] ?? [
+            'sin' => 0,
+            'prefs' => [],
+            'has_pref' => false
+        ];
+    }
+}
+unset($menuResumen);

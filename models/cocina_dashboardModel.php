@@ -36,6 +36,31 @@ class CocinaDashboardModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function obtenerPreferenciasPorMenuNivel($fechaEntrega)
+    {
+        $sql = "SELECT
+                c.Nivel_Educativo AS Nivel_Educativo,
+                m.Nombre AS Menu_Nombre,
+                pa.Id AS Preferencia_Id,
+                COALESCE(pa.Nombre, NULLIF(TRIM(h.Preferencias_Alimenticias), ''), 'Sin preferencias') AS Preferencia_Nombre,
+                COUNT(pc.Id) AS Total
+            FROM Pedidos_Comida pc
+            JOIN Hijos h ON h.Id = pc.Hijo_Id
+            LEFT JOIN Cursos c ON c.Id = h.Curso_Id
+            JOIN Menú m ON m.Id = pc.Menú_Id
+            LEFT JOIN Preferencias_Alimenticias pa ON pa.Id = h.Preferencias_Alimenticias
+            WHERE pc.Fecha_entrega = :fechaEntrega
+              AND pc.Estado <> 'Cancelado'
+            GROUP BY c.Nivel_Educativo, m.Nombre, pa.Id, Preferencia_Nombre
+            ORDER BY m.Nombre, Preferencia_Nombre";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'fechaEntrega' => $fechaEntrega
+        ]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function obtenerTotalPedidosDia($fechaEntrega)
     {
         $sql = "SELECT COUNT(pc.Id) AS Total

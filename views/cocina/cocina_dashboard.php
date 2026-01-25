@@ -68,18 +68,29 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
                                     <?php foreach ($menusResumenList as $menuResumen): ?>
                                         <?php $nivelCantidad = (int) ($menuResumen['niveles'][$nivelNombre] ?? 0); ?>
                                         <?php if ($nivelCantidad > 0): ?>
-                                            <?php $prefList = $menuResumen['niveles_prefs'][$nivelNombre] ?? []; ?>
+                                            <?php $prefInfo = $menuResumen['niveles_pref_counts'][$nivelNombre] ?? null; ?>
                                             <div class="resumen-metric">
-                                                <span class="resumen-metric-label">
-                                                    <?= htmlspecialchars($menuResumen['nombre']) ?>
-                                                    <?php if (!empty($prefList)): ?>
-                                                        <span class="resumen-pref"><?= htmlspecialchars(implode(', ', $prefList)) ?></span>
-                                                    <?php endif; ?>
-                                                </span>
+                                                <span class="resumen-metric-label"><?= htmlspecialchars($menuResumen['nombre']) ?></span>
                                                 <span class="resumen-metric-value">
                                                     <?= number_format($nivelCantidad, 0, ',', '.') ?>
                                                 </span>
                                             </div>
+                                            <?php if ($prefInfo && !empty($prefInfo['has_pref'])): ?>
+                                                <div class="resumen-pref-list">
+                                                    <div class="resumen-pref-item is-none">
+                                                        <span>Sin preferencias</span>
+                                                        <span><?= number_format((int) ($prefInfo['sin'] ?? 0), 0, ',', '.') ?></span>
+                                                    </div>
+                                                    <?php if (!empty($prefInfo['prefs'])): ?>
+                                                        <?php foreach ($prefInfo['prefs'] as $prefNombre => $prefCantidad): ?>
+                                                            <div class="resumen-pref-item is-pref">
+                                                                <span><?= htmlspecialchars($prefNombre) ?></span>
+                                                                <span><?= number_format((int) $prefCantidad, 0, ',', '.') ?></span>
+                                                            </div>
+                                                        <?php endforeach; ?>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endif; ?>
                                         <?php endif; ?>
                                 <?php endforeach; ?>
                             </div>
@@ -440,6 +451,30 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             padding: 4px 10px;
             display: inline-flex;
             align-self: flex-start;
+        }
+
+        .resumen-pref-list {
+            display: grid;
+            gap: 4px;
+            margin: 4px 0 6px;
+            padding-left: 10px;
+        }
+
+        .resumen-pref-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .resumen-pref-item.is-none {
+            color: #16a34a;
+        }
+
+        .resumen-pref-item.is-pref {
+            color: #dc2626;
         }
 
         .resumen-metric-label {
