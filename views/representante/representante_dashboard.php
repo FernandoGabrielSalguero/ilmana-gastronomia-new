@@ -544,6 +544,22 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
         const resumenFecha = document.getElementById('resumen-fecha-texto');
         const alumnosTablaBody = document.getElementById('alumnos-tabla-body');
 
+        const showAlertSafe = (type, message) => {
+            if (typeof window.showAlertSafe === 'function') {
+                window.showAlertSafe(type, message);
+                return;
+            }
+            if (typeof window.showAlert === 'function') {
+                try {
+                    window.showAlert(type, message);
+                    return;
+                } catch (err) {
+                    console.warn('showAlert failed, falling back to alert.', err);
+                }
+            }
+            alert(message);
+        };
+
         if (toggleResumenFiltros && panelResumenFiltros) {
             toggleResumenFiltros.addEventListener('click', () => {
                 if (!panelResumenFiltros.classList.contains('is-open')) {
@@ -607,9 +623,11 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                     if (panelResumenFiltros) {
                         panelResumenFiltros.classList.remove('is-open');
                     }
+                    showAlertSafe('success', `Filtro aplicado: ${data.fechaTexto || fecha}`);
                 })
                 .catch((err) => {
                     console.error('Error de conexion cargando resumen:', err);
+                    showAlertSafe('error', 'No se pudo aplicar el filtro.');
                 });
         };
 
@@ -811,11 +829,13 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                     } catch (err) {
                         console.error('Error de conexion actualizando curso:', err);
                         select.value = prev;
+                        showAlertSafe('error', 'Error de conexion al actualizar el curso.');
                         return;
                     }
 
                     if (!data || data.ok !== true) {
                         select.value = prev;
+                        showAlertSafe('error', data && data.error ? data.error : 'No se pudo actualizar el curso.');
                         return;
                     }
 
@@ -825,6 +845,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                     if (cursoCell) {
                         cursoCell.textContent = data.cursoNombre || 'Sin curso asignado';
                     }
+                    showAlertSafe('success', 'Curso actualizado correctamente.');
 
                     if (fechaEntregaInput && fechaEntregaInput.value) {
                         cargarResumenAjax(fechaEntregaInput.value);
