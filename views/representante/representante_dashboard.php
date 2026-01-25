@@ -351,7 +351,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> 
                     <div class="resumen-actions">
                         <button class="btn-icon" id="toggleResumenFiltros" type="button" data-tooltip="Filtros">
                             <span class="material-icons">tune</span>

@@ -24,7 +24,7 @@ class RepresentanteDashboardModel
             LEFT JOIN Cursos c ON c.Id = h.Curso_Id
             JOIN Representantes_Colegios rc ON rc.Colegio_Id = h.Colegio_Id
             WHERE rc.Representante_Id = :representanteId
-              AND pc.Fecha_entrega = :fechaEntrega
+                AND pc.Fecha_entrega = :fechaEntrega
             ORDER BY c.Nombre, h.Nombre";
 
         $stmt = $this->db->prepare($sql);
