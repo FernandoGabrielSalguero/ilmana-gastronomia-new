@@ -123,7 +123,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             pointer-events: none;
             transform: translateY(8px);
             transition: all 0.2s ease;
-            z-index: 2000;
+            z-index: 200000;
         }
 
         .resumen-panel.is-open {
@@ -260,7 +260,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
 
         .resumen-panel,
         [data-tooltip]::after {
-            z-index: 300;
+            z-index: 200000;
         }
 
         .curso-alumnos li:last-child {
@@ -387,9 +387,9 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                                         <h4><?= htmlspecialchars($curso['nombre']) ?></h4>
                                         <button class="btn-icon curso-download" type="button"
                                             data-descargar-curso
-                                            data-colegio="<?= htmlspecialchars($colegioNombreArchivo) ?>"
+                                            data-curso="<?= htmlspecialchars($curso['nombre']) ?>"
                                             data-fecha="<?= htmlspecialchars($fechaEntrega) ?>"
-                                            data-tooltip="Descargar imagen">
+                                            data-tooltip="Descargar PDF">
                                             <span class="material-icons">download</span>
                                         </button>
                                     </div>
@@ -512,13 +512,17 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                         alert('No se encontro la libreria para exportar la imagen.');
                         return;
                     }
+                    if (!window.jspdf || !window.jspdf.jsPDF) {
+                        alert('No se encontro la libreria para exportar el PDF.');
+                        return;
+                    }
                     const card = boton.closest('.curso-card');
                     if (!card) return;
-                    const colegio = boton.dataset.colegio || 'Colegio';
+                    const curso = boton.dataset.curso || 'Curso';
                     const fecha = boton.dataset.fecha || '';
-                    const safeColegio = colegio.replace(/[^\w\-]+/g, '_');
+                    const safeCurso = curso.replace(/[^\w\-]+/g, '_');
                     const safeFecha = fecha.replace(/[^0-9\-]/g, '');
-                    const filename = `${safeColegio}_${safeFecha}.jpg`;
+                    const filename = `${safeCurso}_${safeFecha}.pdf`;
 
                     card.classList.add('is-capturing');
                     try {
@@ -526,13 +530,23 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                             backgroundColor: '#ffffff',
                             scale: 2
                         });
-                        const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-                        const link = document.createElement('a');
-                        link.href = dataUrl;
-                        link.download = filename;
-                        document.body.appendChild(link);
-                        link.click();
-                        link.remove();
+                        const imgData = canvas.toDataURL('image/png');
+                        const pdf = new window.jspdf.jsPDF({
+                            orientation: 'portrait',
+                            unit: 'pt',
+                            format: 'a4'
+                        });
+                        const pageWidth = pdf.internal.pageSize.getWidth();
+                        const pageHeight = pdf.internal.pageSize.getHeight();
+                        const imgWidth = canvas.width;
+                        const imgHeight = canvas.height;
+                        const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
+                        const renderWidth = imgWidth * ratio;
+                        const renderHeight = imgHeight * ratio;
+                        const offsetX = (pageWidth - renderWidth) / 2;
+                        const offsetY = 32;
+                        pdf.addImage(imgData, 'PNG', offsetX, offsetY, renderWidth, renderHeight);
+                        pdf.save(filename);
                     } catch (err) {
                         console.error('Error exportando imagen:', err);
                     } finally {
