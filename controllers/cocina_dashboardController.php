@@ -76,3 +76,31 @@ $totalesPorNivel = [
     'Primaria' => $nivelesTarjetas['Primaria']['total'] ?? 0,
     'Secundaria' => $nivelesTarjetas['Secundaria']['total'] ?? 0
 ];
+
+$menusResumen = [];
+foreach ($resumenMenusRaw as $row) {
+    $menuNombre = trim((string) ($row['Menu_Nombre'] ?? ''));
+    if ($menuNombre === '') {
+        $menuNombre = 'Menu sin nombre';
+    }
+    $nivelRaw = trim((string) ($row['Nivel_Educativo'] ?? ''));
+    $nivel = in_array($nivelRaw, $nivelesOrden, true) ? $nivelRaw : 'Inicial';
+    $cantidad = (int) ($row['Total'] ?? 0);
+
+    if (!isset($menusResumen[$menuNombre])) {
+        $menusResumen[$menuNombre] = [
+            'nombre' => $menuNombre,
+            'total' => 0,
+            'niveles' => [
+                'Inicial' => 0,
+                'Primaria' => 0,
+                'Secundaria' => 0
+            ]
+        ];
+    }
+
+    $menusResumen[$menuNombre]['total'] += $cantidad;
+    $menusResumen[$menuNombre]['niveles'][$nivel] += $cantidad;
+}
+
+$menusResumenList = array_values($menusResumen);

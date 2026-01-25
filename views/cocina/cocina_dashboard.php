@@ -35,7 +35,7 @@ $correo = $_SESSION['correo'] ?? 'Sin correo';
 $usuario = $_SESSION['usuario'] ?? 'Sin usuario';
 $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
 
-function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel)
+function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel, $menusResumenList)
 {
     ?>
     <div class="resumen-body">
@@ -54,30 +54,33 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
                     <?= number_format($totalPedidosDia, 0, ',', '.') ?>
                 </div>
                 <div class="resumen-metrics">
-                    <div class="resumen-metric">
-                        <span class="resumen-metric-label">Total</span>
-                        <span class="resumen-metric-value">
-                            <?= number_format($totalPedidosDia, 0, ',', '.') ?>
-                        </span>
-                    </div>
-                    <div class="resumen-metric">
-                        <span class="resumen-metric-label">Inicial</span>
-                        <span class="resumen-metric-value">
-                            <?= number_format((int) ($totalesPorNivel['Inicial'] ?? 0), 0, ',', '.') ?>
-                        </span>
-                    </div>
-                    <div class="resumen-metric">
-                        <span class="resumen-metric-label">Primaria</span>
-                        <span class="resumen-metric-value">
-                            <?= number_format((int) ($totalesPorNivel['Primaria'] ?? 0), 0, ',', '.') ?>
-                        </span>
-                    </div>
-                    <div class="resumen-metric">
-                        <span class="resumen-metric-label">Secundaria</span>
-                        <span class="resumen-metric-value">
-                            <?= number_format((int) ($totalesPorNivel['Secundaria'] ?? 0), 0, ',', '.') ?>
-                        </span>
-                    </div>
+                    <?php if (!empty($menusResumenList)): ?>
+                        <?php foreach ($menusResumenList as $menuResumen): ?>
+                            <div class="resumen-metric">
+                                <span class="resumen-metric-label"><?= htmlspecialchars($menuResumen['nombre']) ?></span>
+                                <span class="resumen-metric-value">
+                                    <?= number_format((int) ($menuResumen['total'] ?? 0), 0, ',', '.') ?>
+                                </span>
+                            </div>
+                            <?php if (!empty($menuResumen['niveles'])): ?>
+                                <?php foreach ($menuResumen['niveles'] as $nivelNombre => $nivelCantidad): ?>
+                                    <div class="resumen-metric">
+                                        <span class="resumen-metric-label">
+                                            <?= htmlspecialchars($menuResumen['nombre']) ?> - <?= htmlspecialchars($nivelNombre) ?>
+                                        </span>
+                                        <span class="resumen-metric-value">
+                                            <?= number_format((int) $nivelCantidad, 0, ',', '.') ?>
+                                        </span>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="resumen-metric">
+                            <span class="resumen-metric-label">Sin menus</span>
+                            <span class="resumen-metric-value">0</span>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -139,7 +142,7 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
 $fechaEntregaTexto = date('d/m/Y', strtotime($fechaEntrega));
 if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
     ob_start();
-    renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel);
+    renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel, $menusResumenList);
     $bodyHtml = ob_get_clean();
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
@@ -533,7 +536,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
                     </div>
 
                     <div id="viandas-resumen-body">
-                        <?php renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel); ?>
+                        <?php renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel, $menusResumenList); ?>
                     </div>
                 </div>
 
