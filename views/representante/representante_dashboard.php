@@ -123,7 +123,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             pointer-events: none;
             transform: translateY(8px);
             transition: all 0.2s ease;
-            z-index: 200000;
+            z-index: 200000 !important;
         }
 
         .resumen-panel.is-open {
@@ -260,7 +260,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
 
         .resumen-panel,
         [data-tooltip]::after {
-            z-index: 200000;
+            z-index: 200000 !important;
         }
 
         .curso-alumnos li:last-child {
@@ -388,6 +388,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                                         <button class="btn-icon curso-download" type="button"
                                             data-descargar-curso
                                             data-curso="<?= htmlspecialchars($curso['nombre']) ?>"
+                                            data-curso-id="<?= htmlspecialchars((string) $curso['id']) ?>"
                                             data-fecha="<?= htmlspecialchars($fechaEntrega) ?>"
                                             data-tooltip="Descargar PDF">
                                             <span class="material-icons">download</span>
@@ -502,56 +503,164 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                 });
         };
 
+        const cargarLogoEmpresa = (() => {
+            let cache = null;
+            return async () => {
+                if (cache) return cache;
+                const logoUrl = '/assets/marca%20-%20120x118.webp';
+                try {
+                    const response = await fetch(logoUrl);
+                    if (!response.ok) throw new Error('No se pudo cargar el logo.');
+                    const blob = await response.blob();
+                    const img = await createImageBitmap(blob);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    cache = canvas.toDataURL('image/png');
+                    return cache;
+                } catch (err) {
+                    console.error('Error cargando logo:', err);
+                    return null;
+                }
+            };
+        })();
+
+        const descargarPdfCurso = async (boton) => {
+            if (!window.jspdf || !window.jspdf.jsPDF) {
+                alert('No se encontro la libreria para exportar el PDF.');
+                return;
+            }
+            if (!boton) return;
+            const cursoId = boton.dataset.cursoId || '';
+            const fecha = boton.dataset.fecha || '';
+
+            if (!cursoId) return;
+
+            const params = new URLSearchParams({
+                ajax: 'curso_detalle',
+                curso_id: cursoId,
+                fecha_entrega: fecha
+            });
+
+            let data;
+            try {
+                const res = await fetch(`representante_dashboard.php?${params.toString()}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                if (!res.ok) {
+                    const body = await res.text();
+                    console.error('Error cargando detalle:', {
+                        status: res.status,
+                        statusText: res.statusText,
+                        body
+                    });
+                    throw new Error('Error cargando detalle');
+                }
+                data = await res.json();
+            } catch (err) {
+                console.error('Error de conexion detalle curso:', err);
+                return;
+            }
+
+            if (!data || data.ok !== true) {
+                alert('No se pudo obtener el detalle del curso.');
+                return;
+            }
+
+            const cursoNombre = data.curso || boton.dataset.curso || 'Curso';
+            const colegioNombre = data.colegio || 'Colegio';
+            const fechaEntrega = data.fecha || fecha;
+            const viandas = Number(data.viandas || 0);
+            const alumnos = Array.isArray(data.alumnos) ? data.alumnos : [];
+
+            const pdf = new window.jspdf.jsPDF({
+                orientation: 'portrait',
+                unit: 'pt',
+                format: 'a4'
+            });
+
+            const marginX = 36;
+            let cursorY = 36;
+
+            const logoDataUrl = await cargarLogoEmpresa();
+            if (logoDataUrl) {
+                const logoWidth = 90;
+                const logoHeight = 88;
+                pdf.addImage(logoDataUrl, 'PNG', marginX, cursorY, logoWidth, logoHeight);
+            }
+
+            const headerX = logoDataUrl ? marginX + 110 : marginX;
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(16);
+            pdf.text(colegioNombre || 'Colegio', headerX, cursorY + 18);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(12);
+            pdf.text(`Curso: ${cursoNombre}`, headerX, cursorY + 38);
+            pdf.text(`Fecha: ${fechaEntrega}`, headerX, cursorY + 56);
+            pdf.setFontSize(12);
+            pdf.text(`Viandas: ${viandas}`, headerX, cursorY + 74);
+
+            cursorY += 110;
+
+            const rows = alumnos.map((alumno) => ([
+                alumno.nombre || '',
+                alumno.estado || '',
+                alumno.menu || '',
+                alumno.preferencias || '',
+                alumno.estado === 'Cancelado' ? (alumno.motivo || 'Sin motivo') : ''
+            ]));
+
+            if (typeof pdf.autoTable === 'function') {
+                pdf.autoTable({
+                    startY: cursorY,
+                    head: [[
+                        'Alumno',
+                        'Estado',
+                        'Pedido',
+                        'Preferencias',
+                        'Cancelacion'
+                    ]],
+                    body: rows,
+                    styles: {
+                        fontSize: 9,
+                        cellPadding: 4,
+                        overflow: 'linebreak'
+                    },
+                    headStyles: {
+                        fillColor: [91, 33, 182]
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 140 },
+                        1: { cellWidth: 70 },
+                        2: { cellWidth: 140 },
+                        3: { cellWidth: 140 },
+                        4: { cellWidth: 120 }
+                    }
+                });
+            } else {
+                pdf.setFontSize(10);
+                pdf.text('No se pudo generar la tabla.', marginX, cursorY);
+            }
+
+            const safeCurso = String(cursoNombre).replace(/[^\w\-]+/g, '_');
+            const safeFecha = String(fechaEntrega).replace(/[^0-9\-]/g, '');
+            const filename = `${safeCurso}_${safeFecha}.pdf`;
+            pdf.save(filename);
+        };
+
         const bindDescargaCursos = (scope) => {
             const botones = (scope || document).querySelectorAll('[data-descargar-curso]');
             botones.forEach((boton) => {
                 if (boton.dataset.bound === '1') return;
                 boton.dataset.bound = '1';
                 boton.addEventListener('click', async () => {
-                    if (typeof html2canvas !== 'function') {
-                        alert('No se encontro la libreria para exportar la imagen.');
-                        return;
-                    }
-                    if (!window.jspdf || !window.jspdf.jsPDF) {
-                        alert('No se encontro la libreria para exportar el PDF.');
-                        return;
-                    }
-                    const card = boton.closest('.curso-card');
-                    if (!card) return;
-                    const curso = boton.dataset.curso || 'Curso';
-                    const fecha = boton.dataset.fecha || '';
-                    const safeCurso = curso.replace(/[^\w\-]+/g, '_');
-                    const safeFecha = fecha.replace(/[^0-9\-]/g, '');
-                    const filename = `${safeCurso}_${safeFecha}.pdf`;
-
-                    card.classList.add('is-capturing');
-                    try {
-                        const canvas = await html2canvas(card, {
-                            backgroundColor: '#ffffff',
-                            scale: 2
-                        });
-                        const imgData = canvas.toDataURL('image/png');
-                        const pdf = new window.jspdf.jsPDF({
-                            orientation: 'portrait',
-                            unit: 'pt',
-                            format: 'a4'
-                        });
-                        const pageWidth = pdf.internal.pageSize.getWidth();
-                        const pageHeight = pdf.internal.pageSize.getHeight();
-                        const imgWidth = canvas.width;
-                        const imgHeight = canvas.height;
-                        const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
-                        const renderWidth = imgWidth * ratio;
-                        const renderHeight = imgHeight * ratio;
-                        const offsetX = (pageWidth - renderWidth) / 2;
-                        const offsetY = 32;
-                        pdf.addImage(imgData, 'PNG', offsetX, offsetY, renderWidth, renderHeight);
-                        pdf.save(filename);
-                    } catch (err) {
-                        console.error('Error exportando imagen:', err);
-                    } finally {
-                        card.classList.remove('is-capturing');
-                    }
+                    boton.disabled = true;
+                    await descargarPdfCurso(boton);
+                    boton.disabled = false;
                 });
             });
         };

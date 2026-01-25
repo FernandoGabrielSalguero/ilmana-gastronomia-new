@@ -68,6 +68,52 @@ if ($representanteId) {
     }
 }
 
+if (isset($_GET['ajax']) && $_GET['ajax'] === 'curso_detalle') {
+    header('Content-Type: application/json');
+
+    $cursoId = $_GET['curso_id'] ?? '';
+    if ($cursoId === '') {
+        echo json_encode(['ok' => false, 'error' => 'Curso invalido.']);
+        exit;
+    }
+
+    if (!$representanteId) {
+        echo json_encode(['ok' => false, 'error' => 'Sesion invalida.']);
+        exit;
+    }
+
+    $detalle = $model->obtenerDetalleCursoPedidos($representanteId, $cursoId, $fechaEntrega);
+    $rows = $detalle['rows'] ?? [];
+    $cursoNombre = 'Curso';
+    $colegioNombre = 'Colegio';
+
+    if (!empty($rows)) {
+        $cursoNombre = trim((string) ($rows[0]['Curso'] ?? $cursoNombre));
+        $colegioNombre = trim((string) ($rows[0]['Colegio'] ?? $colegioNombre));
+    }
+
+    $alumnos = [];
+    foreach ($rows as $row) {
+        $alumnos[] = [
+            'nombre' => $row['Alumno'] ?? '',
+            'estado' => $row['Estado'] ?? '',
+            'menu' => $row['Menu'] ?? '',
+            'preferencias' => $row['Preferencias'] ?? '',
+            'motivo' => $row['motivo_cancelacion'] ?? ''
+        ];
+    }
+
+    echo json_encode([
+        'ok' => true,
+        'colegio' => $colegioNombre,
+        'curso' => $cursoNombre,
+        'fecha' => $fechaEntrega,
+        'viandas' => (int) ($detalle['viandas'] ?? 0),
+        'alumnos' => $alumnos
+    ]);
+    exit;
+}
+
 if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
     header('Content-Type: application/json');
 
@@ -81,6 +127,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
                     <button class="btn-icon curso-download" type="button"
                         data-descargar-curso
                         data-curso="<?= htmlspecialchars($curso['nombre']) ?>"
+                        data-curso-id="<?= htmlspecialchars((string) $curso['id']) ?>"
                         data-fecha="<?= htmlspecialchars($fechaEntrega) ?>"
                         data-tooltip="Descargar imagen">
                         <span class="material-icons">download</span>
