@@ -452,8 +452,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
         }
 
         .resumen-pref {
-            font-size: 10px;
-            font-weight: 600;
+            font-size: 12px;
+            font-weight: 700;
             color: #dc2626;
             text-transform: none;
             letter-spacing: 0;
