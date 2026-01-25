@@ -125,7 +125,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             pointer-events: none;
             transform: translateY(8px);
             transition: all 0.2s ease;
-            z-index: 10;
+            z-index: 200;
         }
 
         .resumen-panel.is-open {
@@ -250,6 +250,11 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             color: #dc2626;
             margin-left: 6px;
             vertical-align: middle;
+        }
+
+        .resumen-panel,
+        [data-tooltip]::after {
+            z-index: 300;
         }
 
         .curso-alumnos li:last-child {
