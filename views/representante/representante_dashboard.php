@@ -113,9 +113,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
         }
 
         .resumen-panel {
-            position: absolute;
-            right: 0;
-            top: 40px;
+            position: fixed;
             min-width: 240px;
             background: #ffffff;
             border-radius: 16px;
@@ -125,7 +123,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             pointer-events: none;
             transform: translateY(8px);
             transition: all 0.2s ease;
-            z-index: 200;
+            z-index: 2000;
         }
 
         .resumen-panel.is-open {
@@ -426,6 +424,14 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
 
         if (toggleResumenFiltros && panelResumenFiltros) {
             toggleResumenFiltros.addEventListener('click', () => {
+                if (!panelResumenFiltros.classList.contains('is-open')) {
+                    const rect = toggleResumenFiltros.getBoundingClientRect();
+                    const panelWidth = panelResumenFiltros.offsetWidth || 240;
+                    const top = rect.bottom + 8;
+                    const left = Math.max(16, rect.right - panelWidth);
+                    panelResumenFiltros.style.top = `${top}px`;
+                    panelResumenFiltros.style.left = `${left}px`;
+                }
                 panelResumenFiltros.classList.toggle('is-open');
             });
 
