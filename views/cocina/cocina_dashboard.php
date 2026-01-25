@@ -665,6 +665,16 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             gap: 12px;
         }
 
+        .resumen-modal-menu-list .resumen-modal-menu {
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eef2f7;
+        }
+
+        .resumen-modal-menu-list .resumen-modal-menu:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
         .resumen-modal-pref-list {
             list-style: none;
             margin: 0;
