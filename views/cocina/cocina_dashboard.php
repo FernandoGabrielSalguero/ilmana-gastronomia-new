@@ -42,7 +42,7 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
         <div class="resumen-lateral">
             <div class="card curso-card resumen-total-card is-primary">
                 <div class="curso-card-header">
-                    <h4>Pedidos del dia</h4>
+                    <h4>Resumen de pedidos del día</h4>
                 </div>
                 <div class="curso-meta">
                     <span class="curso-count is-total">
@@ -388,7 +388,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
 
         .resumen-body {
             display: grid;
-            grid-template-columns: 240px 1fr;
+            grid-template-columns: 300px 1fr;
             gap: 16px;
             align-items: stretch;
         }
