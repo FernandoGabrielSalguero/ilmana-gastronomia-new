@@ -2,7 +2,11 @@
 require_once __DIR__ . '/../models/representante_dashboardModel.php';
 
 $representanteId = $_SESSION['usuario_id'] ?? null;
-$fechaEntrega = date('Y-m-d');
+$fechaEntrega = $_GET['fecha_entrega'] ?? date('Y-m-d');
+
+if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaEntrega)) {
+    $fechaEntrega = date('Y-m-d');
+}
 
 $cursosTarjetas = [];
 $resumenCursos = [];

@@ -102,6 +102,35 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             flex-shrink: 0;
         }
 
+        .resumen-actions {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .resumen-panel {
+            position: absolute;
+            right: 0;
+            top: 40px;
+            min-width: 240px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(8px);
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+
+        .resumen-panel.is-open {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
         .resumen-total-icon {
             width: 44px;
             height: 44px;
@@ -218,6 +247,12 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                 flex-direction: column;
                 align-items: stretch;
             }
+
+            .resumen-panel {
+                right: auto;
+                left: 0;
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -280,6 +315,27 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                             <p class="resumen-subtitle">
                                 Fecha: <?= htmlspecialchars(date('d/m/Y', strtotime($fechaEntrega))) ?>
                             </p>
+                        </div>
+                        <div class="resumen-actions">
+                            <button class="btn-icon" id="toggleResumenFiltros" type="button" data-tooltip="Filtros">
+                                <span class="material-icons">settings</span>
+                            </button>
+                            <div class="resumen-panel" id="panelResumenFiltros">
+                                <form class="form-modern" method="get" action="representante_dashboard.php">
+                                    <div class="input-group">
+                                        <label>Fecha de entrega</label>
+                                        <div class="input-icon">
+                                            <span class="material-icons">event</span>
+                                            <input type="date" name="fecha_entrega"
+                                                value="<?= htmlspecialchars($fechaEntrega) ?>">
+                                        </div>
+                                    </div>
+                                    <div class="form-buttons">
+                                        <button class="btn btn-aceptar" type="submit">Aplicar</button>
+                                        <a class="btn btn-cancelar" href="representante_dashboard.php">Limpiar</a>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                         <div class="resumen-total-box">
                             <div class="resumen-total-icon">
@@ -344,6 +400,21 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
     <script src="../../views/partials/spinner-global.js"></script>
 
     <script>
+        const toggleResumenFiltros = document.getElementById('toggleResumenFiltros');
+        const panelResumenFiltros = document.getElementById('panelResumenFiltros');
+
+        if (toggleResumenFiltros && panelResumenFiltros) {
+            toggleResumenFiltros.addEventListener('click', () => {
+                panelResumenFiltros.classList.toggle('is-open');
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!panelResumenFiltros.contains(event.target) && !toggleResumenFiltros.contains(event.target)) {
+                    panelResumenFiltros.classList.remove('is-open');
+                }
+            });
+        }
+
         console.log(<?php echo json_encode($_SESSION); ?>);
     </script>
 </body>
