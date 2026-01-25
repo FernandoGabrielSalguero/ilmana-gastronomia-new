@@ -114,6 +114,9 @@ foreach ($resumenMenusRaw as $row) {
             if ($prefItem === '') {
                 continue;
             }
+            if (mb_strtolower($prefItem) === 'sin preferencias') {
+                continue;
+            }
             if (!in_array($prefItem, $menusResumen[$menuNombre]['niveles_prefs'][$nivel], true)) {
                 $menusResumen[$menuNombre]['niveles_prefs'][$nivel][] = $prefItem;
             }
