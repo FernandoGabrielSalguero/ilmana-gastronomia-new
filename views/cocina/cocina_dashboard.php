@@ -330,14 +330,14 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
                                     </div>
                                     <?php if ($menuPrefData && !empty($menuPrefData['has_pref'])): ?>
                                         <ul class="resumen-modal-pref-list">
-                                            <li>
+                                            <li class="is-none">
                                                 <span>Sin preferencias</span>
-                                                <span class="resumen-modal-pill is-danger">
+                                                <span class="resumen-modal-pill is-none">
                                                     <?= number_format((int) ($menuPrefData['sin'] ?? 0), 0, ',', '.') ?>
                                                 </span>
                                             </li>
                                             <?php foreach ($menuPrefData['prefs'] as $prefNombre => $prefCantidad): ?>
-                                                <li>
+                                                <li class="is-pref">
                                                     <span><?= htmlspecialchars($prefNombre) ?></span>
                                                     <span class="resumen-modal-pill is-danger">
                                                         <?= number_format((int) $prefCantidad, 0, ',', '.') ?>
@@ -393,14 +393,14 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
                                                     </span>
                                                 </div>
                                                 <ul class="resumen-modal-pref-list">
-                                                    <li>
+                                                    <li class="is-none">
                                                         <span>Sin preferencias</span>
-                                                        <span class="resumen-modal-pill is-danger">
+                                                        <span class="resumen-modal-pill is-none">
                                                             <?= number_format((int) ($prefData['sin'] ?? 0), 0, ',', '.') ?>
                                                         </span>
                                                     </li>
                                                     <?php foreach ($prefData['prefs'] as $prefNombre => $prefCantidad): ?>
-                                                        <li>
+                                                        <li class="is-pref">
                                                             <span><?= htmlspecialchars($prefNombre) ?></span>
                                                             <span class="resumen-modal-pill is-danger">
                                                                 <?= number_format((int) $prefCantidad, 0, ',', '.') ?>
@@ -653,7 +653,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
         .resumen-modal-pref-list {
             list-style: none;
             margin: 0;
-            padding: 0 0 0 12px;
+            padding: 0 0 0 14px;
             display: grid;
             gap: 6px;
             color: #b91c1c;
@@ -665,6 +665,14 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             align-items: center;
             gap: 10px;
             font-size: 13px;
+        }
+
+        .resumen-modal-pref-list li.is-none {
+            color: #15803d;
+        }
+
+        .resumen-modal-pref-list li.is-pref {
+            color: #b91c1c;
         }
 
         .resumen-modal-list.is-compact li {
@@ -692,6 +700,11 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
         .resumen-modal-pill.is-danger {
             background: #fee2e2;
             color: #b91c1c;
+        }
+
+        .resumen-modal-pill.is-none {
+            background: #dcfce7;
+            color: #166534;
         }
 
         .resumen-modal-niveles {
