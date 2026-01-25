@@ -54,13 +54,21 @@ $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
     <script src="https://framework.impulsagroup.com/assets/javascript/framework.js" defer></script>
 
     <style>
+        .resumen-general {
+            position: relative;
+        }
+
         .resumen-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             gap: 16px;
             margin-bottom: 16px;
             flex-wrap: wrap;
+        }
+
+        .resumen-title {
+            margin: 0 0 4px;
         }
 
         .resumen-subtitle {
@@ -69,74 +77,51 @@ $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
             font-size: 14px;
         }
 
-        .resumen-total-box {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
-            border-radius: 14px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            font-size: 14px;
-            color: #0f172a;
-        }
-
-        .tabla-wrapper {
-            max-height: 420px;
-            overflow: auto;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .data-table th,
-        .data-table td {
-            padding: 8px 10px;
-            font-size: 14px;
-            text-align: left;
-            border-bottom: 1px solid #e5e7eb;
-            vertical-align: middle;
-        }
-
-        .data-table thead th {
-            position: sticky;
-            top: 0;
-            background: #ffffff;
-            z-index: 1;
-        }
-
-        .colegios-grid {
+        .cursos-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
             gap: 16px;
+            overflow-x: hidden;
         }
 
-        .colegio-card {
+        .curso-card {
             border: 1px solid #e5e7eb;
             border-radius: 16px;
-            padding: 16px;
+            padding: 14px;
             background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 210px;
+            min-width: 0;
+            overflow-x: hidden;
         }
 
-        .colegio-header {
+        .curso-card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
-        .colegio-header h4 {
+        .curso-card h4 {
             margin: 0;
             font-size: 16px;
             color: #0f172a;
         }
 
-        .colegio-total {
+        .curso-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: #fef9c3;
+            color: #a16207;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .curso-count {
             font-size: 12px;
             font-weight: 600;
             color: #3730a3;
@@ -144,6 +129,66 @@ $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
             padding: 4px 10px;
             border-radius: 999px;
             white-space: nowrap;
+        }
+
+        .curso-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .curso-menus {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 220px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .curso-menus li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            border-bottom: 1px dashed #e5e7eb;
+            font-size: 14px;
+            color: #374151;
+            word-break: break-word;
+        }
+
+        .curso-menus li:last-child {
+            border-bottom: none;
+        }
+
+        .menu-count {
+            font-size: 12px;
+            font-weight: 600;
+            color: #1e293b;
+            background: #e0f2fe;
+            padding: 2px 8px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .curso-empty {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .resumen-total-card {
+            justify-content: center;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .resumen-total-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0f172a;
         }
 
         .filtros-form {
@@ -210,15 +255,11 @@ $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
                     <p>Resumen diario de pedidos para cocina.</p>
                 </div>
 
-                <div class="card">
+                <div class="card resumen-general">
                     <div class="resumen-header">
                         <div>
-                            <h3>Viandas por escuela y curso</h3>
+                            <h3 class="resumen-title">Viandas por escuela y curso</h3>
                             <p class="resumen-subtitle">Fecha: <?= htmlspecialchars(date('d/m/Y', strtotime($fechaEntrega))) ?></p>
-                        </div>
-                        <div class="resumen-total-box">
-                            <span class="material-icons">receipt_long</span>
-                            <span>Total viandas: <?= number_format($totalViandas, 0, ',', '.') ?></span>
                         </div>
                     </div>
 
@@ -236,87 +277,62 @@ $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
                         </div>
                     </form>
 
-                    <?php if (!empty($viandasPorColegio)): ?>
-                        <div class="colegios-grid">
-                            <?php foreach ($viandasPorColegio as $colegioNombre => $detalle): ?>
-                                <div class="colegio-card">
-                                    <div class="colegio-header">
-                                        <h4><?= htmlspecialchars($colegioNombre) ?></h4>
-                                        <span class="colegio-total">
-                                            <?= number_format((int) ($detalle['total'] ?? 0), 0, ',', '.') ?> viandas
+                    <div class="cursos-grid">
+                        <div class="card curso-card resumen-total-card">
+                            <div class="curso-card-header">
+                                <h4>Pedidos del dia</h4>
+                            </div>
+                            <div class="curso-meta">
+                                <span class="curso-icon">
+                                    <span class="material-icons">receipt_long</span>
+                                </span>
+                                <span class="curso-count">Total</span>
+                            </div>
+                            <div class="resumen-total-number">
+                                <?= number_format($totalPedidosDia, 0, ',', '.') ?>
+                            </div>
+                        </div>
+                        <?php if (!empty($cursosTarjetas)): ?>
+                            <?php foreach ($cursosTarjetas as $curso): ?>
+                                <div class="card curso-card">
+                                    <div class="curso-card-header">
+                                        <h4><?= htmlspecialchars($curso['nombre']) ?></h4>
+                                    </div>
+                                    <div class="curso-meta">
+                                        <span class="curso-icon">
+                                            <span class="material-icons">restaurant</span>
+                                        </span>
+                                        <span class="curso-count">
+                                            <?= number_format((int) ($curso['total'] ?? 0), 0, ',', '.') ?> menus
                                         </span>
                                     </div>
-                                    <div class="tabla-wrapper">
-                                        <table class="data-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Curso</th>
-                                                    <th>Pedidos</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php foreach (($detalle['cursos'] ?? []) as $cursoNombre => $cantidad): ?>
-                                                    <tr>
-                                                        <td><?= htmlspecialchars($cursoNombre) ?></td>
-                                                        <td><?= number_format((int) $cantidad, 0, ',', '.') ?></td>
-                                                    </tr>
-                                                <?php endforeach; ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                    <?php if (!empty($curso['menus'])): ?>
+                                        <ul class="curso-menus">
+                                            <?php foreach ($curso['menus'] as $menu): ?>
+                                                <li>
+                                                    <span><?= htmlspecialchars($menu['nombre'] ?? '') ?></span>
+                                                    <span class="menu-count">
+                                                        <?= number_format((int) ($menu['cantidad'] ?? 0), 0, ',', '.') ?>
+                                                    </span>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    <?php else: ?>
+                                        <div class="curso-empty">Sin menus para este curso.</div>
+                                    <?php endif; ?>
                                 </div>
                             <?php endforeach; ?>
-                        </div>
-                    <?php else: ?>
-                        <p>No hay pedidos de viandas para la fecha seleccionada.</p>
-                    <?php endif; ?>
+                        <?php else: ?>
+                            <div class="curso-empty">No hay cursos con pedidos para la fecha seleccionada.</div>
+                        <?php endif; ?>
+                    </div>
                 </div>
 
                 <div class="card">
                     <div class="resumen-header">
                         <div>
-                            <h3>Pedidos de Cuyo Placa</h3>
-                            <p class="resumen-subtitle">Fecha: <?= htmlspecialchars(date('d/m/Y', strtotime($fechaEntrega))) ?></p>
+                            <h3>Cuyo Placas</h3>
                         </div>
-                        <div class="resumen-total-box">
-                            <span class="material-icons">inventory_2</span>
-                            <span>Total unidades: <?= number_format($totalCuyoPlaca, 0, ',', '.') ?></span>
-                        </div>
-                    </div>
-
-                    <div class="tabla-wrapper">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Pedido</th>
-                                    <th>Fecha</th>
-                                    <th>Usuario</th>
-                                    <th>Planta</th>
-                                    <th>Turno</th>
-                                    <th>Menu</th>
-                                    <th>Cantidad</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (!empty($cuyoPlacaPedidos)): ?>
-                                    <?php foreach ($cuyoPlacaPedidos as $pedido): ?>
-                                        <tr>
-                                            <td><?= htmlspecialchars((string) ($pedido['pedido_id'] ?? '')) ?></td>
-                                            <td><?= htmlspecialchars((string) ($pedido['fecha'] ?? '')) ?></td>
-                                            <td><?= htmlspecialchars((string) ($pedido['usuario'] ?? '')) ?></td>
-                                            <td><?= htmlspecialchars((string) ($pedido['planta'] ?? '')) ?></td>
-                                            <td><?= htmlspecialchars((string) ($pedido['turno'] ?? '')) ?></td>
-                                            <td><?= htmlspecialchars((string) ($pedido['menu'] ?? '')) ?></td>
-                                            <td><?= number_format((int) ($pedido['cantidad'] ?? 0), 0, ',', '.') ?></td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <tr>
-                                        <td colspan="7">No hay pedidos de Cuyo Placa para la fecha seleccionada.</td>
-                                    </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
                     </div>
                 </div>
 

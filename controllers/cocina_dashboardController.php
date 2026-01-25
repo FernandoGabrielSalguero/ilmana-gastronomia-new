@@ -7,39 +7,39 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaEntrega)) {
 }
 
 $model = new CocinaDashboardModel($pdo);
-$resumenViandasRaw = $model->obtenerResumenViandasPorColegioCurso($fechaEntrega);
-$cuyoPlacaPedidos = $model->obtenerPedidosCuyoPlaca($fechaEntrega);
+$resumenMenusRaw = $model->obtenerMenusPorCurso($fechaEntrega);
+$totalPedidosDia = $model->obtenerTotalPedidosDia($fechaEntrega);
 
-$viandasPorColegio = [];
-$totalViandas = 0;
-foreach ($resumenViandasRaw as $row) {
-    $colegio = trim((string) ($row['Colegio_Nombre'] ?? ''));
-    if ($colegio === '') {
-        $colegio = 'Sin colegio';
+$tarjetasCursos = [];
+foreach ($resumenMenusRaw as $row) {
+    $cursoIdRaw = $row['Curso_Id'] ?? 'sin_curso';
+    $cursoId = $cursoIdRaw === null || $cursoIdRaw === '' ? 'sin_curso' : (string) $cursoIdRaw;
+    $cursoNombre = trim((string) ($row['Curso_Nombre'] ?? ''));
+    if ($cursoNombre === '') {
+        $cursoNombre = 'Sin curso asignado';
     }
 
-    $curso = trim((string) ($row['Curso_Nombre'] ?? ''));
-    if ($curso === '') {
-        $curso = 'Sin curso asignado';
+    $menuNombre = trim((string) ($row['Menu_Nombre'] ?? ''));
+    if ($menuNombre === '') {
+        $menuNombre = 'Menu sin nombre';
     }
 
     $cantidad = (int) ($row['Total'] ?? 0);
-    if (!isset($viandasPorColegio[$colegio])) {
-        $viandasPorColegio[$colegio] = [
+
+    if (!isset($tarjetasCursos[$cursoId])) {
+        $tarjetasCursos[$cursoId] = [
+            'id' => $cursoId,
+            'nombre' => $cursoNombre,
             'total' => 0,
-            'cursos' => []
+            'menus' => []
         ];
     }
-    if (!isset($viandasPorColegio[$colegio]['cursos'][$curso])) {
-        $viandasPorColegio[$colegio]['cursos'][$curso] = 0;
-    }
 
-    $viandasPorColegio[$colegio]['cursos'][$curso] += $cantidad;
-    $viandasPorColegio[$colegio]['total'] += $cantidad;
-    $totalViandas += $cantidad;
+    $tarjetasCursos[$cursoId]['menus'][] = [
+        'nombre' => $menuNombre,
+        'cantidad' => $cantidad
+    ];
+    $tarjetasCursos[$cursoId]['total'] += $cantidad;
 }
 
-$totalCuyoPlaca = 0;
-foreach ($cuyoPlacaPedidos as $pedido) {
-    $totalCuyoPlaca += (int) ($pedido['cantidad'] ?? 0);
-}
+$cursosTarjetas = array_values($tarjetasCursos);
