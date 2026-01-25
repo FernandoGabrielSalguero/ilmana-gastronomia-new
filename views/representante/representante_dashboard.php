@@ -272,6 +272,51 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             font-size: 14px;
         }
 
+        .alumnos-curso-card {
+            margin-top: 20px;
+            border-top: 1px dashed #e5e7eb;
+            padding-top: 16px;
+        }
+
+        .alumnos-table-wrapper {
+            max-height: 320px;
+            overflow: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+        }
+
+        .alumnos-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .alumnos-table th,
+        .alumnos-table td {
+            padding: 8px 10px;
+            font-size: 14px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
+
+        .alumnos-table thead th {
+            position: sticky;
+            top: 0;
+            background: #ffffff;
+            z-index: 1;
+        }
+
+        .alumnos-select {
+            width: 100%;
+            min-width: 160px;
+        }
+
+        .alumnos-empty {
+            padding: 12px;
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
         @media (max-width: 640px) {
             .resumen-header {
                 flex-direction: column;
@@ -420,6 +465,65 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                         <?php else: ?>
                             <div class="curso-empty">No hay cursos con pedidos para el dia.</div>
                         <?php endif; ?>
+                    </div>
+
+                    <div class="alumnos-curso-card">
+                        <div class="resumen-header">
+                            <div>
+                                <h3 class="resumen-title">Actualizar cursos de alumnos</h3>
+                                <p class="resumen-subtitle">Edita el curso y se actualiza en toda la pagina.</p>
+                            </div>
+                        </div>
+                        <div class="alumnos-table-wrapper">
+                            <table class="alumnos-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID alumno</th>
+                                        <th>Nombre</th>
+                                        <th>Curso actual</th>
+                                        <th>Nuevo curso</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($alumnosCursos)): ?>
+                                        <?php foreach ($alumnosCursos as $alumno): ?>
+                                            <?php
+                                            $cursoActualNombre = trim((string) ($alumno['Curso'] ?? ''));
+                                            if ($cursoActualNombre === '') {
+                                                $cursoActualNombre = 'Sin curso asignado';
+                                            }
+                                            $cursoActualIdRaw = $alumno['Curso_Id'] ?? null;
+                                            $cursoActualId = $cursoActualIdRaw ? (string) $cursoActualIdRaw : 'sin_curso';
+                                            ?>
+                                            <tr data-hijo-id="<?= (int) ($alumno['Id'] ?? 0) ?>">
+                                                <td><?= (int) ($alumno['Id'] ?? 0) ?></td>
+                                                <td><?= htmlspecialchars($alumno['Nombre'] ?? '') ?></td>
+                                                <td class="curso-actual"><?= htmlspecialchars($cursoActualNombre) ?></td>
+                                                <td>
+                                                    <select class="alumnos-select" data-curso-select
+                                                        data-hijo-id="<?= (int) ($alumno['Id'] ?? 0) ?>"
+                                                        data-prev="<?= htmlspecialchars((string) $cursoActualId) ?>">
+                                                        <option value="sin_curso" <?= $cursoActualId === 'sin_curso' ? 'selected' : '' ?>>
+                                                            Sin curso asignado
+                                                        </option>
+                                                        <?php foreach ($cursosDisponibles as $curso): ?>
+                                                            <option value="<?= (int) $curso['Id'] ?>"
+                                                                <?= (string) $curso['Id'] === (string) $cursoActualId ? 'selected' : '' ?>>
+                                                                <?= htmlspecialchars($curso['Nombre'] ?? '') ?>
+                                                            </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="4" class="alumnos-empty">No hay alumnos disponibles.</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -665,6 +769,64 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             });
         };
 
+        const bindCursoSelects = (scope) => {
+            const selects = (scope || document).querySelectorAll('[data-curso-select]');
+            selects.forEach((select) => {
+                if (select.dataset.bound === '1') return;
+                select.dataset.bound = '1';
+                select.addEventListener('change', async () => {
+                    const hijoId = select.dataset.hijoId || '';
+                    const cursoId = select.value;
+                    const prev = select.dataset.prev || '';
+                    if (!hijoId) return;
+
+                    const formData = new FormData();
+                    formData.append('ajax', 'actualizar_curso');
+                    formData.append('hijo_id', hijoId);
+                    formData.append('curso_id', cursoId);
+
+                    let data;
+                    try {
+                        const res = await fetch('representante_dashboard.php', {
+                            method: 'POST',
+                            body: formData,
+                            credentials: 'same-origin'
+                        });
+                        if (!res.ok) {
+                            const body = await res.text();
+                            console.error('Error actualizando curso:', {
+                                status: res.status,
+                                statusText: res.statusText,
+                                body
+                            });
+                            throw new Error('Error actualizando curso');
+                        }
+                        data = await res.json();
+                    } catch (err) {
+                        console.error('Error de conexion actualizando curso:', err);
+                        select.value = prev;
+                        return;
+                    }
+
+                    if (!data || data.ok !== true) {
+                        select.value = prev;
+                        return;
+                    }
+
+                    select.dataset.prev = cursoId;
+                    const row = select.closest('tr');
+                    const cursoCell = row ? row.querySelector('.curso-actual') : null;
+                    if (cursoCell) {
+                        cursoCell.textContent = data.cursoNombre || 'Sin curso asignado';
+                    }
+
+                    if (fechaEntregaInput && fechaEntregaInput.value) {
+                        cargarResumenAjax(fechaEntregaInput.value);
+                    }
+                });
+            });
+        };
+
         if (resumenForm) {
             resumenForm.addEventListener('submit', (event) => {
                 event.preventDefault();
@@ -680,6 +842,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
         }
 
         bindDescargaCursos(document);
+        bindCursoSelects(document);
 
         console.log(<?php echo json_encode($_SESSION); ?>);
     </script>

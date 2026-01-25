@@ -93,6 +93,55 @@ class RepresentanteDashboardModel
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
+    public function obtenerCursosPorRepresentante($representanteId)
+    {
+        $sql = "SELECT DISTINCT c.Id, c.Nombre
+            FROM Cursos c
+            JOIN Colegios col ON col.Id = c.Colegio_Id
+            JOIN Representantes_Colegios rc ON rc.Colegio_Id = col.Id
+            WHERE rc.Representante_Id = :representanteId
+            ORDER BY c.Nombre";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'representanteId' => $representanteId
+        ]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerAlumnosPorRepresentante($representanteId)
+    {
+        $sql = "SELECT h.Id, h.Nombre, h.Curso_Id, c.Nombre AS Curso
+            FROM Hijos h
+            JOIN Representantes_Colegios rc ON rc.Colegio_Id = h.Colegio_Id
+            LEFT JOIN Cursos c ON c.Id = h.Curso_Id
+            WHERE rc.Representante_Id = :representanteId
+            ORDER BY h.Nombre";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'representanteId' => $representanteId
+        ]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function actualizarCursoHijo($representanteId, $hijoId, $cursoId)
+    {
+        $sql = "UPDATE Hijos h
+            JOIN Representantes_Colegios rc ON rc.Colegio_Id = h.Colegio_Id
+            SET h.Curso_Id = :cursoId
+            WHERE h.Id = :hijoId
+              AND rc.Representante_Id = :representanteId";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'cursoId' => $cursoId,
+            'hijoId' => $hijoId,
+            'representanteId' => $representanteId
+        ]);
+        return $stmt->rowCount() > 0;
+    }
+
     public function obtenerDetalleCursoPedidos($representanteId, $cursoId, $fechaEntrega)
     {
         $cursoCondicion = $cursoId === 'sin_curso' ? 'h.Curso_Id IS NULL' : 'h.Curso_Id = :cursoId';

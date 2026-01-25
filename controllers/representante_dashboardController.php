@@ -11,8 +11,12 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaEntrega)) {
 $cursosTarjetas = [];
 $resumenCursos = [];
 $totalPedidosDia = 0;
+$cursosDisponibles = [];
+$alumnosCursos = [];
 if ($representanteId) {
     $model = new RepresentanteDashboardModel($pdo);
+    $cursosDisponibles = $model->obtenerCursosPorRepresentante($representanteId);
+    $alumnosCursos = $model->obtenerAlumnosPorRepresentante($representanteId);
     $cursosAlumnos = $model->obtenerCursosConPedidos($representanteId, $fechaEntrega);
     $resumenCursosRaw = $model->obtenerResumenPedidosPorCurso($representanteId, $fechaEntrega);
     $totalPedidosDia = $model->obtenerTotalPedidosDia($representanteId, $fechaEntrega);
@@ -110,6 +114,45 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'curso_detalle') {
         'fecha' => $fechaEntrega,
         'viandas' => (int) ($detalle['viandas'] ?? 0),
         'alumnos' => $alumnos
+    ]);
+    exit;
+}
+
+if (isset($_POST['ajax']) && $_POST['ajax'] === 'actualizar_curso') {
+    header('Content-Type: application/json');
+
+    if (!$representanteId) {
+        echo json_encode(['ok' => false, 'error' => 'Sesion invalida.']);
+        exit;
+    }
+
+    $hijoId = isset($_POST['hijo_id']) ? (int) $_POST['hijo_id'] : 0;
+    $cursoId = $_POST['curso_id'] ?? '';
+    if ($hijoId <= 0) {
+        echo json_encode(['ok' => false, 'error' => 'Alumno invalido.']);
+        exit;
+    }
+
+    $cursoIdFinal = null;
+    $cursoNombre = 'Sin curso asignado';
+    $cursoMap = [];
+    foreach ($cursosDisponibles as $curso) {
+        $cursoMap[(string) $curso['Id']] = $curso['Nombre'];
+    }
+
+    if ($cursoId !== '' && $cursoId !== 'sin_curso') {
+        if (!isset($cursoMap[(string) $cursoId])) {
+            echo json_encode(['ok' => false, 'error' => 'Curso invalido.']);
+            exit;
+        }
+        $cursoIdFinal = (int) $cursoId;
+        $cursoNombre = $cursoMap[(string) $cursoId];
+    }
+
+    $ok = $model->actualizarCursoHijo($representanteId, $hijoId, $cursoIdFinal);
+    echo json_encode([
+        'ok' => $ok,
+        'cursoNombre' => $cursoNombre
     ]);
     exit;
 }
