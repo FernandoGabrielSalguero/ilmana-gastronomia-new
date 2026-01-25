@@ -16,20 +16,13 @@ foreach ($nivelesOrden as $nivel) {
     $nivelesTarjetas[$nivel] = [
         'nivel' => $nivel,
         'total' => 0,
-        'cursos' => []
+        'menus' => []
     ];
 }
 
 foreach ($resumenMenusRaw as $row) {
     $nivelRaw = trim((string) ($row['Nivel_Educativo'] ?? ''));
     $nivel = in_array($nivelRaw, $nivelesOrden, true) ? $nivelRaw : 'Inicial';
-
-    $cursoIdRaw = $row['Curso_Id'] ?? 'sin_curso';
-    $cursoId = $cursoIdRaw === null || $cursoIdRaw === '' ? 'sin_curso' : (string) $cursoIdRaw;
-    $cursoNombre = trim((string) ($row['Curso_Nombre'] ?? ''));
-    if ($cursoNombre === '') {
-        $cursoNombre = 'Sin curso asignado';
-    }
 
     $menuNombre = trim((string) ($row['Menu_Nombre'] ?? ''));
     if ($menuNombre === '') {
@@ -38,27 +31,43 @@ foreach ($resumenMenusRaw as $row) {
 
     $cantidad = (int) ($row['Total'] ?? 0);
 
-    if (!isset($nivelesTarjetas[$nivel]['cursos'][$cursoId])) {
-        $nivelesTarjetas[$nivel]['cursos'][$cursoId] = [
-            'id' => $cursoId,
-            'nombre' => $cursoNombre,
+    if (!isset($nivelesTarjetas[$nivel]['menus'][$menuNombre])) {
+        $nivelesTarjetas[$nivel]['menus'][$menuNombre] = [
+            'nombre' => $menuNombre,
             'total' => 0,
-            'menus' => []
+            'cursos' => []
         ];
     }
 
-    $nivelesTarjetas[$nivel]['cursos'][$cursoId]['menus'][] = [
-        'nombre' => $menuNombre,
-        'cantidad' => $cantidad
-    ];
-    $nivelesTarjetas[$nivel]['cursos'][$cursoId]['total'] += $cantidad;
+    $cursoIdRaw = $row['Curso_Id'] ?? 'sin_curso';
+    $cursoId = $cursoIdRaw === null || $cursoIdRaw === '' ? 'sin_curso' : (string) $cursoIdRaw;
+    $cursoNombre = trim((string) ($row['Curso_Nombre'] ?? ''));
+    if ($cursoNombre === '') {
+        $cursoNombre = 'Sin curso asignado';
+    }
+
+    if (!isset($nivelesTarjetas[$nivel]['menus'][$menuNombre]['cursos'][$cursoId])) {
+        $nivelesTarjetas[$nivel]['menus'][$menuNombre]['cursos'][$cursoId] = [
+            'id' => $cursoId,
+            'nombre' => $cursoNombre,
+            'cantidad' => 0
+        ];
+    }
+
+    $nivelesTarjetas[$nivel]['menus'][$menuNombre]['cursos'][$cursoId]['cantidad'] += $cantidad;
+    $nivelesTarjetas[$nivel]['menus'][$menuNombre]['total'] += $cantidad;
     $nivelesTarjetas[$nivel]['total'] += $cantidad;
 }
 
 $nivelesList = [];
 foreach ($nivelesOrden as $nivel) {
     $nivelData = $nivelesTarjetas[$nivel];
-    $nivelData['cursos'] = array_values($nivelData['cursos']);
+    $menusList = [];
+    foreach ($nivelData['menus'] as $menuData) {
+        $menuData['cursos'] = array_values($menuData['cursos']);
+        $menusList[] = $menuData;
+    }
+    $nivelData['menus'] = $menusList;
     $nivelesList[] = $nivelData;
 }
 

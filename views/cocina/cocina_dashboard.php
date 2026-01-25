@@ -405,38 +405,38 @@ $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
                                     </span>
                                 </div>
                                 <div class="cursos-grid">
-                                    <?php if (!empty($nivelData['cursos'])): ?>
-                                        <?php foreach ($nivelData['cursos'] as $curso): ?>
+                                    <?php if (!empty($nivelData['menus'])): ?>
+                                        <?php foreach ($nivelData['menus'] as $menu): ?>
                                             <div class="card curso-card">
                                                 <div class="curso-card-header">
-                                                    <h4><?= htmlspecialchars($curso['nombre']) ?></h4>
+                                                    <h4><?= htmlspecialchars($menu['nombre']) ?></h4>
                                                 </div>
                                                 <div class="curso-meta">
                                                     <span class="curso-icon">
                                                         <span class="material-icons">restaurant</span>
                                                     </span>
                                                     <span class="curso-count">
-                                                        <?= number_format((int) ($curso['total'] ?? 0), 0, ',', '.') ?> menus
+                                                        <?= number_format((int) ($menu['total'] ?? 0), 0, ',', '.') ?> menus
                                                     </span>
                                                 </div>
-                                                <?php if (!empty($curso['menus'])): ?>
+                                                <?php if (!empty($menu['cursos'])): ?>
                                                     <ul class="curso-menus">
-                                                        <?php foreach ($curso['menus'] as $menu): ?>
+                                                        <?php foreach ($menu['cursos'] as $curso): ?>
                                                             <li>
-                                                                <span><?= htmlspecialchars($menu['nombre'] ?? '') ?></span>
+                                                                <span><?= htmlspecialchars($curso['nombre'] ?? '') ?></span>
                                                                 <span class="menu-count">
-                                                                    <?= number_format((int) ($menu['cantidad'] ?? 0), 0, ',', '.') ?>
+                                                                    <?= number_format((int) ($curso['cantidad'] ?? 0), 0, ',', '.') ?>
                                                                 </span>
                                                             </li>
                                                         <?php endforeach; ?>
                                                     </ul>
                                                 <?php else: ?>
-                                                    <div class="curso-empty">Sin menus para este curso.</div>
+                                                    <div class="curso-empty">Sin cursos para este menu.</div>
                                                 <?php endif; ?>
                                             </div>
                                         <?php endforeach; ?>
                                     <?php else: ?>
-                                        <div class="curso-empty">Sin cursos para este nivel.</div>
+                                        <div class="curso-empty">Sin menus para este nivel.</div>
                                     <?php endif; ?>
                                 </div>
                             </div>
