@@ -632,8 +632,9 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             font-size: 14px;
         }
 
-        .resumen-modal-menu {
+        .resumen-modal-list li.resumen-modal-menu {
             display: grid;
+            align-items: stretch;
             gap: 6px;
         }
 
