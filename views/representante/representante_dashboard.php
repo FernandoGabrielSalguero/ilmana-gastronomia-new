@@ -162,53 +162,6 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             margin-right: 48px;
         }
 
-        .resumen-detalle {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-            gap: 12px;
-        }
-
-        .resumen-item {
-            border-radius: 14px;
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            min-height: 120px;
-        }
-
-        .resumen-item-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-        }
-
-        .resumen-item-title {
-            font-size: 14px;
-            color: #0f172a;
-            margin: 0;
-        }
-
-        .resumen-item-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            background: #e0f2fe;
-            color: #0369a1;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .resumen-item-total {
-            font-size: 20px;
-            font-weight: 700;
-            color: #0f172a;
-        }
-
         .resumen-empty {
             color: #9ca3af;
             font-size: 14px;
@@ -403,34 +356,6 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                             </form>
                         </div>
                     </div>
-                    <div class="resumen-detalle" id="resumen-detalle">
-                        <?php if (!empty($resumenCursos)): ?>
-                            <?php foreach ($resumenCursos as $curso): ?>
-                                <div class="resumen-item">
-                                    <div class="resumen-item-header">
-                                        <h4 class="resumen-item-title"><?= htmlspecialchars($curso['nombre']) ?></h4>
-                                        <span class="resumen-item-icon">
-                                            <span class="material-icons">restaurant</span>
-                                        </span>
-                                    </div>
-                                    <div class="resumen-item-total">
-                                        <?= number_format((int) $curso['total'], 0, ',', '.') ?>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="resumen-empty">No hay pedidos para el dia.</div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="resumen-header">
-                        <div>
-                            <h3 class="resumen-title">Cursos con pedidos</h3>
-                            <p class="resumen-subtitle">Listado de alumnos con pedido de vianda.</p>
-                        </div>
-                    </div>
                     <div class="cursos-grid" id="cursos-grid">
                         <?php if (!empty($cursosTarjetas)): ?>
                             <?php foreach ($cursosTarjetas as $curso): ?>
@@ -472,7 +397,6 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
         const panelResumenFiltros = document.getElementById('panelResumenFiltros');
         const resumenForm = document.getElementById('resumen-filtros-form');
         const fechaEntregaInput = document.getElementById('fecha-entrega-input');
-        const resumenDetalle = document.getElementById('resumen-detalle');
         const cursosGrid = document.getElementById('cursos-grid');
         const resumenTotal = document.getElementById('resumen-total-count');
         const resumenFecha = document.getElementById('resumen-fecha-texto');
@@ -514,9 +438,6 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                     return res.json();
                 })
                 .then((data) => {
-                    if (resumenDetalle && typeof data.resumenDetalleHtml === 'string') {
-                        resumenDetalle.innerHTML = data.resumenDetalleHtml;
-                    }
                     if (cursosGrid && typeof data.cursosGridHtml === 'string') {
                         cursosGrid.innerHTML = data.cursosGridHtml;
                     }

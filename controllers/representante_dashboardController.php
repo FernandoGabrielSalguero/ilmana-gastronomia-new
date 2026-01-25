@@ -60,30 +60,6 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
     header('Content-Type: application/json');
 
     ob_start();
-    if (!empty($resumenCursos)) {
-        foreach ($resumenCursos as $curso) {
-            ?>
-            <div class="resumen-item">
-                <div class="resumen-item-header">
-                    <h4 class="resumen-item-title"><?= htmlspecialchars($curso['nombre']) ?></h4>
-                    <span class="resumen-item-icon">
-                        <span class="material-icons">restaurant</span>
-                    </span>
-                </div>
-                <div class="resumen-item-total">
-                    <?= number_format((int) $curso['total'], 0, ',', '.') ?>
-                </div>
-            </div>
-            <?php
-        }
-    } else {
-        ?>
-        <div class="resumen-empty">No hay pedidos para el dia.</div>
-        <?php
-    }
-    $resumenDetalleHtml = ob_get_clean();
-
-    ob_start();
     if (!empty($cursosTarjetas)) {
         foreach ($cursosTarjetas as $curso) {
             ?>
@@ -119,7 +95,6 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
     echo json_encode([
         'totalPedidos' => $totalPedidosDia,
         'fechaTexto' => date('d/m/Y', strtotime($fechaEntrega)),
-        'resumenDetalleHtml' => $resumenDetalleHtml,
         'cursosGridHtml' => $cursosGridHtml
     ]);
     exit;
