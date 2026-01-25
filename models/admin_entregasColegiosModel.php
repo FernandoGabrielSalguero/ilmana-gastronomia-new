@@ -75,4 +75,31 @@ class AdminEntregasColegiosModel
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ? (int) $row['Total'] : 0;
     }
+
+    public function obtenerDetallesPedidos($fechaEntrega)
+    {
+        $sql = "SELECT
+                pc.Id AS Pedido_Id,
+                co.Nombre AS Colegio_Nombre,
+                c.Nombre AS Curso_Nombre,
+                h.Nombre AS Alumno_Nombre,
+                m.Nombre AS Menu_Nombre,
+                COALESCE(pa.Nombre, NULLIF(TRIM(h.Preferencias_Alimenticias), ''), 'Sin preferencias') AS Preferencias,
+                pc.Estado AS Estado,
+                pc.motivo_cancelacion AS Motivo_Cancelacion
+            FROM Pedidos_Comida pc
+            JOIN Hijos h ON h.Id = pc.Hijo_Id
+            LEFT JOIN Cursos c ON c.Id = h.Curso_Id
+            LEFT JOIN Colegios co ON co.Id = h.Colegio_Id
+            JOIN MenÃº m ON m.Id = pc.MenÃº_Id
+            LEFT JOIN Preferencias_Alimenticias pa ON pa.Id = h.Preferencias_Alimenticias
+            WHERE pc.Fecha_entrega = :fechaEntrega
+            ORDER BY pc.Id DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'fechaEntrega' => $fechaEntrega
+        ]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

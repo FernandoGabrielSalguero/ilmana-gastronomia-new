@@ -10,6 +10,7 @@ $model = new AdminEntregasColegiosModel($pdo);
 $resumenMenusRaw = $model->obtenerMenusPorCurso($fechaEntrega);
 $preferenciasRaw = $model->obtenerPreferenciasPorMenuNivel($fechaEntrega);
 $totalPedidosDia = $model->obtenerTotalPedidosDia($fechaEntrega);
+$detallesPedidos = $model->obtenerDetallesPedidos($fechaEntrega);
 
 $nivelesOrden = ['Inicial', 'Primaria', 'Secundaria'];
 $nivelesTarjetas = [];

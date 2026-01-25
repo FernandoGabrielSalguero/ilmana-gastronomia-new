@@ -1190,8 +1190,61 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
                 <div class="card">
                     <div class="resumen-header">
                         <div>
-                            <h3>Cuyo Placas</h3>
+                            <h3>Detalles de pedidos</h3>
                         </div>
+                    </div>
+                    <div class="tabla-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Id pedido</th>
+                                    <th>Colegio</th>
+                                    <th>Curso</th>
+                                    <th>Nombre alumno</th>
+                                    <th>Menú</th>
+                                    <th>Preferencias</th>
+                                    <th>Estado</th>
+                                    <th>Motivo cancelación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($detallesPedidos)): ?>
+                                    <?php foreach ($detallesPedidos as $pedido): ?>
+                                        <?php
+                                        $estado = (string) ($pedido['Estado'] ?? '');
+                                        $estadoClass = '';
+                                        if ($estado === 'Entregado') {
+                                            $estadoClass = 'success';
+                                        } elseif ($estado === 'Procesando') {
+                                            $estadoClass = 'warning';
+                                        } elseif ($estado === 'Cancelado') {
+                                            $estadoClass = 'danger';
+                                        }
+                                        $motivoCancelacion = trim((string) ($pedido['Motivo_Cancelacion'] ?? ''));
+                                        if ($motivoCancelacion === '') {
+                                            $motivoCancelacion = 'Sin motivo';
+                                        }
+                                        ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars((string) ($pedido['Pedido_Id'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars((string) ($pedido['Colegio_Nombre'] ?? 'Sin colegio')) ?></td>
+                                            <td><?= htmlspecialchars((string) ($pedido['Curso_Nombre'] ?? 'Sin curso asignado')) ?></td>
+                                            <td><?= htmlspecialchars((string) ($pedido['Alumno_Nombre'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars((string) ($pedido['Menu_Nombre'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars((string) ($pedido['Preferencias'] ?? 'Sin preferencias')) ?></td>
+                                            <td>
+                                                <span class="badge <?= $estadoClass ?>"><?= htmlspecialchars($estado) ?></span>
+                                            </td>
+                                            <td><?= htmlspecialchars($motivoCancelacion) ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="8">No hay pedidos para la fecha seleccionada.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
