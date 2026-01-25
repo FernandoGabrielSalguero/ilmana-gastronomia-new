@@ -70,12 +70,14 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
                                 <div class="resumen-section-title"><?= htmlspecialchars($tituloNivel) ?></div>
                                 <?php foreach ($menusResumenList as $menuResumen): ?>
                                     <?php $nivelCantidad = (int) ($menuResumen['niveles'][$nivelNombre] ?? 0); ?>
-                                    <div class="resumen-metric">
-                                        <span class="resumen-metric-label"><?= htmlspecialchars($menuResumen['nombre']) ?></span>
-                                        <span class="resumen-metric-value">
-                                            <?= number_format($nivelCantidad, 0, ',', '.') ?>
-                                        </span>
-                                    </div>
+                                    <?php if ($nivelCantidad > 0): ?>
+                                        <div class="resumen-metric">
+                                            <span class="resumen-metric-label"><?= htmlspecialchars($menuResumen['nombre']) ?></span>
+                                            <span class="resumen-metric-value">
+                                                <?= number_format($nivelCantidad, 0, ',', '.') ?>
+                                            </span>
+                                        </div>
+                                    <?php endif; ?>
                                 <?php endforeach; ?>
                             </div>
                         <?php endforeach; ?>
