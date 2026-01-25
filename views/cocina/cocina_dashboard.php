@@ -636,6 +636,13 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             display: grid;
             align-items: stretch;
             gap: 6px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eef2f7;
+        }
+
+        .resumen-modal-list li.resumen-modal-menu:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
         }
 
         .resumen-modal-menu-row {
@@ -666,6 +673,10 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             align-items: center;
             gap: 10px;
             font-size: 13px;
+        }
+
+        .resumen-modal-pref-list li span:last-child {
+            margin-left: auto;
         }
 
         .resumen-modal-pref-list li.is-none {
