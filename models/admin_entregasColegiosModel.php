@@ -91,7 +91,7 @@ class AdminEntregasColegiosModel
             JOIN Hijos h ON h.Id = pc.Hijo_Id
             LEFT JOIN Cursos c ON c.Id = h.Curso_Id
             LEFT JOIN Colegios co ON co.Id = h.Colegio_Id
-            JOIN MenÃº m ON m.Id = pc.MenÃº_Id
+            JOIN Menú m ON m.Id = pc.Menú_Id
             LEFT JOIN Preferencias_Alimenticias pa ON pa.Id = h.Preferencias_Alimenticias
             WHERE pc.Fecha_entrega = :fechaEntrega
             ORDER BY pc.Id DESC";
