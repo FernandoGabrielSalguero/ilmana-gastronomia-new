@@ -289,6 +289,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
         .curso-count.is-total {
             font-size: 18px;
             padding: 8px 16px;
+            background: #1d4ed8;
+            color: #ffffff;
         }
 
         .curso-meta {
@@ -410,8 +412,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
 
         .resumen-metric-highlight {
             font-weight: 700;
-            color: #0f172a;
-            background: #e0f2fe;
+            color: #ffffff;
+            background: #2563eb;
             border-radius: 999px;
             padding: 4px 10px;
         }
@@ -426,8 +428,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.04em;
-            color: #0f172a;
-            background: #f1f5f9;
+            color: #ffffff;
+            background: #1e40af;
             border-radius: 999px;
             padding: 4px 10px;
             display: inline-flex;
@@ -439,7 +441,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             text-transform: uppercase;
             letter-spacing: 0.04em;
             font-size: 11px;
-            color: #64748b;
+            color: #0f172a;
+            opacity: 1;
         }
 
         .resumen-metric-value {
