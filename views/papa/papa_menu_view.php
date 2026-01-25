@@ -41,7 +41,11 @@ if (isset($fechasMap['sin_fecha'])) {
         width: 100%;
     }
 
-    .vianda-table select {
+    .vianda-table .input-icon {
+        width: 100%;
+    }
+
+    .vianda-table .input-icon select {
         width: 100%;
     }
 
@@ -115,22 +119,24 @@ if (isset($fechasMap['sin_fecha'])) {
                                     <?php if (empty($listaMenus)): ?>
                                         <span class="text-muted">-</span>
                                     <?php else: ?>
-                                        <select name="menu_por_dia[<?= (int) $hijo['Id'] ?>][<?= htmlspecialchars($fechaKey) ?>]">
-                                            <option value="">Seleccionar menu</option>
-                                            <?php foreach ($listaMenus as $menu): ?>
-                                                <?php
-                                                $precio = $menu['Precio'] !== null
-                                                    ? '$' . number_format((float)$menu['Precio'], 2, ',', '.')
-                                                    : 'Sin precio';
-                                                $label = $menu['Nombre']
-                                                    ? $menu['Nombre'] . ' (' . $precio . ')'
-                                                    : $precio;
-                                                ?>
-                                                <option value="<?= (int) $menu['Id'] ?>" data-precio="<?= htmlspecialchars((string) ($menu['Precio'] ?? 0)) ?>">
-                                                    <?= htmlspecialchars($label) ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
+                                        <div class="input-icon">
+                                            <select name="menu_por_dia[<?= (int) $hijo['Id'] ?>][<?= htmlspecialchars($fechaKey) ?>]">
+                                                <option value="">Seleccionar menu</option>
+                                                <?php foreach ($listaMenus as $menu): ?>
+                                                    <?php
+                                                    $precio = $menu['Precio'] !== null
+                                                        ? '$' . number_format((float)$menu['Precio'], 2, ',', '.')
+                                                        : 'Sin precio';
+                                                    $label = $menu['Nombre']
+                                                        ? $menu['Nombre'] . ' (' . $precio . ')'
+                                                        : $precio;
+                                                    ?>
+                                                    <option value="<?= (int) $menu['Id'] ?>" data-precio="<?= htmlspecialchars((string) ($menu['Precio'] ?? 0)) ?>">
+                                                        <?= htmlspecialchars($label) ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
                                     <?php endif; ?>
                                 </td>
                             <?php endforeach; ?>
