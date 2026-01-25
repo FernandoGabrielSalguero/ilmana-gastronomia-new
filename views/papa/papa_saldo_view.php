@@ -9,17 +9,9 @@ require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../controllers/papa_saldo_controller.php';
 
 // Expiracion por inactividad (20 minutos)
-if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 1200)) {
-    session_unset();
-    session_destroy();
-    header("Location: /index.php?expired=1");
-    exit;
-}
-$_SESSION['LAST_ACTIVITY'] = time();
-
 // Control de sesion activa
 if (!isset($_SESSION['usuario_id']) || empty($_SESSION['nombre'])) {
-    header("Location: /index.php?expired=1");
+    header("Location: /index.php");
     exit;
 }
 

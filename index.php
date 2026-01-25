@@ -5,9 +5,9 @@ error_reporting(E_ALL);
 
 if (session_status() === PHP_SESSION_NONE) {
     // Configurar duraciÃ³n de sesión en 20 minutos
-    ini_set('session.gc_maxlifetime', 1200); // 20 minutos
+    ini_set('session.gc_maxlifetime', 31536000); // 1 anio
     session_set_cookie_params([
-        'lifetime' => 1200,
+        'lifetime' => 0,
         'path' => '/',
         'domain' => '',
         'secure' => isset($_SERVER['HTTPS']),
@@ -21,12 +21,14 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/models/AuthModel.php';
 
 $error = '';
+/*
 
 // Mensaje si viene por expiración
 if (isset($_GET['expired']) && $_GET['expired'] == 1) {
     $error = "La sesión expiró por inactividad. Por favor, iniciá sesión nuevamente.";
 }
 
+*/
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usuario = $_POST['usuario'];
     $contrasena = $_POST['contrasena'];
@@ -50,7 +52,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['rol'] = $user['Rol'];
         $_SESSION['estado'] = $user['Estado'];
         $_SESSION['saldo'] = $user['Saldo'] ?? 0.00;
-        $_SESSION['LAST_ACTIVITY'] = time();
 
         // RedirecciÃ³n por Rol
         switch ($user['Rol']) {

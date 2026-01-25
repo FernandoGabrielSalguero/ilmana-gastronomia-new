@@ -7,15 +7,6 @@ error_reporting(E_ALL);
 // Iniciar sesion y proteger acceso
 session_start();
 
-// Expiracion por inactividad (20 minutos)
-if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 1200)) {
-    session_unset();
-    session_destroy();
-    header("Location: /index.php?expired=1");
-    exit;
-}
-$_SESSION['LAST_ACTIVITY'] = time(); // Actualiza el tiempo de actividad
-
 // Proteccion de acceso general
 if (!isset($_SESSION['usuario'])) {
     die("Acceso denegado. No has iniciado sesion.");

@@ -8,15 +8,6 @@ error_reporting(E_ALL);
 session_start();
 require_once __DIR__ . '/../../config.php';
 
-// Expiracion por inactividad (20 minutos)
-if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 1200)) {
-    session_unset();
-    session_destroy();
-    header("Location: /index.php?expired=1");
-    exit;
-}
-$_SESSION['LAST_ACTIVITY'] = time(); // Actualiza el tiempo de actividad
-
 // Proteccion de acceso general
 if (!isset($_SESSION['usuario']) && !isset($_SESSION['usuario_id'])) {
     die("Acceso denegado. No has iniciado sesion.");
