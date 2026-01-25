@@ -874,10 +874,6 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                         cursoCell.textContent = data.cursoNombre || 'Sin curso asignado';
                     }
                     showAlertSafe('success', 'Curso actualizado correctamente.');
-
-                    if (fechaEntregaInput && fechaEntregaInput.value) {
-                        cargarResumenAjax(fechaEntregaInput.value);
-                    }
                 });
             });
         };
