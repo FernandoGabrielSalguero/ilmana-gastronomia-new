@@ -109,7 +109,7 @@ class RepresentanteDashboardModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function obtenerAlumnosPorRepresentante($representanteId, $fechaEntrega = null)
+    public function obtenerAlumnosPorRepresentante($representanteId, $fechaEntrega = null, $nombre = null)
     {
         $sql = "SELECT DISTINCT h.Id, h.Nombre, h.Curso_Id, c.Nombre AS Curso
             FROM Hijos h
@@ -131,7 +131,12 @@ class RepresentanteDashboardModel
             $params['fechaEntrega'] = $fechaEntrega;
         }
 
-        $sql .= " ORDER BY h.Nombre";
+        if ($nombre) {
+            $sql .= " AND h.Nombre LIKE :nombre";
+            $params['nombre'] = '%' . $nombre . '%';
+        }
+
+        $sql .= " ORDER BY h.Id ASC";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);

@@ -169,6 +169,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
             gap: 16px;
+            overflow-x: hidden;
         }
 
         .curso-card {
@@ -179,6 +180,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             display: flex;
             flex-direction: column;
             min-height: 210px;
+            min-width: 0;
         }
 
         .curso-card-header {
@@ -237,6 +239,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             padding: 0;
             max-height: 220px;
             overflow-y: auto;
+            overflow-x: hidden;
         }
 
         .curso-alumnos li {
@@ -244,6 +247,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             border-bottom: 1px dashed #e5e7eb;
             font-size: 14px;
             color: #374151;
+            word-break: break-word;
         }
 
         .curso-alumnos li.is-cancelado {
@@ -315,6 +319,11 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             padding: 12px;
             color: #9ca3af;
             font-size: 14px;
+        }
+
+        .alumnos-search {
+            max-width: 320px;
+            margin-bottom: 12px;
         }
 
         @media (max-width: 640px) {
@@ -476,6 +485,13 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                             <p class="resumen-subtitle">Edita el curso y se actualiza en toda la pagina.</p>
                         </div>
                     </div>
+                    <div class="input-group alumnos-search">
+                        <label for="alumnos-busqueda">Buscar alumno</label>
+                        <div class="input-icon input-icon-persona">
+                            <input type="search" id="alumnos-busqueda" placeholder="Escribi al menos 3 letras"
+                                autocomplete="off">
+                        </div>
+                    </div>
                     <div class="alumnos-table-wrapper">
                         <table class="alumnos-table">
                             <thead>
@@ -502,19 +518,21 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                                             <td><?= htmlspecialchars($alumno['Nombre'] ?? '') ?></td>
                                             <td class="curso-actual"><?= htmlspecialchars($cursoActualNombre) ?></td>
                                             <td>
-                                                <select class="alumnos-select" data-curso-select
-                                                    data-hijo-id="<?= (int) ($alumno['Id'] ?? 0) ?>"
-                                                    data-prev="<?= htmlspecialchars((string) $cursoActualId) ?>">
-                                                    <option value="sin_curso" <?= $cursoActualId === 'sin_curso' ? 'selected' : '' ?>>
-                                                        Sin curso asignado
-                                                    </option>
-                                                    <?php foreach ($cursosDisponibles as $curso): ?>
-                                                        <option value="<?= (int) $curso['Id'] ?>"
-                                                            <?= (string) $curso['Id'] === (string) $cursoActualId ? 'selected' : '' ?>>
-                                                            <?= htmlspecialchars($curso['Nombre'] ?? '') ?>
+                                                <div class="input-icon input-icon-globe">
+                                                    <select class="alumnos-select" data-curso-select
+                                                        data-hijo-id="<?= (int) ($alumno['Id'] ?? 0) ?>"
+                                                        data-prev="<?= htmlspecialchars((string) $cursoActualId) ?>">
+                                                        <option value="sin_curso" <?= $cursoActualId === 'sin_curso' ? 'selected' : '' ?>>
+                                                            Sin curso asignado
                                                         </option>
-                                                    <?php endforeach; ?>
-                                                </select>
+                                                        <?php foreach ($cursosDisponibles as $curso): ?>
+                                                            <option value="<?= (int) $curso['Id'] ?>"
+                                                                <?= (string) $curso['Id'] === (string) $cursoActualId ? 'selected' : '' ?>>
+                                                                <?= htmlspecialchars($curso['Nombre'] ?? '') ?>
+                                                            </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -543,8 +561,14 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
         const resumenTotal = document.getElementById('resumen-total-count');
         const resumenFecha = document.getElementById('resumen-fecha-texto');
         const alumnosTablaBody = document.getElementById('alumnos-tabla-body');
+        const alumnosBusquedaInput = document.getElementById('alumnos-busqueda');
+        let tablaFiltradaPorFecha = false;
 
         const showAlertSafe = (type, message) => {
+            if (typeof window.showToastBoton === 'function') {
+                window.showToastBoton(type, message);
+                return;
+            }
             if (typeof window.showAlertSafe === 'function') {
                 window.showAlertSafe(type, message);
                 return;
@@ -612,6 +636,9 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                     if (alumnosTablaBody && typeof data.alumnosTablaHtml === 'string') {
                         alumnosTablaBody.innerHTML = data.alumnosTablaHtml;
                         bindCursoSelects(alumnosTablaBody);
+                        if (typeof window.initInputIcons === 'function') {
+                            window.initInputIcons();
+                        }
                     }
                     if (resumenTotal) {
                         const total = Number(data.totalPedidos || 0);
@@ -623,6 +650,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                     if (panelResumenFiltros) {
                         panelResumenFiltros.classList.remove('is-open');
                     }
+                    tablaFiltradaPorFecha = true;
                     showAlertSafe('success', `Filtro aplicado: ${data.fechaTexto || fecha}`);
                 })
                 .catch((err) => {
@@ -868,11 +896,84 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             });
         }
 
+        const debounce = (fn, delay = 260) => {
+            let timer;
+            return (...args) => {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn(...args), delay);
+            };
+        };
+
+        const cargarTablaAlumnosAjax = (nombre) => {
+            if (!alumnosTablaBody) return;
+            const params = new URLSearchParams({
+                ajax: 'tabla_alumnos'
+            });
+            if (nombre) {
+                params.set('nombre', nombre);
+            }
+            if (tablaFiltradaPorFecha && fechaEntregaInput && fechaEntregaInput.value) {
+                params.set('fecha_entrega', fechaEntregaInput.value);
+            }
+
+            fetch(`representante_dashboard.php?${params.toString()}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(async (res) => {
+                    if (!res.ok) {
+                        const body = await res.text();
+                        console.error('Error cargando alumnos:', {
+                            status: res.status,
+                            statusText: res.statusText,
+                            body
+                        });
+                        throw new Error('Error cargando alumnos');
+                    }
+                    return res.json();
+                })
+                .then((data) => {
+                    if (!data || data.ok !== true) {
+                        throw new Error(data && data.error ? data.error : 'No se pudieron cargar alumnos.');
+                    }
+                    if (typeof data.alumnosTablaHtml === 'string') {
+                        alumnosTablaBody.innerHTML = data.alumnosTablaHtml;
+                        bindCursoSelects(alumnosTablaBody);
+                        if (typeof window.initInputIcons === 'function') {
+                            window.initInputIcons();
+                        }
+                    }
+                })
+                .catch((err) => {
+                    console.error('Error de conexion alumnos:', err);
+                    showAlertSafe('error', 'No se pudo cargar la tabla de alumnos.');
+                });
+        };
+
+        if (alumnosBusquedaInput) {
+            const buscarHandler = debounce(() => {
+                const texto = alumnosBusquedaInput.value.trim();
+                if (texto.length >= 3) {
+                    cargarTablaAlumnosAjax(texto);
+                } else {
+                    cargarTablaAlumnosAjax('');
+                }
+            }, 280);
+
+            alumnosBusquedaInput.addEventListener('input', buscarHandler);
+        }
+
         bindDescargaCursos(document);
         bindCursoSelects(document);
+        if (typeof window.initInputIcons === 'function') {
+            window.initInputIcons();
+        }
 
         console.log(<?php echo json_encode($_SESSION); ?>);
     </script>
+    <div id="toast-container"></div>
+    <div id="toast-container-boton"></div>
 </body>
 
 </html>

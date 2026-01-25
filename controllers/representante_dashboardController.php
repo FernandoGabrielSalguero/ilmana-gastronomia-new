@@ -157,6 +157,72 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'actualizar_curso') {
     exit;
 }
 
+if (isset($_GET['ajax']) && $_GET['ajax'] === 'tabla_alumnos') {
+    header('Content-Type: application/json');
+
+    if (!$representanteId) {
+        echo json_encode(['ok' => false, 'error' => 'Sesion invalida.']);
+        exit;
+    }
+
+    $nombre = trim((string) ($_GET['nombre'] ?? ''));
+    if (strlen($nombre) < 3) {
+        $nombre = null;
+    }
+
+    $fechaFiltro = isset($_GET['fecha_entrega']) ? $fechaEntrega : null;
+    $alumnosCursos = $model->obtenerAlumnosPorRepresentante($representanteId, $fechaFiltro, $nombre);
+
+    ob_start();
+    if (!empty($alumnosCursos)) {
+        foreach ($alumnosCursos as $alumno) {
+            $cursoActualNombre = trim((string) ($alumno['Curso'] ?? ''));
+            if ($cursoActualNombre === '') {
+                $cursoActualNombre = 'Sin curso asignado';
+            }
+            $cursoActualIdRaw = $alumno['Curso_Id'] ?? null;
+            $cursoActualId = $cursoActualIdRaw ? (string) $cursoActualIdRaw : 'sin_curso';
+            ?>
+            <tr data-hijo-id="<?= (int) ($alumno['Id'] ?? 0) ?>">
+                <td><?= (int) ($alumno['Id'] ?? 0) ?></td>
+                <td><?= htmlspecialchars($alumno['Nombre'] ?? '') ?></td>
+                <td class="curso-actual"><?= htmlspecialchars($cursoActualNombre) ?></td>
+                <td>
+                    <div class="input-icon input-icon-globe">
+                        <select class="alumnos-select" data-curso-select
+                            data-hijo-id="<?= (int) ($alumno['Id'] ?? 0) ?>"
+                            data-prev="<?= htmlspecialchars((string) $cursoActualId) ?>">
+                            <option value="sin_curso" <?= $cursoActualId === 'sin_curso' ? 'selected' : '' ?>>
+                                Sin curso asignado
+                            </option>
+                            <?php foreach ($cursosDisponibles as $curso): ?>
+                                <option value="<?= (int) $curso['Id'] ?>"
+                                    <?= (string) $curso['Id'] === (string) $cursoActualId ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($curso['Nombre'] ?? '') ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </td>
+            </tr>
+            <?php
+        }
+    } else {
+        ?>
+        <tr>
+            <td colspan="4" class="alumnos-empty">No hay alumnos disponibles.</td>
+        </tr>
+        <?php
+    }
+    $alumnosTablaHtml = ob_get_clean();
+
+    echo json_encode([
+        'ok' => true,
+        'alumnosTablaHtml' => $alumnosTablaHtml
+    ]);
+    exit;
+}
+
 if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
     header('Content-Type: application/json');
 
@@ -224,19 +290,21 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
                 <td><?= htmlspecialchars($alumno['Nombre'] ?? '') ?></td>
                 <td class="curso-actual"><?= htmlspecialchars($cursoActualNombre) ?></td>
                 <td>
-                    <select class="alumnos-select" data-curso-select
-                        data-hijo-id="<?= (int) ($alumno['Id'] ?? 0) ?>"
-                        data-prev="<?= htmlspecialchars((string) $cursoActualId) ?>">
-                        <option value="sin_curso" <?= $cursoActualId === 'sin_curso' ? 'selected' : '' ?>>
-                            Sin curso asignado
-                        </option>
-                        <?php foreach ($cursosDisponibles as $curso): ?>
-                            <option value="<?= (int) $curso['Id'] ?>"
-                                <?= (string) $curso['Id'] === (string) $cursoActualId ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($curso['Nombre'] ?? '') ?>
+                    <div class="input-icon input-icon-globe">
+                        <select class="alumnos-select" data-curso-select
+                            data-hijo-id="<?= (int) ($alumno['Id'] ?? 0) ?>"
+                            data-prev="<?= htmlspecialchars((string) $cursoActualId) ?>">
+                            <option value="sin_curso" <?= $cursoActualId === 'sin_curso' ? 'selected' : '' ?>>
+                                Sin curso asignado
                             </option>
-                        <?php endforeach; ?>
-                    </select>
+                            <?php foreach ($cursosDisponibles as $curso): ?>
+                                <option value="<?= (int) $curso['Id'] ?>"
+                                    <?= (string) $curso['Id'] === (string) $cursoActualId ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($curso['Nombre'] ?? '') ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </td>
             </tr>
             <?php
