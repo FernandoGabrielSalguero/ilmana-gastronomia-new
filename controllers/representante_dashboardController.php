@@ -55,3 +55,60 @@ if ($representanteId) {
         ];
     }
 }
+
+if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
+    header('Content-Type: application/json');
+
+    ob_start();
+    if (!empty($resumenCursos)) {
+        foreach ($resumenCursos as $curso) {
+            ?>
+            <div class="resumen-item">
+                <span><?= htmlspecialchars($curso['nombre']) ?></span>
+                <strong><?= number_format((int) $curso['total'], 0, ',', '.') ?></strong>
+            </div>
+            <?php
+        }
+    } else {
+        ?>
+        <div class="resumen-empty">No hay pedidos para el dia.</div>
+        <?php
+    }
+    $resumenDetalleHtml = ob_get_clean();
+
+    ob_start();
+    if (!empty($cursosTarjetas)) {
+        foreach ($cursosTarjetas as $curso) {
+            ?>
+            <div class="card curso-card">
+                <div class="curso-card-header">
+                    <h4><?= htmlspecialchars($curso['nombre']) ?></h4>
+                    <span class="curso-count"><?= count($curso['alumnos']) ?> alumnos</span>
+                </div>
+                <?php if (!empty($curso['alumnos'])): ?>
+                    <ul class="curso-alumnos">
+                        <?php foreach ($curso['alumnos'] as $alumno): ?>
+                            <li><?= htmlspecialchars($alumno) ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php else: ?>
+                    <div class="curso-empty">Sin alumnos con pedidos.</div>
+                <?php endif; ?>
+            </div>
+            <?php
+        }
+    } else {
+        ?>
+        <div class="curso-empty">No hay cursos con pedidos para el dia.</div>
+        <?php
+    }
+    $cursosGridHtml = ob_get_clean();
+
+    echo json_encode([
+        'totalPedidos' => $totalPedidosDia,
+        'fechaTexto' => date('d/m/Y', strtotime($fechaEntrega)),
+        'resumenDetalleHtml' => $resumenDetalleHtml,
+        'cursosGridHtml' => $cursosGridHtml
+    ]);
+    exit;
+}

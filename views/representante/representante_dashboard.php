@@ -79,6 +79,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             align-items: flex-start;
             gap: 16px;
             margin-bottom: 16px;
+            padding-right: 52px;
         }
 
         .resumen-title {
@@ -103,7 +104,9 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
         }
 
         .resumen-actions {
-            position: relative;
+            position: absolute;
+            top: 16px;
+            right: 16px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -153,6 +156,10 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             font-size: 26px;
             font-weight: 700;
             color: #0f172a;
+        }
+
+        .resumen-total-box {
+            margin-right: 48px;
         }
 
         .resumen-detalle {
@@ -312,30 +319,9 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                     <div class="resumen-header">
                         <div>
                             <h3 class="resumen-title">Resumen del dia</h3>
-                            <p class="resumen-subtitle">
+                            <p class="resumen-subtitle" id="resumen-fecha-texto">
                                 Fecha: <?= htmlspecialchars(date('d/m/Y', strtotime($fechaEntrega))) ?>
                             </p>
-                        </div>
-                        <div class="resumen-actions">
-                            <button class="btn-icon" id="toggleResumenFiltros" type="button" data-tooltip="Filtros">
-                                <span class="material-icons">settings</span>
-                            </button>
-                            <div class="resumen-panel" id="panelResumenFiltros">
-                                <form class="form-modern" method="get" action="representante_dashboard.php">
-                                    <div class="input-group">
-                                        <label>Fecha de entrega</label>
-                                        <div class="input-icon">
-                                            <span class="material-icons">event</span>
-                                            <input type="date" name="fecha_entrega"
-                                                value="<?= htmlspecialchars($fechaEntrega) ?>">
-                                        </div>
-                                    </div>
-                                    <div class="form-buttons">
-                                        <button class="btn btn-aceptar" type="submit">Aplicar</button>
-                                        <a class="btn btn-cancelar" href="representante_dashboard.php">Limpiar</a>
-                                    </div>
-                                </form>
-                            </div>
                         </div>
                         <div class="resumen-total-box">
                             <div class="resumen-total-icon">
@@ -343,11 +329,34 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                             </div>
                             <div>
                                 <div class="resumen-label">Pedidos del dia</div>
-                                <div class="resumen-count"><?= number_format($totalPedidosDia, 0, ',', '.') ?></div>
+                                <div class="resumen-count" id="resumen-total-count">
+                                    <?= number_format($totalPedidosDia, 0, ',', '.') ?>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="resumen-detalle">
+                    <div class="resumen-actions">
+                        <button class="btn-icon" id="toggleResumenFiltros" type="button" data-tooltip="Filtros">
+                            <span class="material-icons">tune</span>
+                        </button>
+                        <div class="resumen-panel" id="panelResumenFiltros">
+                            <form class="form-modern" method="get" action="representante_dashboard.php" id="resumen-filtros-form">
+                                <div class="input-group">
+                                    <label>Fecha de entrega</label>
+                                    <div class="input-icon">
+                                        <span class="material-icons">event</span>
+                                        <input type="date" name="fecha_entrega" id="fecha-entrega-input"
+                                            value="<?= htmlspecialchars($fechaEntrega) ?>">
+                                    </div>
+                                </div>
+                                <div class="form-buttons">
+                                    <button class="btn btn-aceptar" type="submit">Aplicar</button>
+                                    <a class="btn btn-cancelar" href="representante_dashboard.php">Limpiar</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="resumen-detalle" id="resumen-detalle">
                         <?php if (!empty($resumenCursos)): ?>
                             <?php foreach ($resumenCursos as $curso): ?>
                                 <div class="resumen-item">
@@ -368,7 +377,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                             <p class="resumen-subtitle">Listado de alumnos con pedido de vianda.</p>
                         </div>
                     </div>
-                    <div class="cursos-grid">
+                    <div class="cursos-grid" id="cursos-grid">
                         <?php if (!empty($cursosTarjetas)): ?>
                             <?php foreach ($cursosTarjetas as $curso): ?>
                                 <div class="card curso-card">
@@ -402,6 +411,12 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
     <script>
         const toggleResumenFiltros = document.getElementById('toggleResumenFiltros');
         const panelResumenFiltros = document.getElementById('panelResumenFiltros');
+        const resumenForm = document.getElementById('resumen-filtros-form');
+        const fechaEntregaInput = document.getElementById('fecha-entrega-input');
+        const resumenDetalle = document.getElementById('resumen-detalle');
+        const cursosGrid = document.getElementById('cursos-grid');
+        const resumenTotal = document.getElementById('resumen-total-count');
+        const resumenFecha = document.getElementById('resumen-fecha-texto');
 
         if (toggleResumenFiltros && panelResumenFiltros) {
             toggleResumenFiltros.addEventListener('click', () => {
@@ -412,6 +427,67 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                 if (!panelResumenFiltros.contains(event.target) && !toggleResumenFiltros.contains(event.target)) {
                     panelResumenFiltros.classList.remove('is-open');
                 }
+            });
+        }
+
+        const cargarResumenAjax = (fecha) => {
+            if (!fecha) return;
+            const params = new URLSearchParams({
+                ajax: '1',
+                fecha_entrega: fecha
+            });
+
+            fetch(`representante_dashboard.php?${params.toString()}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(async (res) => {
+                    if (!res.ok) {
+                        const body = await res.text();
+                        console.error('Error cargando resumen:', {
+                            status: res.status,
+                            statusText: res.statusText,
+                            body
+                        });
+                        throw new Error('Error cargando resumen');
+                    }
+                    return res.json();
+                })
+                .then((data) => {
+                    if (resumenDetalle && typeof data.resumenDetalleHtml === 'string') {
+                        resumenDetalle.innerHTML = data.resumenDetalleHtml;
+                    }
+                    if (cursosGrid && typeof data.cursosGridHtml === 'string') {
+                        cursosGrid.innerHTML = data.cursosGridHtml;
+                    }
+                    if (resumenTotal) {
+                        const total = Number(data.totalPedidos || 0);
+                        resumenTotal.textContent = total.toLocaleString('es-AR');
+                    }
+                    if (resumenFecha && typeof data.fechaTexto === 'string') {
+                        resumenFecha.textContent = `Fecha: ${data.fechaTexto}`;
+                    }
+                    if (panelResumenFiltros) {
+                        panelResumenFiltros.classList.remove('is-open');
+                    }
+                })
+                .catch((err) => {
+                    console.error('Error de conexion cargando resumen:', err);
+                });
+        };
+
+        if (resumenForm) {
+            resumenForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const fecha = fechaEntregaInput ? fechaEntregaInput.value : '';
+                cargarResumenAjax(fecha);
+            });
+        }
+
+        if (fechaEntregaInput) {
+            fechaEntregaInput.addEventListener('change', () => {
+                cargarResumenAjax(fechaEntregaInput.value);
             });
         }
 
