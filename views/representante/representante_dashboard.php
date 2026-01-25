@@ -245,6 +245,13 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             color: #9ca3af;
         }
 
+        .cancelacion-icon {
+            font-size: 18px;
+            color: #dc2626;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
         .curso-alumnos li:last-child {
             border-bottom: none;
         }
@@ -379,6 +386,10 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                                             <?php foreach ($curso['alumnos'] as $alumno): ?>
                                                 <li class="<?= !empty($alumno['cancelado']) ? 'is-cancelado' : '' ?>">
                                                     <?= htmlspecialchars($alumno['nombre']) ?>
+                                                    <?php if (!empty($alumno['cancelado'])): ?>
+                                                        <span class="cancelacion-icon material-icons"
+                                                            data-tooltip="<?= htmlspecialchars($alumno['motivo'] ?: 'Sin motivo') ?>">help_outline</span>
+                                                    <?php endif; ?>
                                                 </li>
                                             <?php endforeach; ?>
                                         </ul>

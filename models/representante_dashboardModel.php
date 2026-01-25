@@ -17,7 +17,8 @@ class RepresentanteDashboardModel
                 c.Nombre AS Curso_Nombre,
                 h.Id AS Hijo_Id,
                 h.Nombre AS Alumno,
-                pc.Estado
+                pc.Estado,
+                pc.motivo_cancelacion
             FROM Pedidos_Comida pc
             JOIN Hijos h ON h.Id = pc.Hijo_Id
             LEFT JOIN Cursos c ON c.Id = h.Curso_Id

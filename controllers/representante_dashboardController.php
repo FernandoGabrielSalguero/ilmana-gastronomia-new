@@ -38,12 +38,14 @@ if ($representanteId) {
         $alumnoNombre = trim((string) ($row['Alumno'] ?? ''));
         $estado = trim((string) ($row['Estado'] ?? ''));
         $cancelado = ($estado === 'Cancelado');
+        $motivoCancelacion = trim((string) ($row['motivo_cancelacion'] ?? ''));
         if ($alumnoNombre !== '') {
             $idx = $cursoIndex[$cursoId];
-            $claveAlumno = $alumnoNombre . '|' . ($cancelado ? '1' : '0');
+            $claveAlumno = $alumnoNombre . '|' . ($cancelado ? '1' : '0') . '|' . $motivoCancelacion;
             $alumnoItem = [
                 'nombre' => $alumnoNombre,
-                'cancelado' => $cancelado
+                'cancelado' => $cancelado,
+                'motivo' => $motivoCancelacion
             ];
             if (!isset($cursosTarjetas[$idx]['alumnos_map'])) {
                 $cursosTarjetas[$idx]['alumnos_map'] = [];
@@ -89,6 +91,10 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
                         <?php foreach ($curso['alumnos'] as $alumno): ?>
                             <li class="<?= !empty($alumno['cancelado']) ? 'is-cancelado' : '' ?>">
                                 <?= htmlspecialchars($alumno['nombre']) ?>
+                                <?php if (!empty($alumno['cancelado'])): ?>
+                                    <span class="cancelacion-icon material-icons"
+                                        data-tooltip="<?= htmlspecialchars($alumno['motivo'] ?: 'Sin motivo') ?>">help_outline</span>
+                                <?php endif; ?>
                             </li>
                         <?php endforeach; ?>
                     </ul>
