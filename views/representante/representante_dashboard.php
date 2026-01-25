@@ -181,6 +181,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             flex-direction: column;
             min-height: 210px;
             min-width: 0;
+            overflow-x: hidden;
         }
 
         .curso-card-header {
