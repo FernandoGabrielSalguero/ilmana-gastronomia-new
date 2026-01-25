@@ -109,19 +109,32 @@ class RepresentanteDashboardModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function obtenerAlumnosPorRepresentante($representanteId)
+    public function obtenerAlumnosPorRepresentante($representanteId, $fechaEntrega = null)
     {
-        $sql = "SELECT h.Id, h.Nombre, h.Curso_Id, c.Nombre AS Curso
+        $sql = "SELECT DISTINCT h.Id, h.Nombre, h.Curso_Id, c.Nombre AS Curso
             FROM Hijos h
             JOIN Representantes_Colegios rc ON rc.Colegio_Id = h.Colegio_Id
-            LEFT JOIN Cursos c ON c.Id = h.Curso_Id
-            WHERE rc.Representante_Id = :representanteId
-            ORDER BY h.Nombre";
+            LEFT JOIN Cursos c ON c.Id = h.Curso_Id";
+
+        $params = [
+            'representanteId' => $representanteId
+        ];
+
+        if ($fechaEntrega) {
+            $sql .= " JOIN Pedidos_Comida pc ON pc.Hijo_Id = h.Id";
+        }
+
+        $sql .= " WHERE rc.Representante_Id = :representanteId";
+
+        if ($fechaEntrega) {
+            $sql .= " AND pc.Fecha_entrega = :fechaEntrega";
+            $params['fechaEntrega'] = $fechaEntrega;
+        }
+
+        $sql .= " ORDER BY h.Nombre";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([
-            'representanteId' => $representanteId
-        ]);
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

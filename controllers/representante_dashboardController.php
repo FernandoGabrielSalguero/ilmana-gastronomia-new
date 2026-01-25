@@ -160,6 +160,8 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'actualizar_curso') {
 if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
     header('Content-Type: application/json');
 
+    $alumnosCursos = $model->obtenerAlumnosPorRepresentante($representanteId, $fechaEntrega);
+
     ob_start();
     if (!empty($cursosTarjetas)) {
         foreach ($cursosTarjetas as $curso) {
@@ -207,10 +209,52 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
     }
     $cursosGridHtml = ob_get_clean();
 
+    ob_start();
+    if (!empty($alumnosCursos)) {
+        foreach ($alumnosCursos as $alumno) {
+            $cursoActualNombre = trim((string) ($alumno['Curso'] ?? ''));
+            if ($cursoActualNombre === '') {
+                $cursoActualNombre = 'Sin curso asignado';
+            }
+            $cursoActualIdRaw = $alumno['Curso_Id'] ?? null;
+            $cursoActualId = $cursoActualIdRaw ? (string) $cursoActualIdRaw : 'sin_curso';
+            ?>
+            <tr data-hijo-id="<?= (int) ($alumno['Id'] ?? 0) ?>">
+                <td><?= (int) ($alumno['Id'] ?? 0) ?></td>
+                <td><?= htmlspecialchars($alumno['Nombre'] ?? '') ?></td>
+                <td class="curso-actual"><?= htmlspecialchars($cursoActualNombre) ?></td>
+                <td>
+                    <select class="alumnos-select" data-curso-select
+                        data-hijo-id="<?= (int) ($alumno['Id'] ?? 0) ?>"
+                        data-prev="<?= htmlspecialchars((string) $cursoActualId) ?>">
+                        <option value="sin_curso" <?= $cursoActualId === 'sin_curso' ? 'selected' : '' ?>>
+                            Sin curso asignado
+                        </option>
+                        <?php foreach ($cursosDisponibles as $curso): ?>
+                            <option value="<?= (int) $curso['Id'] ?>"
+                                <?= (string) $curso['Id'] === (string) $cursoActualId ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($curso['Nombre'] ?? '') ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+            <?php
+        }
+    } else {
+        ?>
+        <tr>
+            <td colspan="4" class="alumnos-empty">No hay alumnos disponibles.</td>
+        </tr>
+        <?php
+    }
+    $alumnosTablaHtml = ob_get_clean();
+
     echo json_encode([
         'totalPedidos' => $totalPedidosDia,
         'fechaTexto' => date('d/m/Y', strtotime($fechaEntrega)),
-        'cursosGridHtml' => $cursosGridHtml
+        'cursosGridHtml' => $cursosGridHtml,
+        'alumnosTablaHtml' => $alumnosTablaHtml
     ]);
     exit;
 }

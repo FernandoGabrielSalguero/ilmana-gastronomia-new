@@ -467,63 +467,64 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                         <?php endif; ?>
                     </div>
 
-                    <div class="alumnos-curso-card">
-                        <div class="resumen-header">
-                            <div>
-                                <h3 class="resumen-title">Actualizar cursos de alumnos</h3>
-                                <p class="resumen-subtitle">Edita el curso y se actualiza en toda la pagina.</p>
-                            </div>
+                </div>
+
+                <div class="card">
+                    <div class="resumen-header">
+                        <div>
+                            <h3 class="resumen-title">Actualizar cursos de alumnos</h3>
+                            <p class="resumen-subtitle">Edita el curso y se actualiza en toda la pagina.</p>
                         </div>
-                        <div class="alumnos-table-wrapper">
-                            <table class="alumnos-table">
-                                <thead>
-                                    <tr>
-                                        <th>ID alumno</th>
-                                        <th>Nombre</th>
-                                        <th>Curso actual</th>
-                                        <th>Nuevo curso</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if (!empty($alumnosCursos)): ?>
-                                        <?php foreach ($alumnosCursos as $alumno): ?>
-                                            <?php
-                                            $cursoActualNombre = trim((string) ($alumno['Curso'] ?? ''));
-                                            if ($cursoActualNombre === '') {
-                                                $cursoActualNombre = 'Sin curso asignado';
-                                            }
-                                            $cursoActualIdRaw = $alumno['Curso_Id'] ?? null;
-                                            $cursoActualId = $cursoActualIdRaw ? (string) $cursoActualIdRaw : 'sin_curso';
-                                            ?>
-                                            <tr data-hijo-id="<?= (int) ($alumno['Id'] ?? 0) ?>">
-                                                <td><?= (int) ($alumno['Id'] ?? 0) ?></td>
-                                                <td><?= htmlspecialchars($alumno['Nombre'] ?? '') ?></td>
-                                                <td class="curso-actual"><?= htmlspecialchars($cursoActualNombre) ?></td>
-                                                <td>
-                                                    <select class="alumnos-select" data-curso-select
-                                                        data-hijo-id="<?= (int) ($alumno['Id'] ?? 0) ?>"
-                                                        data-prev="<?= htmlspecialchars((string) $cursoActualId) ?>">
-                                                        <option value="sin_curso" <?= $cursoActualId === 'sin_curso' ? 'selected' : '' ?>>
-                                                            Sin curso asignado
+                    </div>
+                    <div class="alumnos-table-wrapper">
+                        <table class="alumnos-table">
+                            <thead>
+                                <tr>
+                                    <th>ID alumno</th>
+                                    <th>Nombre</th>
+                                    <th>Curso actual</th>
+                                    <th>Nuevo curso</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alumnos-tabla-body">
+                                <?php if (!empty($alumnosCursos)): ?>
+                                    <?php foreach ($alumnosCursos as $alumno): ?>
+                                        <?php
+                                        $cursoActualNombre = trim((string) ($alumno['Curso'] ?? ''));
+                                        if ($cursoActualNombre === '') {
+                                            $cursoActualNombre = 'Sin curso asignado';
+                                        }
+                                        $cursoActualIdRaw = $alumno['Curso_Id'] ?? null;
+                                        $cursoActualId = $cursoActualIdRaw ? (string) $cursoActualIdRaw : 'sin_curso';
+                                        ?>
+                                        <tr data-hijo-id="<?= (int) ($alumno['Id'] ?? 0) ?>">
+                                            <td><?= (int) ($alumno['Id'] ?? 0) ?></td>
+                                            <td><?= htmlspecialchars($alumno['Nombre'] ?? '') ?></td>
+                                            <td class="curso-actual"><?= htmlspecialchars($cursoActualNombre) ?></td>
+                                            <td>
+                                                <select class="alumnos-select" data-curso-select
+                                                    data-hijo-id="<?= (int) ($alumno['Id'] ?? 0) ?>"
+                                                    data-prev="<?= htmlspecialchars((string) $cursoActualId) ?>">
+                                                    <option value="sin_curso" <?= $cursoActualId === 'sin_curso' ? 'selected' : '' ?>>
+                                                        Sin curso asignado
+                                                    </option>
+                                                    <?php foreach ($cursosDisponibles as $curso): ?>
+                                                        <option value="<?= (int) $curso['Id'] ?>"
+                                                            <?= (string) $curso['Id'] === (string) $cursoActualId ? 'selected' : '' ?>>
+                                                            <?= htmlspecialchars($curso['Nombre'] ?? '') ?>
                                                         </option>
-                                                        <?php foreach ($cursosDisponibles as $curso): ?>
-                                                            <option value="<?= (int) $curso['Id'] ?>"
-                                                                <?= (string) $curso['Id'] === (string) $cursoActualId ? 'selected' : '' ?>>
-                                                                <?= htmlspecialchars($curso['Nombre'] ?? '') ?>
-                                                            </option>
-                                                        <?php endforeach; ?>
-                                                    </select>
-                                                </td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    <?php else: ?>
-                                        <tr>
-                                            <td colspan="4" class="alumnos-empty">No hay alumnos disponibles.</td>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </td>
                                         </tr>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
-                        </div>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="4" class="alumnos-empty">No hay alumnos disponibles.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </section>
@@ -541,6 +542,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
         const cursosGrid = document.getElementById('cursos-grid');
         const resumenTotal = document.getElementById('resumen-total-count');
         const resumenFecha = document.getElementById('resumen-fecha-texto');
+        const alumnosTablaBody = document.getElementById('alumnos-tabla-body');
 
         if (toggleResumenFiltros && panelResumenFiltros) {
             toggleResumenFiltros.addEventListener('click', () => {
@@ -590,6 +592,10 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                     if (cursosGrid && typeof data.cursosGridHtml === 'string') {
                         cursosGrid.innerHTML = data.cursosGridHtml;
                         bindDescargaCursos(cursosGrid);
+                    }
+                    if (alumnosTablaBody && typeof data.alumnosTablaHtml === 'string') {
+                        alumnosTablaBody.innerHTML = data.alumnosTablaHtml;
+                        bindCursoSelects(alumnosTablaBody);
                     }
                     if (resumenTotal) {
                         const total = Number(data.totalPedidos || 0);
