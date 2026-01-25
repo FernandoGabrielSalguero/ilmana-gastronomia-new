@@ -11,9 +11,14 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaEntrega)) {
 $cursosTarjetas = [];
 $resumenCursos = [];
 $totalPedidosDia = 0;
+$colegioNombreArchivo = 'Colegio';
 
 if ($representanteId) {
     $model = new RepresentanteDashboardModel($pdo);
+    $colegios = $model->obtenerColegiosPorRepresentante($representanteId);
+    if (!empty($colegios)) {
+        $colegioNombreArchivo = trim((string) $colegios[0]);
+    }
     $cursosAlumnos = $model->obtenerCursosConPedidos($representanteId, $fechaEntrega);
     $resumenCursosRaw = $model->obtenerResumenPedidosPorCurso($representanteId, $fechaEntrega);
     $totalPedidosDia = $model->obtenerTotalPedidosDia($representanteId, $fechaEntrega);
@@ -79,6 +84,13 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
             <div class="card curso-card">
                 <div class="curso-card-header">
                     <h4><?= htmlspecialchars($curso['nombre']) ?></h4>
+                    <button class="btn-icon curso-download" type="button"
+                        data-descargar-curso
+                        data-colegio="<?= htmlspecialchars($colegioNombreArchivo) ?>"
+                        data-fecha="<?= htmlspecialchars($fechaEntrega) ?>"
+                        data-tooltip="Descargar imagen">
+                        <span class="material-icons">download</span>
+                    </button>
                 </div>
                 <div class="curso-meta">
                     <span class="curso-icon">

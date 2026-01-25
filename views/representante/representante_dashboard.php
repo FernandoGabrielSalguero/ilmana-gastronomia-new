@@ -195,6 +195,14 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             color: #0f172a;
         }
 
+        .curso-download {
+            color: #5b21b6;
+        }
+
+        .curso-card.is-capturing .curso-download {
+            display: none;
+        }
+
         .curso-icon {
             width: 42px;
             height: 42px;
@@ -377,6 +385,13 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                                 <div class="card curso-card">
                                     <div class="curso-card-header">
                                         <h4><?= htmlspecialchars($curso['nombre']) ?></h4>
+                                        <button class="btn-icon curso-download" type="button"
+                                            data-descargar-curso
+                                            data-colegio="<?= htmlspecialchars($colegioNombreArchivo) ?>"
+                                            data-fecha="<?= htmlspecialchars($fechaEntrega) ?>"
+                                            data-tooltip="Descargar imagen">
+                                            <span class="material-icons">download</span>
+                                        </button>
                                     </div>
                                     <div class="curso-meta">
                                         <span class="curso-icon">
@@ -469,6 +484,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                 .then((data) => {
                     if (cursosGrid && typeof data.cursosGridHtml === 'string') {
                         cursosGrid.innerHTML = data.cursosGridHtml;
+                        bindDescargaCursos(cursosGrid);
                     }
                     if (resumenTotal) {
                         const total = Number(data.totalPedidos || 0);
@@ -486,6 +502,46 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                 });
         };
 
+        const bindDescargaCursos = (scope) => {
+            const botones = (scope || document).querySelectorAll('[data-descargar-curso]');
+            botones.forEach((boton) => {
+                if (boton.dataset.bound === '1') return;
+                boton.dataset.bound = '1';
+                boton.addEventListener('click', async () => {
+                    if (typeof html2canvas !== 'function') {
+                        alert('No se encontro la libreria para exportar la imagen.');
+                        return;
+                    }
+                    const card = boton.closest('.curso-card');
+                    if (!card) return;
+                    const colegio = boton.dataset.colegio || 'Colegio';
+                    const fecha = boton.dataset.fecha || '';
+                    const safeColegio = colegio.replace(/[^\w\-]+/g, '_');
+                    const safeFecha = fecha.replace(/[^0-9\-]/g, '');
+                    const filename = `${safeColegio}_${safeFecha}.jpg`;
+
+                    card.classList.add('is-capturing');
+                    try {
+                        const canvas = await html2canvas(card, {
+                            backgroundColor: '#ffffff',
+                            scale: 2
+                        });
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+                        const link = document.createElement('a');
+                        link.href = dataUrl;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        link.remove();
+                    } catch (err) {
+                        console.error('Error exportando imagen:', err);
+                    } finally {
+                        card.classList.remove('is-capturing');
+                    }
+                });
+            });
+        };
+
         if (resumenForm) {
             resumenForm.addEventListener('submit', (event) => {
                 event.preventDefault();
@@ -499,6 +555,8 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                 cargarResumenAjax(fechaEntregaInput.value);
             });
         }
+
+        bindDescargaCursos(document);
 
         console.log(<?php echo json_encode($_SESSION); ?>);
     </script>

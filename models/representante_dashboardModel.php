@@ -77,4 +77,19 @@ class RepresentanteDashboardModel
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ? (int) $row['Total'] : 0;
     }
+
+    public function obtenerColegiosPorRepresentante($representanteId)
+    {
+        $sql = "SELECT DISTINCT c.Nombre
+            FROM Colegios c
+            JOIN Representantes_Colegios rc ON rc.Colegio_Id = c.Id
+            WHERE rc.Representante_Id = :representanteId
+            ORDER BY c.Nombre";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'representanteId' => $representanteId
+        ]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
 }
