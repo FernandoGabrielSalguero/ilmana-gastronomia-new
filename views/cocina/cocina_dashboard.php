@@ -1095,6 +1095,18 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
         .filtros-form .input-group {
             min-width: 220px;
         }
+
+        .resumen-last-update {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .resumen-last-update-time {
+            color: #dc2626;
+            font-weight: 700;
+            margin-left: 6px;
+        }
     </style>
 </head>
 
@@ -1157,6 +1169,9 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
                             </p>
                         </div>
                         <div class="resumen-actions">
+                            <button class="btn-icon" id="refreshViandas" type="button" data-tooltip="Actualizar">
+                                <span class="material-icons">refresh</span>
+                            </button>
                             <button class="btn-icon" id="toggleViandasFiltros" type="button" data-tooltip="Filtros">
                                 <span class="material-icons">tune</span>
                             </button>
@@ -1182,6 +1197,9 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
                     <div id="viandas-resumen-body">
                         <?php renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel, $menusResumenList); ?>
                     </div>
+                    <div class="resumen-last-update">
+                        Ultima actualizacion <span id="viandas-last-update" class="resumen-last-update-time"></span>
+                    </div>
                 </div>
 
                 <div class="card">
@@ -1201,11 +1219,13 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
     <script src="../../views/partials/spinner-global.js"></script>
     <script>
         const toggleViandasFiltros = document.getElementById('toggleViandasFiltros');
+        const refreshViandas = document.getElementById('refreshViandas');
         const panelViandasFiltros = document.getElementById('panelViandasFiltros');
         const viandasForm = document.getElementById('viandas-filtros-form');
         const viandasFechaInput = document.getElementById('viandas-fecha-input');
         const viandasBody = document.getElementById('viandas-resumen-body');
         const viandasFechaTexto = document.getElementById('viandas-fecha-texto');
+        const viandasLastUpdate = document.getElementById('viandas-last-update');
         let viandasFirmaActual = "<?= htmlspecialchars($firmaPedidosDia ?? '', ENT_QUOTES, 'UTF-8') ?>";
         let viandasPollingEnCurso = false;
 
@@ -1270,6 +1290,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
                     if (typeof data.firma === 'string' && data.firma) {
                         viandasFirmaActual = data.firma;
                     }
+                    actualizarUltimaActualizacion();
                     if (panelViandasFiltros) {
                         panelViandasFiltros.classList.remove('is-open');
                     }
@@ -1282,6 +1303,21 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
         if (viandasForm) {
             viandasForm.addEventListener('submit', (event) => {
                 event.preventDefault();
+                const fecha = viandasFechaInput ? viandasFechaInput.value : '';
+                cargarViandasAjax(fecha);
+            });
+        }
+
+        const actualizarUltimaActualizacion = () => {
+            if (!viandasLastUpdate) return;
+            const now = new Date();
+            const pad = (num) => String(num).padStart(2, '0');
+            const stamp = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+            viandasLastUpdate.textContent = stamp;
+        };
+
+        if (refreshViandas) {
+            refreshViandas.addEventListener('click', () => {
                 const fecha = viandasFechaInput ? viandasFechaInput.value : '';
                 cargarViandasAjax(fecha);
             });
@@ -1324,6 +1360,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
         };
 
         setInterval(verificarCambiosViandas, 60000);
+        actualizarUltimaActualizacion();
 
         const getResumenModal = () => document.getElementById('resumenModal');
 
