@@ -169,6 +169,9 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                     <li onclick="location.href='admin_viandasColegio.php'">
                         <span class="material-icons" style="color: #5b21b6;">restaurant_menu</span><span class="link-text">Menu</span>
                     </li>
+                    <li onclick="location.href='admin_entregasColegios.php'">
+                        <span class="material-icons" style="color: #5b21b6;">school</span><span class="link-text">Colegio</span>
+                    </li>
                     <li onclick="location.href='admin_saldo.php'">
                         <span class="material-icons" style="color: #5b21b6;">paid</span><span class="link-text">Saldos</span>
                     </li>
