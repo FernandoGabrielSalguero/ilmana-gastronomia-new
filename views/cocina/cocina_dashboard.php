@@ -433,6 +433,7 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
 
 $fechaEntregaTexto = date('d/m/Y', strtotime($fechaEntrega));
 if (isset($_GET['ajax']) && $_GET['ajax'] === 'ping') {
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
         'ok' => true,
@@ -445,6 +446,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
     ob_start();
     renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel, $menusResumenList);
     $bodyHtml = ob_get_clean();
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
         'ok' => true,
@@ -1233,10 +1235,12 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             if (!fecha) return;
             const params = new URLSearchParams({
                 ajax: '1',
-                fecha_entrega: fecha
+                fecha_entrega: fecha,
+                _: Date.now().toString()
             });
 
             fetch(`cocina_dashboard.php?${params.toString()}`, {
+                cache: 'no-store',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
@@ -1291,10 +1295,12 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             viandasPollingEnCurso = true;
             const params = new URLSearchParams({
                 ajax: 'ping',
-                fecha_entrega: fecha
+                fecha_entrega: fecha,
+                _: Date.now().toString()
             });
 
             fetch(`cocina_dashboard.php?${params.toString()}`, {
+                cache: 'no-store',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
@@ -1317,7 +1323,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
                 });
         };
 
-        setInterval(verificarCambiosViandas, 15000);
+        setInterval(verificarCambiosViandas, 60000);
 
         const getResumenModal = () => document.getElementById('resumenModal');
 
