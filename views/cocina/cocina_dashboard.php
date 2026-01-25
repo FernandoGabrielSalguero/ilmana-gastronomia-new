@@ -1,13 +1,14 @@
 <?php
-// Mostrar errores en pantalla (útil en desarrollo)
+// Mostrar errores en pantalla (util en desarrollo)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Iniciar sesión y proteger acceso
+// Iniciar sesion y proteger acceso
 session_start();
+require_once __DIR__ . '/../../config.php';
 
-// ⚠️ Expiración por inactividad (20 minutos)
+// Expiracion por inactividad (20 minutos)
 if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 1200)) {
     session_unset();
     session_destroy();
@@ -16,23 +17,23 @@ if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 
 }
 $_SESSION['LAST_ACTIVITY'] = time(); // Actualiza el tiempo de actividad
 
-// 🚧 Protección de acceso general
-if (!isset($_SESSION['usuario'])) {
-    die("⚠️ Acceso denegado. No has iniciado sesión.");
+// Proteccion de acceso general
+if (!isset($_SESSION['usuario']) && !isset($_SESSION['usuario_id'])) {
+    die("Acceso denegado. No has iniciado sesion.");
 }
 
-// 🔐 Protección por rol
+// Proteccion por rol
 if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'cocina') {
-    die("🚫 Acceso restringido: esta página es solo para usuarios cocina.");
+    die("Acceso restringido: esta pagina es solo para usuarios cocina.");
 }
 
-// Datos del usuario en sesión
+require_once __DIR__ . '/../../controllers/cocina_dashboardController.php';
+
+// Datos del usuario en sesion
 $nombre = $_SESSION['nombre'] ?? 'Sin nombre';
 $correo = $_SESSION['correo'] ?? 'Sin correo';
 $usuario = $_SESSION['usuario'] ?? 'Sin usuario';
-$telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
-
-
+$telefono = $_SESSION['telefono'] ?? 'Sin telefono';
 ?>
 
 <!DOCTYPE html>
@@ -42,6 +43,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>IlMana Gastronomia</title>
+
     <!-- Iconos de Material Design -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link rel="stylesheet"
@@ -51,23 +53,119 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
     <link rel="stylesheet" href="https://framework.impulsagroup.com/assets/css/framework.css">
     <script src="https://framework.impulsagroup.com/assets/javascript/framework.js" defer></script>
 
-    <!-- Descarga de consolidado (no se usa directamente aquÃ­, pero se deja por consistencia) -->
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <style>
+        .resumen-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
 
-    <!-- PDF: html2canvas + jsPDF (CDN gratuitos) -->
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        .resumen-subtitle {
+            margin: 4px 0 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
 
-    <!-- Tablas con saltos de pÃ¡gina prolijos (autoTable) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+        .resumen-total-box {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            font-size: 14px;
+            color: #0f172a;
+        }
+
+        .tabla-wrapper {
+            max-height: 420px;
+            overflow: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 8px 10px;
+            font-size: 14px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
+
+        .data-table thead th {
+            position: sticky;
+            top: 0;
+            background: #ffffff;
+            z-index: 1;
+        }
+
+        .colegios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        .colegio-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 16px;
+            background: #ffffff;
+        }
+
+        .colegio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .colegio-header h4 {
+            margin: 0;
+            font-size: 16px;
+            color: #0f172a;
+        }
+
+        .colegio-total {
+            font-size: 12px;
+            font-weight: 600;
+            color: #3730a3;
+            background: #eef2ff;
+            padding: 4px 10px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .filtros-form {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            margin-bottom: 16px;
+        }
+
+        .filtros-form .input-group {
+            min-width: 220px;
+        }
+    </style>
 </head>
 
 <body>
 
-    <!-- 🔲 CONTENEDOR PRINCIPAL -->
+    <!-- CONTENEDOR PRINCIPAL -->
     <div class="layout">
 
-        <!-- 🧭 SIDEBAR -->
+        <!-- SIDEBAR -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <span class="material-icons logo-icon">dashboard</span>
@@ -76,24 +174,14 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
 
             <nav class="sidebar-menu">
                 <ul>
-                    <li onclick="location.href='admin_dashboard.php'">
+                    <li onclick="location.href='cocina_dashboard.php'">
                         <span class="material-icons" style="color: #5b21b6;">home</span><span class="link-text">Inicio</span>
-                    </li>
-                    <li onclick="location.href='admin_altaUsuarios.php'">
-                        <span class="material-icons" style="color: #5b21b6;">person</span><span class="link-text">Alta usuarios</span>
-                    </li>
-                    <li onclick="location.href='admin_importarUsuarios.php'">
-                        <span class="material-icons" style="color: #5b21b6;">upload_file</span><span class="link-text">Carga Masiva</span>
-                    </li>
-                    <li onclick="location.href='admin_pagoFacturas.php'">
-                        <span class="material-icons" style="color: #5b21b6;">attach_money</span><span class="link-text">Pago Facturas</span>
                     </li>
                     <li onclick="location.href='../../../logout.php'">
                         <span class="material-icons" style="color: red;">logout</span><span class="link-text">Salir</span>
                     </li>
                 </ul>
             </nav>
-
 
             <div class="sidebar-footer">
                 <button class="btn-icon" onclick="toggleSidebar()">
@@ -102,10 +190,10 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             </div>
         </aside>
 
-        <!-- 🧱 MAIN -->
+        <!-- MAIN -->
         <div class="main">
 
-            <!-- 🟪 NAVBAR -->
+            <!-- NAVBAR -->
             <header class="navbar">
                 <button class="btn-icon" onclick="toggleSidebar()">
                     <span class="material-icons">menu</span>
@@ -113,63 +201,132 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                 <div class="navbar-title">Inicio</div>
             </header>
 
-            <!-- 📦 CONTENIDO -->
+            <!-- CONTENIDO -->
             <section class="content">
 
                 <!-- Bienvenida -->
                 <div class="card">
-                    <h2>Hola 👋</h2>
-                    <p>En esta página, vamos a tener KPI.</p>
+                    <h2>Hola <?= htmlspecialchars($nombre) ?></h2>
+                    <p>Resumen diario de pedidos para cocina.</p>
                 </div>
-
-
-                <div class="card-grid grid-4">
-                    <div class="card">
-                        <h3>KPI 1</h3>
-                        <p>Contenido 1</p>
-                    </div>
-                    <div class="card">
-                        <h3>KPI 2</h3>
-                        <p>Contenido 2</p>
-                    </div>
-                    <div class="card">
-                        <h3>KPI 3</h3>
-                        <p>Contenido 3</p>
-                    </div>
-                    <div class="card">
-                        <h3>KPI 4</h3>
-                        <p>Contenido 3</p>
-                    </div>
-                </div>
-
 
                 <div class="card">
-                    <form class="form-modern">
+                    <div class="resumen-header">
+                        <div>
+                            <h3>Viandas por escuela y curso</h3>
+                            <p class="resumen-subtitle">Fecha: <?= htmlspecialchars(date('d/m/Y', strtotime($fechaEntrega))) ?></p>
+                        </div>
+                        <div class="resumen-total-box">
+                            <span class="material-icons">receipt_long</span>
+                            <span>Total viandas: <?= number_format($totalViandas, 0, ',', '.') ?></span>
+                        </div>
+                    </div>
+
+                    <form class="form-modern filtros-form" method="get" action="cocina_dashboard.php">
                         <div class="input-group">
-                            <label>Correo</label>
+                            <label>Fecha de entrega</label>
                             <div class="input-icon">
-                                <span class="material-icons">mail</span>
-                                <input type="email" placeholder="ejemplo@correo.com">
+                                <span class="material-icons">event</span>
+                                <input type="date" name="fecha_entrega" value="<?= htmlspecialchars($fechaEntrega) ?>">
                             </div>
                         </div>
-
                         <div class="form-buttons">
-                            <button class="btn btn-aceptar" type="submit">Enviar</button>
-                            <button class="btn btn-cancelar" type="button">Cancelar</button>
+                            <button class="btn btn-aceptar" type="submit">Aplicar</button>
+                            <a class="btn btn-cancelar" href="cocina_dashboard.php">Limpiar</a>
                         </div>
                     </form>
+
+                    <?php if (!empty($viandasPorColegio)): ?>
+                        <div class="colegios-grid">
+                            <?php foreach ($viandasPorColegio as $colegioNombre => $detalle): ?>
+                                <div class="colegio-card">
+                                    <div class="colegio-header">
+                                        <h4><?= htmlspecialchars($colegioNombre) ?></h4>
+                                        <span class="colegio-total">
+                                            <?= number_format((int) ($detalle['total'] ?? 0), 0, ',', '.') ?> viandas
+                                        </span>
+                                    </div>
+                                    <div class="tabla-wrapper">
+                                        <table class="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Curso</th>
+                                                    <th>Pedidos</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach (($detalle['cursos'] ?? []) as $cursoNombre => $cantidad): ?>
+                                                    <tr>
+                                                        <td><?= htmlspecialchars($cursoNombre) ?></td>
+                                                        <td><?= number_format((int) $cantidad, 0, ',', '.') ?></td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php else: ?>
+                        <p>No hay pedidos de viandas para la fecha seleccionada.</p>
+                    <?php endif; ?>
+                </div>
+
+                <div class="card">
+                    <div class="resumen-header">
+                        <div>
+                            <h3>Pedidos de Cuyo Placa</h3>
+                            <p class="resumen-subtitle">Fecha: <?= htmlspecialchars(date('d/m/Y', strtotime($fechaEntrega))) ?></p>
+                        </div>
+                        <div class="resumen-total-box">
+                            <span class="material-icons">inventory_2</span>
+                            <span>Total unidades: <?= number_format($totalCuyoPlaca, 0, ',', '.') ?></span>
+                        </div>
+                    </div>
+
+                    <div class="tabla-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Pedido</th>
+                                    <th>Fecha</th>
+                                    <th>Usuario</th>
+                                    <th>Planta</th>
+                                    <th>Turno</th>
+                                    <th>Menu</th>
+                                    <th>Cantidad</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($cuyoPlacaPedidos)): ?>
+                                    <?php foreach ($cuyoPlacaPedidos as $pedido): ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars((string) ($pedido['pedido_id'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars((string) ($pedido['fecha'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars((string) ($pedido['usuario'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars((string) ($pedido['planta'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars((string) ($pedido['turno'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars((string) ($pedido['menu'] ?? '')) ?></td>
+                                            <td><?= number_format((int) ($pedido['cantidad'] ?? 0), 0, ',', '.') ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="7">No hay pedidos de Cuyo Placa para la fecha seleccionada.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
             </section>
 
         </div>
     </div>
+
     <!-- Spinner Global -->
     <script src="../../views/partials/spinner-global.js"></script>
-
-    <script>
-        console.log(<?php echo json_encode($_SESSION); ?>);
-    </script>
 </body>
 
 </html>
