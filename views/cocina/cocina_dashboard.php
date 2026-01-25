@@ -185,10 +185,59 @@ $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
             gap: 8px;
         }
 
+        .resumen-total-card.is-primary {
+            position: relative;
+            background: linear-gradient(135deg, #fff7ed 0%, #e0f2fe 100%);
+            border: 1px solid #bae6fd;
+            overflow: hidden;
+        }
+
+        .resumen-total-card.is-primary::after {
+            content: "";
+            position: absolute;
+            inset: -40px;
+            background: radial-gradient(circle at top left, rgba(14, 165, 233, 0.28), transparent 60%);
+            filter: blur(18px);
+            z-index: 0;
+        }
+
+        .resumen-total-card.is-primary > * {
+            position: relative;
+            z-index: 1;
+        }
+
         .resumen-total-number {
             font-size: 32px;
             font-weight: 700;
             color: #0f172a;
+        }
+
+        .nivel-section {
+            margin-top: 16px;
+        }
+
+        .nivel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 4px 0 12px;
+        }
+
+        .nivel-title {
+            margin: 0;
+            font-size: 16px;
+            color: #0f172a;
+        }
+
+        .nivel-total {
+            font-size: 12px;
+            font-weight: 700;
+            color: #0f172a;
+            background: #dbeafe;
+            padding: 4px 10px;
+            border-radius: 999px;
+            white-space: nowrap;
         }
 
         .filtros-form {
@@ -278,7 +327,7 @@ $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
                     </form>
 
                     <div class="cursos-grid">
-                        <div class="card curso-card resumen-total-card">
+                        <div class="card curso-card resumen-total-card is-primary">
                             <div class="curso-card-header">
                                 <h4>Pedidos del dia</h4>
                             </div>
@@ -292,40 +341,56 @@ $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
                                 <?= number_format($totalPedidosDia, 0, ',', '.') ?>
                             </div>
                         </div>
-                        <?php if (!empty($cursosTarjetas)): ?>
-                            <?php foreach ($cursosTarjetas as $curso): ?>
-                                <div class="card curso-card">
-                                    <div class="curso-card-header">
-                                        <h4><?= htmlspecialchars($curso['nombre']) ?></h4>
-                                    </div>
-                                    <div class="curso-meta">
-                                        <span class="curso-icon">
-                                            <span class="material-icons">restaurant</span>
-                                        </span>
-                                        <span class="curso-count">
-                                            <?= number_format((int) ($curso['total'] ?? 0), 0, ',', '.') ?> menus
-                                        </span>
-                                    </div>
-                                    <?php if (!empty($curso['menus'])): ?>
-                                        <ul class="curso-menus">
-                                            <?php foreach ($curso['menus'] as $menu): ?>
-                                                <li>
-                                                    <span><?= htmlspecialchars($menu['nombre'] ?? '') ?></span>
-                                                    <span class="menu-count">
-                                                        <?= number_format((int) ($menu['cantidad'] ?? 0), 0, ',', '.') ?>
+                    </div>
+                    <?php if (!empty($nivelesList)): ?>
+                        <?php foreach ($nivelesList as $nivelData): ?>
+                            <div class="nivel-section">
+                                <div class="nivel-header">
+                                    <h4 class="nivel-title"><?= htmlspecialchars($nivelData['nivel'] ?? '') ?></h4>
+                                    <span class="nivel-total">
+                                        <?= number_format((int) ($nivelData['total'] ?? 0), 0, ',', '.') ?> viandas
+                                    </span>
+                                </div>
+                                <div class="cursos-grid">
+                                    <?php if (!empty($nivelData['cursos'])): ?>
+                                        <?php foreach ($nivelData['cursos'] as $curso): ?>
+                                            <div class="card curso-card">
+                                                <div class="curso-card-header">
+                                                    <h4><?= htmlspecialchars($curso['nombre']) ?></h4>
+                                                </div>
+                                                <div class="curso-meta">
+                                                    <span class="curso-icon">
+                                                        <span class="material-icons">restaurant</span>
                                                     </span>
-                                                </li>
-                                            <?php endforeach; ?>
-                                        </ul>
+                                                    <span class="curso-count">
+                                                        <?= number_format((int) ($curso['total'] ?? 0), 0, ',', '.') ?> menus
+                                                    </span>
+                                                </div>
+                                                <?php if (!empty($curso['menus'])): ?>
+                                                    <ul class="curso-menus">
+                                                        <?php foreach ($curso['menus'] as $menu): ?>
+                                                            <li>
+                                                                <span><?= htmlspecialchars($menu['nombre'] ?? '') ?></span>
+                                                                <span class="menu-count">
+                                                                    <?= number_format((int) ($menu['cantidad'] ?? 0), 0, ',', '.') ?>
+                                                                </span>
+                                                            </li>
+                                                        <?php endforeach; ?>
+                                                    </ul>
+                                                <?php else: ?>
+                                                    <div class="curso-empty">Sin menus para este curso.</div>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endforeach; ?>
                                     <?php else: ?>
-                                        <div class="curso-empty">Sin menus para este curso.</div>
+                                        <div class="curso-empty">Sin cursos para este nivel.</div>
                                     <?php endif; ?>
                                 </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="curso-empty">No hay cursos con pedidos para la fecha seleccionada.</div>
-                        <?php endif; ?>
-                    </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="curso-empty">No hay cursos con pedidos para la fecha seleccionada.</div>
+                    <?php endif; ?>
                 </div>
 
                 <div class="card">

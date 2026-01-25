@@ -15,6 +15,7 @@ class CocinaDashboardModel
         $sql = "SELECT
                 c.Nombre AS Curso_Nombre,
                 c.Id AS Curso_Id,
+                c.Nivel_Educativo AS Nivel_Educativo,
                 m.Nombre AS Menu_Nombre,
                 COUNT(pc.Id) AS Total
             FROM Pedidos_Comida pc

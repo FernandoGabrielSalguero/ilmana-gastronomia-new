@@ -10,8 +10,20 @@ $model = new CocinaDashboardModel($pdo);
 $resumenMenusRaw = $model->obtenerMenusPorCurso($fechaEntrega);
 $totalPedidosDia = $model->obtenerTotalPedidosDia($fechaEntrega);
 
-$tarjetasCursos = [];
+$nivelesOrden = ['Inicial', 'Primaria', 'Secundaria'];
+$nivelesTarjetas = [];
+foreach ($nivelesOrden as $nivel) {
+    $nivelesTarjetas[$nivel] = [
+        'nivel' => $nivel,
+        'total' => 0,
+        'cursos' => []
+    ];
+}
+
 foreach ($resumenMenusRaw as $row) {
+    $nivelRaw = trim((string) ($row['Nivel_Educativo'] ?? ''));
+    $nivel = in_array($nivelRaw, $nivelesOrden, true) ? $nivelRaw : 'Inicial';
+
     $cursoIdRaw = $row['Curso_Id'] ?? 'sin_curso';
     $cursoId = $cursoIdRaw === null || $cursoIdRaw === '' ? 'sin_curso' : (string) $cursoIdRaw;
     $cursoNombre = trim((string) ($row['Curso_Nombre'] ?? ''));
@@ -26,8 +38,8 @@ foreach ($resumenMenusRaw as $row) {
 
     $cantidad = (int) ($row['Total'] ?? 0);
 
-    if (!isset($tarjetasCursos[$cursoId])) {
-        $tarjetasCursos[$cursoId] = [
+    if (!isset($nivelesTarjetas[$nivel]['cursos'][$cursoId])) {
+        $nivelesTarjetas[$nivel]['cursos'][$cursoId] = [
             'id' => $cursoId,
             'nombre' => $cursoNombre,
             'total' => 0,
@@ -35,11 +47,17 @@ foreach ($resumenMenusRaw as $row) {
         ];
     }
 
-    $tarjetasCursos[$cursoId]['menus'][] = [
+    $nivelesTarjetas[$nivel]['cursos'][$cursoId]['menus'][] = [
         'nombre' => $menuNombre,
         'cantidad' => $cantidad
     ];
-    $tarjetasCursos[$cursoId]['total'] += $cantidad;
+    $nivelesTarjetas[$nivel]['cursos'][$cursoId]['total'] += $cantidad;
+    $nivelesTarjetas[$nivel]['total'] += $cantidad;
 }
 
-$cursosTarjetas = array_values($tarjetasCursos);
+$nivelesList = [];
+foreach ($nivelesOrden as $nivel) {
+    $nivelData = $nivelesTarjetas[$nivel];
+    $nivelData['cursos'] = array_values($nivelData['cursos']);
+    $nivelesList[] = $nivelData;
+}
