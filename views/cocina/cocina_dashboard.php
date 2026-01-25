@@ -388,7 +388,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
 
         .resumen-body {
             display: grid;
-            grid-template-columns: 350px 1fr;
+            grid-template-columns: 400px 1fr;
             gap: 16px;
             align-items: stretch;
         }
