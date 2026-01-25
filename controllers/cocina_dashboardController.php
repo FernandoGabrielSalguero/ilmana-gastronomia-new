@@ -10,6 +10,7 @@ $model = new CocinaDashboardModel($pdo);
 $resumenMenusRaw = $model->obtenerMenusPorCurso($fechaEntrega);
 $preferenciasRaw = $model->obtenerPreferenciasPorMenuNivel($fechaEntrega);
 $totalPedidosDia = $model->obtenerTotalPedidosDia($fechaEntrega);
+$firmaPedidosDia = $model->obtenerFirmaPedidosDia($fechaEntrega);
 
 $nivelesOrden = ['Inicial', 'Primaria', 'Secundaria'];
 $nivelesTarjetas = [];

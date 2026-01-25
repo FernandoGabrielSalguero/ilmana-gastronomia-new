@@ -432,6 +432,15 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
 }
 
 $fechaEntregaTexto = date('d/m/Y', strtotime($fechaEntrega));
+if (isset($_GET['ajax']) && $_GET['ajax'] === 'ping') {
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'ok' => true,
+        'firma' => $firmaPedidosDia,
+        'fechaTexto' => $fechaEntregaTexto
+    ]);
+    exit;
+}
 if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
     ob_start();
     renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel, $menusResumenList);
@@ -440,7 +449,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
     echo json_encode([
         'ok' => true,
         'bodyHtml' => $bodyHtml,
-        'fechaTexto' => $fechaEntregaTexto
+        'fechaTexto' => $fechaEntregaTexto,
+        'firma' => $firmaPedidosDia
     ]);
     exit;
 }
@@ -1194,6 +1204,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
         const viandasFechaInput = document.getElementById('viandas-fecha-input');
         const viandasBody = document.getElementById('viandas-resumen-body');
         const viandasFechaTexto = document.getElementById('viandas-fecha-texto');
+        let viandasFirmaActual = "<?= htmlspecialchars($firmaPedidosDia ?? '', ENT_QUOTES, 'UTF-8') ?>";
+        let viandasPollingEnCurso = false;
 
         const togglePanelViandas = () => {
             if (!panelViandasFiltros || !toggleViandasFiltros) return;
@@ -1251,6 +1263,9 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
                     if (viandasFechaTexto && typeof data.fechaTexto === 'string') {
                         viandasFechaTexto.textContent = `Fecha: ${data.fechaTexto}`;
                     }
+                    if (typeof data.firma === 'string' && data.firma) {
+                        viandasFirmaActual = data.firma;
+                    }
                     if (panelViandasFiltros) {
                         panelViandasFiltros.classList.remove('is-open');
                     }
@@ -1267,6 +1282,42 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
                 cargarViandasAjax(fecha);
             });
         }
+
+        const verificarCambiosViandas = () => {
+            if (viandasPollingEnCurso) return;
+            const fecha = viandasFechaInput ? viandasFechaInput.value : '';
+            if (!fecha) return;
+
+            viandasPollingEnCurso = true;
+            const params = new URLSearchParams({
+                ajax: 'ping',
+                fecha_entrega: fecha
+            });
+
+            fetch(`cocina_dashboard.php?${params.toString()}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    if (!data || data.ok !== true) {
+                        throw new Error('Ping invalido');
+                    }
+                    if (typeof data.firma === 'string' && data.firma && data.firma !== viandasFirmaActual) {
+                        viandasFirmaActual = data.firma;
+                        cargarViandasAjax(fecha);
+                    }
+                })
+                .catch((err) => {
+                    console.error('Error verificando cambios:', err);
+                })
+                .finally(() => {
+                    viandasPollingEnCurso = false;
+                });
+        };
+
+        setInterval(verificarCambiosViandas, 15000);
 
         const getResumenModal = () => document.getElementById('resumenModal');
 

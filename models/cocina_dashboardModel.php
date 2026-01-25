@@ -75,4 +75,32 @@ class CocinaDashboardModel
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ? (int) $row['Total'] : 0;
     }
+
+    public function obtenerFirmaPedidosDia($fechaEntrega)
+    {
+        $sql = "SELECT
+                COUNT(pc.Id) AS Total,
+                MAX(pc.Fecha_pedido) AS Max_Fecha_Pedido,
+                MAX(pc.Id) AS Max_Id
+            FROM Pedidos_Comida pc
+            WHERE pc.Fecha_entrega = :fechaEntrega
+              AND pc.Estado <> 'Cancelado'";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'fechaEntrega' => $fechaEntrega
+        ]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return sha1('0|0|0');
+        }
+
+        $payload = implode('|', [
+            (string) ($row['Total'] ?? 0),
+            (string) ($row['Max_Fecha_Pedido'] ?? ''),
+            (string) ($row['Max_Id'] ?? 0)
+        ]);
+
+        return sha1($payload);
+    }
 }
