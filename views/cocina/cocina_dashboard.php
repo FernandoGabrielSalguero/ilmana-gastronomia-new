@@ -37,11 +37,61 @@ $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
 
 function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel, $menusResumenList)
 {
+    $nivelesOrden = ['Inicial', 'Primaria', 'Secundaria'];
+    $menusResumenOrden = $menusResumenList;
+    usort($menusResumenOrden, function ($a, $b) {
+        return (int) ($b['total'] ?? 0) <=> (int) ($a['total'] ?? 0);
+    });
+
+    $preferenciasResumen = [];
+    foreach ($nivelesOrden as $nivel) {
+        $preferenciasResumen[$nivel] = [
+            'total_pref' => 0,
+            'sin' => 0,
+            'prefs' => []
+        ];
+    }
+    $totalConPreferencias = 0;
+    $totalSinPreferencias = 0;
+
+    foreach ($menusResumenList as $menuResumen) {
+        foreach ($nivelesOrden as $nivel) {
+            $prefInfo = $menuResumen['niveles_pref_counts'][$nivel] ?? null;
+            if (!$prefInfo) {
+                continue;
+            }
+            $sin = (int) ($prefInfo['sin'] ?? 0);
+            $totalSinPreferencias += $sin;
+            $preferenciasResumen[$nivel]['sin'] += $sin;
+
+            if (!empty($prefInfo['prefs'])) {
+                foreach ($prefInfo['prefs'] as $prefNombre => $prefCantidad) {
+                    $prefCantidad = (int) $prefCantidad;
+                    if (!isset($preferenciasResumen[$nivel]['prefs'][$prefNombre])) {
+                        $preferenciasResumen[$nivel]['prefs'][$prefNombre] = 0;
+                    }
+                    $preferenciasResumen[$nivel]['prefs'][$prefNombre] += $prefCantidad;
+                    $preferenciasResumen[$nivel]['total_pref'] += $prefCantidad;
+                    $totalConPreferencias += $prefCantidad;
+                }
+            }
+        }
+    }
+
+    foreach ($nivelesOrden as $nivel) {
+        if (!empty($preferenciasResumen[$nivel]['prefs'])) {
+            arsort($preferenciasResumen[$nivel]['prefs']);
+        }
+    }
     ?>
     <div class="resumen-body">
         <div class="resumen-lateral">
             <div class="card curso-card resumen-total-card is-primary">
                 <div class="curso-card-header">
+                    <button class="btn-icon resumen-icon-button" type="button" data-resumen-modal="open"
+                        data-tooltip="Ver resumen claro">
+                        <span class="material-icons">summarize</span>
+                    </button>
                     <h4>Resumen de pedidos del día</h4>
                 </div>
                 <div class="curso-meta">
@@ -59,7 +109,6 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
                         <?php endforeach; ?>
 
                         <?php
-                        $nivelesOrden = ['Inicial', 'Primaria', 'Secundaria'];
                         foreach ($nivelesOrden as $nivelNombre):
                             $tituloNivel = $nivelNombre === 'Inicial' ? 'Nivel inicial' : $nivelNombre;
                             ?>
@@ -156,6 +205,89 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
             <?php endif; ?>
         </div>
     </div>
+
+    <div class="resumen-modal" id="resumenModal" aria-hidden="true">
+        <div class="resumen-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="resumenModalTitle">
+            <div class="resumen-modal-header">
+                <div>
+                    <h3 id="resumenModalTitle">Resumen claro del dia</h3>
+                    <p class="resumen-modal-subtitle">Guia rapida para cocinar y armar cajas.</p>
+                </div>
+                <button class="btn-icon" type="button" data-resumen-modal="close" aria-label="Cerrar">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <div class="resumen-modal-body">
+                <div class="resumen-modal-grid">
+                    <div class="resumen-modal-card is-total">
+                        <div class="resumen-modal-label">Total de menus a preparar</div>
+                        <div class="resumen-modal-number"><?= number_format($totalPedidosDia, 0, ',', '.') ?></div>
+                    </div>
+                    <div class="resumen-modal-card is-pref">
+                        <div class="resumen-modal-label">Menus con preferencias</div>
+                        <div class="resumen-modal-number"><?= number_format($totalConPreferencias, 0, ',', '.') ?></div>
+                    </div>
+                    <div class="resumen-modal-card is-plain">
+                        <div class="resumen-modal-label">Menus sin preferencias</div>
+                        <div class="resumen-modal-number"><?= number_format($totalSinPreferencias, 0, ',', '.') ?></div>
+                    </div>
+                </div>
+
+                <div class="resumen-modal-section">
+                    <h4>Menus por tipo</h4>
+                    <?php if (!empty($menusResumenOrden)): ?>
+                        <ul class="resumen-modal-list">
+                            <?php foreach ($menusResumenOrden as $menuResumen): ?>
+                                <li>
+                                    <span><?= htmlspecialchars($menuResumen['nombre']) ?></span>
+                                    <span class="resumen-modal-pill">
+                                        <?= number_format((int) ($menuResumen['total'] ?? 0), 0, ',', '.') ?>
+                                    </span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php else: ?>
+                        <div class="curso-empty">Sin menus registrados.</div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="resumen-modal-section">
+                    <h4>Preferencias por nivel</h4>
+                    <div class="resumen-modal-niveles">
+                        <?php foreach ($nivelesOrden as $nivelNombre): ?>
+                            <?php
+                            $nivelTitulo = $nivelNombre === 'Inicial' ? 'Nivel inicial' : $nivelNombre;
+                            $nivelData = $preferenciasResumen[$nivelNombre];
+                            ?>
+                            <div class="resumen-modal-nivel">
+                                <div class="resumen-modal-nivel-header">
+                                    <span><?= htmlspecialchars($nivelTitulo) ?></span>
+                                    <span class="resumen-modal-pill is-strong">
+                                        <?= number_format((int) ($nivelData['total_pref'] ?? 0), 0, ',', '.') ?> con preferencias
+                                    </span>
+                                </div>
+                                <?php if (!empty($nivelData['prefs'])): ?>
+                                    <ul class="resumen-modal-list is-compact">
+                                        <?php foreach ($nivelData['prefs'] as $prefNombre => $prefCantidad): ?>
+                                            <li>
+                                                <span><?= htmlspecialchars($prefNombre) ?></span>
+                                                <span class="resumen-modal-pill is-danger">
+                                                    <?= number_format((int) $prefCantidad, 0, ',', '.') ?>
+                                                </span>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php else: ?>
+                                    <div class="curso-empty">Sin preferencias registradas.</div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <?php
 }
 
@@ -214,6 +346,19 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             gap: 8px;
         }
 
+        .resumen-icon-button {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: #ffffff;
+            color: #1e3a8a;
+            box-shadow: 0 10px 20px rgba(30, 64, 175, 0.15);
+        }
+
+        .resumen-icon-button .material-icons {
+            font-size: 20px;
+        }
+
         .resumen-panel {
             position: fixed;
             min-width: 240px;
@@ -237,6 +382,170 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
         .resumen-panel,
         [data-tooltip]::after {
             z-index: 200000 !important;
+        }
+
+        .resumen-modal {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.55);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 200000 !important;
+        }
+
+        .resumen-modal.is-open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .resumen-modal-dialog {
+            width: min(980px, 100%);
+            max-height: 90vh;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 20px;
+            overflow: auto;
+            box-shadow: 0 20px 45px rgba(15, 23, 42, 0.3);
+        }
+
+        .resumen-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .resumen-modal-header h3 {
+            margin: 0 0 4px;
+        }
+
+        .resumen-modal-subtitle {
+            margin: 0;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .resumen-modal-body {
+            display: grid;
+            gap: 18px;
+        }
+
+        .resumen-modal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .resumen-modal-card {
+            border-radius: 16px;
+            padding: 14px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            display: grid;
+            gap: 8px;
+        }
+
+        .resumen-modal-card.is-total {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        .resumen-modal-card.is-pref {
+            background: #fef9c3;
+            border-color: #fde68a;
+        }
+
+        .resumen-modal-card.is-plain {
+            background: #ecfdf5;
+            border-color: #bbf7d0;
+        }
+
+        .resumen-modal-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .resumen-modal-number {
+            font-size: 28px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .resumen-modal-section h4 {
+            margin: 0 0 10px;
+            font-size: 16px;
+        }
+
+        .resumen-modal-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            gap: 6px;
+        }
+
+        .resumen-modal-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .resumen-modal-list.is-compact li {
+            font-size: 13px;
+        }
+
+        .resumen-modal-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #dbeafe;
+            font-weight: 700;
+            font-size: 12px;
+            color: #1e3a8a;
+            white-space: nowrap;
+        }
+
+        .resumen-modal-pill.is-strong {
+            background: #1d4ed8;
+            color: #ffffff;
+        }
+
+        .resumen-modal-pill.is-danger {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .resumen-modal-niveles {
+            display: grid;
+            gap: 12px;
+        }
+
+        .resumen-modal-nivel {
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 12px;
+            background: #ffffff;
+            display: grid;
+            gap: 10px;
+        }
+
+        .resumen-modal-nivel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
         }
 
         .resumen-title {
@@ -274,6 +583,15 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             align-items: center;
             gap: 8px;
             margin-bottom: 10px;
+        }
+
+        .curso-card-header h4 {
+            order: 1;
+        }
+
+        .resumen-icon-button {
+            order: 2;
+            margin-left: auto;
         }
 
         .curso-card h4 {
@@ -399,7 +717,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
 
         .resumen-body {
             display: grid;
-            grid-template-columns: 400px 1fr;
+            grid-template-columns: 475px 1fr;
             gap: 16px;
             align-items: stretch;
         }
@@ -728,6 +1046,49 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
                 cargarViandasAjax(fecha);
             });
         }
+
+        const getResumenModal = () => document.getElementById('resumenModal');
+
+        const openResumenModal = () => {
+            const modal = getResumenModal();
+            if (!modal) return;
+            modal.classList.add('is-open');
+            modal.setAttribute('aria-hidden', 'false');
+        };
+
+        const closeResumenModal = () => {
+            const modal = getResumenModal();
+            if (!modal) return;
+            modal.classList.remove('is-open');
+            modal.setAttribute('aria-hidden', 'true');
+        };
+
+        document.addEventListener('click', (event) => {
+            const openTrigger = event.target.closest('[data-resumen-modal="open"]');
+            if (openTrigger) {
+                event.preventDefault();
+                openResumenModal();
+                return;
+            }
+
+            const closeTrigger = event.target.closest('[data-resumen-modal="close"]');
+            if (closeTrigger) {
+                event.preventDefault();
+                closeResumenModal();
+                return;
+            }
+
+            const modal = getResumenModal();
+            if (modal && event.target === modal) {
+                closeResumenModal();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeResumenModal();
+            }
+        });
     </script>
 </body>
 
