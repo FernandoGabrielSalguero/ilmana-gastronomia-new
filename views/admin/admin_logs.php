@@ -21,7 +21,7 @@ $ajustarHora = function ($fechaRaw) {
         return [$fechaRaw, ''];
     }
     $fecha->modify('-3 hours');
-    return [$fecha->format('Y-m-d'), $fecha->format('H:i:s')];
+    return [$fecha->format('d-m-Y'), $fecha->format('H:i:s')];
 };
 ?>
 
@@ -392,7 +392,7 @@ $ajustarHora = function ($fechaRaw) {
             date.setHours(date.getHours() - 3);
             const pad = (num) => String(num).padStart(2, '0');
             return {
-                fecha: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
+                fecha: `${pad(date.getDate())}-${pad(date.getMonth() + 1)}-${date.getFullYear()}`,
                 hora: `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
             };
         };
