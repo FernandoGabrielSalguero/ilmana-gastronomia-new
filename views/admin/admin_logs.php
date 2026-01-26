@@ -11,6 +11,18 @@ $estadoBadgeClass = function ($estado) {
     }
     return '';
 };
+$ajustarHora = function ($fechaRaw) {
+    $fechaRaw = trim((string) $fechaRaw);
+    if ($fechaRaw === '') {
+        return ['', ''];
+    }
+    $fecha = DateTime::createFromFormat('Y-m-d H:i:s', $fechaRaw);
+    if (!$fecha) {
+        return [$fechaRaw, ''];
+    }
+    $fecha->modify('-3 hours');
+    return [$fecha->format('Y-m-d'), $fecha->format('H:i:s')];
+};
 ?>
 
 <!DOCTYPE html>
@@ -182,9 +194,7 @@ $estadoBadgeClass = function ($estado) {
                                         $usuarioLogin = trim((string) ($log['UsuarioLogin'] ?? ''));
                                         $estado = trim((string) ($log['Estado'] ?? ''));
                                         $fechaRaw = trim((string) ($log['Creado_En'] ?? ''));
-                                        $fechaParts = $fechaRaw !== '' ? preg_split('/\s+/', $fechaRaw, 2) : [];
-                                        $fechaTexto = $fechaParts[0] ?? '';
-                                        $horaTexto = $fechaParts[1] ?? '';
+                                        [$fechaTexto, $horaTexto] = $ajustarHora($fechaRaw);
                                         ?>
                                         <tr>
                                             <td><?= (int) ($log['Id'] ?? 0) ?></td>
@@ -294,9 +304,7 @@ $estadoBadgeClass = function ($estado) {
                                         $estado = trim((string) ($item['Estado'] ?? ''));
                                         $ip = trim((string) ($item['Ip'] ?? ''));
                                         $fechaRaw = trim((string) ($item['Creado_En'] ?? ''));
-                                        $fechaParts = $fechaRaw !== '' ? preg_split('/\s+/', $fechaRaw, 2) : [];
-                                        $fechaTexto = $fechaParts[0] ?? '';
-                                        $horaTexto = $fechaParts[1] ?? '';
+                                        [$fechaTexto, $horaTexto] = $ajustarHora($fechaRaw);
                                         ?>
                                         <tr>
                                             <td><?= (int) ($item['Id'] ?? 0) ?></td>
@@ -368,15 +376,43 @@ $estadoBadgeClass = function ($estado) {
             return '';
         };
 
+        const ajustarHora = (fechaRaw) => {
+            const value = String(fechaRaw || '').trim();
+            if (!value) return {
+                fecha: '',
+                hora: ''
+            };
+            const parts = value.split(/\s+/, 2);
+            if (parts.length < 2) {
+                return {
+                    fecha: value,
+                    hora: ''
+                };
+            }
+            const [fechaParte, horaParte] = parts;
+            const [y, m, d] = fechaParte.split('-').map((n) => parseInt(n, 10));
+            const [hh, mm, ss] = horaParte.split(':').map((n) => parseInt(n, 10));
+            const date = new Date(y, (m || 1) - 1, d || 1, hh || 0, mm || 0, ss || 0);
+            if (Number.isNaN(date.getTime())) {
+                return {
+                    fecha: value,
+                    hora: ''
+                };
+            }
+            date.setHours(date.getHours() - 3);
+            const pad = (num) => String(num).padStart(2, '0');
+            return {
+                fecha: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
+                hora: `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+            };
+        };
+
         const buildLogRow = (log) => {
             const usuarioNombre = String(log.UsuarioNombre || log.Nombre || '').trim();
             const usuarioCorreo = String(log.UsuarioCorreo || log.Correo || '').trim();
             const usuarioLogin = String(log.UsuarioLogin || '').trim();
             const estado = String(log.Estado || '').trim();
-            const fechaRaw = String(log.Creado_En || '').trim();
-            const fechaParts = fechaRaw !== '' ? fechaRaw.split(/\s+/, 2) : [];
-            const fechaTexto = fechaParts[0] || '';
-            const horaTexto = fechaParts[1] || '';
+            const { fecha: fechaTexto, hora: horaTexto } = ajustarHora(log.Creado_En || '');
 
             return `
                 <tr>
@@ -420,10 +456,7 @@ $estadoBadgeClass = function ($estado) {
             const entidad = String(item.Entidad || '').trim();
             const estado = String(item.Estado || '').trim();
             const ip = String(item.Ip || '').trim();
-            const fechaRaw = String(item.Creado_En || '').trim();
-            const fechaParts = fechaRaw !== '' ? fechaRaw.split(/\s+/, 2) : [];
-            const fechaTexto = fechaParts[0] || '';
-            const horaTexto = fechaParts[1] || '';
+            const { fecha: fechaTexto, hora: horaTexto } = ajustarHora(item.Creado_En || '');
 
             return `
                 <tr>
