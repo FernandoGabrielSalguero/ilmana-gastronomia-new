@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <title>{{title}}</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f6f7fb;
+            color: #111;
+            margin: 0;
+            padding: 24px;
+        }
+
+        .card {
+            max-width: 680px;
+            margin: auto;
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #eee;
+        }
+
+        h1 {
+            font-size: 18px;
+            margin: 0 0 12px;
+            color: #111827;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f3f4f6;
+            font-size: 13px;
+        }
+
+        .muted {
+            color: #6b7280;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>{{nombre}}, actualizamos tu perfil</h1>
+        <p>Estos son los cambios registrados en tu cuenta:</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Campo</th>
+                    <th>Antes</th>
+                    <th>Despues</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{cambios}}
+            </tbody>
+        </table>
+        <p class="muted">Estado anterior: <strong>{{estado_antes}}</strong></p>
+        <p class="muted">Estado actual: <strong>{{estado_despues}}</strong></p>
+    </div>
+</body>
+
+</html>

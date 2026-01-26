@@ -154,4 +154,86 @@ final class Maill
             return ['ok' => false, 'error' => $errorBase . $debugText];
         }
     }
+
+    /**
+     * Envia correo de actualizacion de perfil.
+     * $data = [
+     *   'nombre' => string,
+     *   'correo' => string,
+     *   'cambios' => array<int, array{campo:string, antes:string, despues:string}>,
+     *   'estado_antes' => string,
+     *   'estado_despues' => string
+     * ]
+     * @return array{ok:bool, error?:string}
+     */
+    public static function enviarActualizacionUsuario(array $data): array
+    {
+        $debugLog = [];
+        $mail = null;
+        try {
+            $tplPath = __DIR__ . '/template/actualizacion_usuarios.html';
+            $tpl = is_file($tplPath)
+                ? file_get_contents($tplPath)
+                : '<html><body style="font-family:Arial,sans-serif">{CONTENT}</body></html>';
+
+            $nombre = (string)($data['nombre'] ?? '');
+            $cambios = (array)($data['cambios'] ?? []);
+
+            $rows = '';
+            foreach ($cambios as $cambio) {
+                $rows .= sprintf(
+                    '<tr><td>%s</td><td>%s</td><td>%s</td></tr>',
+                    htmlspecialchars((string)($cambio['campo'] ?? ''), ENT_QUOTES, 'UTF-8'),
+                    htmlspecialchars((string)($cambio['antes'] ?? ''), ENT_QUOTES, 'UTF-8'),
+                    htmlspecialchars((string)($cambio['despues'] ?? ''), ENT_QUOTES, 'UTF-8')
+                );
+            }
+
+            $replacements = [
+                '{{title}}' => 'Actualizacion de perfil',
+                '{{nombre}}' => htmlspecialchars($nombre, ENT_QUOTES, 'UTF-8'),
+                '{{cambios}}' => $rows,
+                '{{estado_antes}}' => htmlspecialchars((string)($data['estado_antes'] ?? ''), ENT_QUOTES, 'UTF-8'),
+                '{{estado_despues}}' => htmlspecialchars((string)($data['estado_despues'] ?? ''), ENT_QUOTES, 'UTF-8')
+            ];
+
+            if (strpos($tpl, '{CONTENT}') !== false) {
+                $content = sprintf(
+                    '<h1>%s, actualizamos tu perfil</h1>
+                    <table><thead><tr><th>Campo</th><th>Antes</th><th>Despues</th></tr></thead><tbody>%s</tbody></table>
+                    <p>Estado anterior: %s</p>
+                    <p>Estado actual: %s</p>',
+                    $replacements['{{nombre}}'],
+                    $replacements['{{cambios}}'],
+                    $replacements['{{estado_antes}}'],
+                    $replacements['{{estado_despues}}']
+                );
+                $html = str_replace('{CONTENT}', $content, $tpl);
+            } else {
+                $html = str_replace(array_keys($replacements), array_values($replacements), $tpl);
+            }
+
+            $mail = self::baseMailer($debugLog);
+            $mail->Subject = $nombre . ' actualizamos tu perfil';
+            $mail->Body    = $html;
+            $mail->AltBody = $nombre . ' actualizamos tu perfil';
+
+            $mail->addAddress((string)($data['correo'] ?? ''), $nombre);
+
+            $mail->send();
+            return ['ok' => true];
+        } catch (\Throwable $e) {
+            $mailError = $mail instanceof PHPMailer ? trim((string)$mail->ErrorInfo) : '';
+            $debugText = '';
+            if (!empty($debugLog)) {
+                $tail = array_slice($debugLog, -10);
+                $debugText = ' SMTP Log: ' . implode(' | ', $tail);
+            }
+            $errorBase = $e->getMessage();
+            if ($mailError !== '' && stripos($errorBase, $mailError) === false) {
+                $errorBase .= ' | ErrorInfo: ' . $mailError;
+            }
+            return ['ok' => false, 'error' => $errorBase . $debugText];
+        }
+    }
 }

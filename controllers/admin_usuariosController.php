@@ -92,9 +92,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['
     } elseif ($usuarioId <= 0) {
         $errores[] = 'Usuario invalido.';
     } else {
+        $usuarioAnterior = $model->obtenerUsuarioConHijos($usuarioId);
         $ok = $model->actualizarEstadoUsuario($usuarioId, $estado);
         if ($ok) {
             $mensaje = 'Usuario actualizado correctamente.';
+            $correoDestino = '';
+            $nombreDestino = '';
+            if ($usuarioAnterior) {
+                $correoDestino = (string)($usuarioAnterior['Correo'] ?? '');
+                $nombreDestino = (string)($usuarioAnterior['Nombre'] ?? '');
+            }
+            if ($correoDestino !== '' && $usuarioAnterior) {
+                $estadoAntes = (string)($usuarioAnterior['Estado'] ?? '');
+                $cambios = [];
+                if ($estadoAntes !== $estado) {
+                    $cambios[] = [
+                        'campo' => 'Estado',
+                        'antes' => $estadoAntes,
+                        'despues' => $estado
+                    ];
+                }
+                if (!empty($cambios)) {
+                    $mailResult = \SVE\Mail\Maill::enviarActualizacionUsuario([
+                        'nombre' => $nombreDestino,
+                        'correo' => $correoDestino,
+                        'cambios' => $cambios,
+                        'estado_antes' => $estadoAntes,
+                        'estado_despues' => $estado
+                    ]);
+                    if (!$mailResult['ok']) {
+                        $mailError = (string)($mailResult['error'] ?? '');
+                        $detalle = $mailError !== '' ? ' Detalle: ' . $mailError : '';
+                        $mensaje = trim($mensaje . ' (No se pudo enviar el correo de actualizacion.' . $detalle . ')');
+                    }
+                }
+            }
         } else {
             $errores[] = 'No se pudo actualizar el usuario.';
         }
@@ -241,6 +273,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'edita
         }
     }
 
+    $usuarioAnterior = null;
+    if ($usuarioId > 0) {
+        $usuarioAnterior = $model->obtenerUsuarioConHijos($usuarioId);
+    }
+
     if (empty($errores)) {
         $data = [
             'nombre' => $nombre !== '' ? $nombre : null,
@@ -256,6 +293,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'edita
 
         if ($resultado['ok']) {
             $mensaje = $resultado['mensaje'];
+            $correoDestino = $correo !== '' ? $correo : (string)($usuarioAnterior['Correo'] ?? '');
+            $nombreDestino = $nombre !== '' ? $nombre : (string)($usuarioAnterior['Nombre'] ?? '');
+            if ($correoDestino !== '' && $usuarioAnterior) {
+                $cambios = [];
+                $saldoAnterior = number_format((float)($usuarioAnterior['Saldo'] ?? 0), 2, '.', '');
+                $saldoNuevo = number_format((float)($saldo ?? 0), 2, '.', '');
+                $estadoAntes = (string)($usuarioAnterior['Estado'] ?? '');
+                $estadoDespues = $estadoAntes;
+
+                $comparaciones = [
+                    'Nombre' => [(string)($usuarioAnterior['Nombre'] ?? ''), $nombre],
+                    'Usuario' => [(string)($usuarioAnterior['Usuario'] ?? ''), $usuario],
+                    'Correo' => [(string)($usuarioAnterior['Correo'] ?? ''), $correo],
+                    'Telefono' => [preg_replace('/\D+/', '', (string)($usuarioAnterior['Telefono'] ?? '')), $telefonoNormalizado],
+                    'Rol' => [(string)($usuarioAnterior['Rol'] ?? ''), $rol],
+                    'Saldo' => [$saldoAnterior, $saldoNuevo]
+                ];
+
+                foreach ($comparaciones as $campo => [$antes, $despues]) {
+                    $antesStr = (string)$antes;
+                    $despuesStr = (string)$despues;
+                    if ($campo === 'Correo') {
+                        $antesStr = strtolower(trim($antesStr));
+                        $despuesStr = strtolower(trim($despuesStr));
+                    }
+                    if ($antesStr !== $despuesStr) {
+                        $cambios[] = [
+                            'campo' => $campo,
+                            'antes' => $antesStr === '' ? '-' : $antesStr,
+                            'despues' => $despuesStr === '' ? '-' : $despuesStr
+                        ];
+                    }
+                }
+
+                if ($contrasena !== '') {
+                    $cambios[] = [
+                        'campo' => 'Contrasena',
+                        'antes' => 'Actual',
+                        'despues' => 'Actualizada'
+                    ];
+                }
+
+                if (!empty($cambios)) {
+                    $mailResult = \SVE\Mail\Maill::enviarActualizacionUsuario([
+                        'nombre' => $nombreDestino,
+                        'correo' => $correoDestino,
+                        'cambios' => $cambios,
+                        'estado_antes' => $estadoAntes,
+                        'estado_despues' => $estadoDespues
+                    ]);
+                    if (!$mailResult['ok']) {
+                        $mailError = (string)($mailResult['error'] ?? '');
+                        $detalle = $mailError !== '' ? ' Detalle: ' . $mailError : '';
+                        $mensaje = trim($mensaje . ' (No se pudo enviar el correo de actualizacion.' . $detalle . ')');
+                    }
+                }
+            }
         } else {
             $errores[] = $resultado['mensaje'];
         }
