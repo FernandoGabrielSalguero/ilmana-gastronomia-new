@@ -483,7 +483,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                         </div>
                     </div>
 
-                    <div class="input-group">
+                    <div class="input-group" style="display: none;">
                         <label for="edit_contrasena">Contrasena</label>
                         <div class="input-icon">
                             <span class="material-icons">lock</span>

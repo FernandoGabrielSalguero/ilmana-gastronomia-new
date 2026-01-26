@@ -73,6 +73,19 @@ class AdminSaldoModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function obtenerSolicitudSaldo($pedidoId)
+    {
+        $stmt = $this->db->prepare("SELECT ps.Id, ps.Usuario_Id, ps.Saldo, ps.Estado, ps.Observaciones,
+                u.Nombre AS UsuarioNombre, u.Usuario AS UsuarioLogin, u.Correo AS UsuarioCorreo,
+                u.Telefono AS UsuarioTelefono, u.Saldo AS UsuarioSaldo
+            FROM Pedidos_Saldo ps
+            JOIN Usuarios u ON u.Id = ps.Usuario_Id
+            WHERE ps.Id = :id
+            LIMIT 1");
+        $stmt->execute(['id' => $pedidoId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
     public function actualizarEstadoSaldo($pedidoId, $estado, $observaciones)
     {
         if (!$pedidoId || !$estado) {

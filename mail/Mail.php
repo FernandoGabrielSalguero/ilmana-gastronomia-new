@@ -12,6 +12,11 @@ require_once __DIR__ . '/lib/Exception.php';
 
 final class Maill
 {
+    private static function formatMoney($value): string
+    {
+        return number_format((float)$value, 2, ',', '.');
+    }
+
     private static function baseMailer(?array &$debugLog = null): PHPMailer
     {
         $m = new PHPMailer(true);
@@ -217,6 +222,90 @@ final class Maill
             $mail->Subject = $nombre . ' actualizamos tu perfil';
             $mail->Body    = $html;
             $mail->AltBody = $nombre . ' actualizamos tu perfil';
+
+            $mail->addAddress((string)($data['correo'] ?? ''), $nombre);
+
+            $mail->send();
+            return ['ok' => true];
+        } catch (\Throwable $e) {
+            $mailError = $mail instanceof PHPMailer ? trim((string)$mail->ErrorInfo) : '';
+            $debugText = '';
+            if (!empty($debugLog)) {
+                $tail = array_slice($debugLog, -10);
+                $debugText = ' SMTP Log: ' . implode(' | ', $tail);
+            }
+            $errorBase = $e->getMessage();
+            if ($mailError !== '' && stripos($errorBase, $mailError) === false) {
+                $errorBase .= ' | ErrorInfo: ' . $mailError;
+            }
+            return ['ok' => false, 'error' => $errorBase . $debugText];
+        }
+    }
+
+    /**
+     * Envia correo de gestion de saldo (aprobado o cancelado).
+     * $data = [
+     *   'nombre' => string,
+     *   'correo' => string,
+     *   'accion' => string,
+     *   'saldo_actual' => float,
+     *   'saldo_nuevo' => float|null,
+     *   'motivo' => string|null
+     * ]
+     * @return array{ok:bool, error?:string}
+     */
+    public static function enviarGestionSaldo(array $data): array
+    {
+        $debugLog = [];
+        $mail = null;
+        try {
+            $tplPath = __DIR__ . '/template/gestion_saldos_escuelas.html';
+            $tpl = is_file($tplPath)
+                ? file_get_contents($tplPath)
+                : '<html><body style="font-family:Arial,sans-serif">{CONTENT}</body></html>';
+
+            $nombre = (string)($data['nombre'] ?? '');
+            $accion = (string)($data['accion'] ?? '');
+            $saldoActual = self::formatMoney($data['saldo_actual'] ?? 0);
+            $saldoNuevoRaw = $data['saldo_nuevo'] ?? null;
+            $motivoRaw = trim((string)($data['motivo'] ?? ''));
+
+            if ($accion === 'Aprobado') {
+                $saldoNuevo = self::formatMoney($saldoNuevoRaw ?? 0);
+                $detalle = '<tr><td>Saldo nuevo</td><td>' . htmlspecialchars($saldoNuevo, ENT_QUOTES, 'UTF-8') . '</td></tr>';
+            } else {
+                $motivo = $motivoRaw !== '' ? $motivoRaw : 'Sin observaciones';
+                $detalle = '<tr><td>Motivo de cancelacion</td><td>' . htmlspecialchars($motivo, ENT_QUOTES, 'UTF-8') . '</td></tr>';
+            }
+
+            $replacements = [
+                '{{title}}' => 'Gestion de saldo I\'lMana',
+                '{{nombre}}' => htmlspecialchars($nombre, ENT_QUOTES, 'UTF-8'),
+                '{{accion}}' => htmlspecialchars($accion, ENT_QUOTES, 'UTF-8'),
+                '{{saldo_actual}}' => htmlspecialchars($saldoActual, ENT_QUOTES, 'UTF-8'),
+                '{{detalle}}' => $detalle
+            ];
+
+            if (strpos($tpl, '{CONTENT}') !== false) {
+                $content = sprintf(
+                    '<h1>Gestion de saldo</h1>
+                    <p>Hola %s, %s tu solicitud de saldo.</p>
+                    <p><strong>Saldo actual:</strong> %s</p>
+                    %s',
+                    $replacements['{{nombre}}'],
+                    $replacements['{{accion}}'],
+                    $replacements['{{saldo_actual}}'],
+                    $detalle
+                );
+                $html = str_replace('{CONTENT}', $content, $tpl);
+            } else {
+                $html = str_replace(array_keys($replacements), array_values($replacements), $tpl);
+            }
+
+            $mail = self::baseMailer($debugLog);
+            $mail->Subject = 'Gestion de saldo I\'lMana';
+            $mail->Body    = $html;
+            $mail->AltBody = 'Gestion de saldo I\'lMana';
 
             $mail->addAddress((string)($data['correo'] ?? ''), $nombre);
 

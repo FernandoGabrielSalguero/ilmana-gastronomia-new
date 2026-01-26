@@ -18,6 +18,7 @@ if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'administrador') {
 }
 
 require_once __DIR__ . '/../models/admin_saldoModel.php';
+require_once __DIR__ . '/../mail/Mail.php';
 
 $model = new AdminSaldoModel($pdo);
 $errores = [];
@@ -56,10 +57,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, ['aprobar', 'canc
     }
 
     if (empty($errores)) {
+        $solicitud = $model->obtenerSolicitudSaldo($pedidoId);
         $resultado = $model->actualizarEstadoSaldo($pedidoId, $nuevoEstado, $observaciones);
         if ($resultado['ok']) {
             $mensaje = $resultado['mensaje'];
             $saldoFinal = $resultado['saldo_final'] ?? null;
+            if ($solicitud) {
+                $correoDestino = (string)($solicitud['UsuarioCorreo'] ?? '');
+                $nombreDestino = (string)($solicitud['UsuarioNombre'] ?? '');
+                $saldoActual = (float)($solicitud['UsuarioSaldo'] ?? 0);
+                $saldoNuevo = $nuevoEstado === 'Aprobado' ? (float)($saldoFinal ?? $saldoActual) : null;
+                $motivo = $nuevoEstado === 'Cancelado' ? $observaciones : '';
+
+                if ($correoDestino !== '') {
+                    $mailResult = \SVE\Mail\Maill::enviarGestionSaldo([
+                        'nombre' => $nombreDestino,
+                        'correo' => $correoDestino,
+                        'accion' => $nuevoEstado,
+                        'saldo_actual' => $saldoActual,
+                        'saldo_nuevo' => $saldoNuevo,
+                        'motivo' => $motivo
+                    ]);
+                    if (!$mailResult['ok']) {
+                        $mailError = (string)($mailResult['error'] ?? '');
+                        $detalle = $mailError !== '' ? ' Detalle: ' . $mailError : '';
+                        $mensaje = trim($mensaje . ' (No se pudo enviar el correo de gestion de saldo.' . $detalle . ')');
+                    }
+                }
+            }
         } else {
             $errores[] = $resultado['mensaje'];
         }
