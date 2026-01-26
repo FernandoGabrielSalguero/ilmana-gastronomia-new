@@ -82,7 +82,7 @@ class AdminLogsModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function obtenerAuditoriaEventos($limit = 200, $desde = null, $hasta = null)
+    public function obtenerAuditoriaEventos($limit = 200, $fecha = null)
     {
         $limit = (int) $limit;
         if ($limit <= 0) {
@@ -91,13 +91,10 @@ class AdminLogsModel
 
         $where = [];
         $params = [];
-        if (!empty($desde)) {
-            $where[] = "ae.Creado_En >= :desde";
-            $params['desde'] = $desde . ' 00:00:00';
-        }
-        if (!empty($hasta)) {
-            $where[] = "ae.Creado_En <= :hasta";
-            $params['hasta'] = $hasta . ' 23:59:59';
+        if (!empty($fecha)) {
+            $where[] = "ae.Creado_En BETWEEN :desde AND :hasta";
+            $params['desde'] = $fecha . ' 00:00:00';
+            $params['hasta'] = $fecha . ' 23:59:59';
         }
 
         $sql = "SELECT ae.Id, ae.Usuario_Id, ae.Usuario_Login, ae.Rol, ae.Evento, ae.Modulo,
@@ -117,11 +114,11 @@ class AdminLogsModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function buscarAuditoriaEventos($termino, $limit = 200, $desde = null, $hasta = null)
+    public function buscarAuditoriaEventos($termino, $limit = 200, $fecha = null)
     {
         $termino = trim((string) $termino);
         if ($termino === '') {
-            return $this->obtenerAuditoriaEventos($limit, $desde, $hasta);
+            return $this->obtenerAuditoriaEventos($limit, $fecha);
         }
 
         $limit = (int) $limit;
@@ -140,13 +137,10 @@ class AdminLogsModel
         ];
         $params = ['termino' => $like];
 
-        if (!empty($desde)) {
-            $where[] = "ae.Creado_En >= :desde";
-            $params['desde'] = $desde . ' 00:00:00';
-        }
-        if (!empty($hasta)) {
-            $where[] = "ae.Creado_En <= :hasta";
-            $params['hasta'] = $hasta . ' 23:59:59';
+        if (!empty($fecha)) {
+            $where[] = "ae.Creado_En BETWEEN :desde AND :hasta";
+            $params['desde'] = $fecha . ' 00:00:00';
+            $params['hasta'] = $fecha . ' 23:59:59';
         }
 
         $sql = "SELECT ae.Id, ae.Usuario_Id, ae.Usuario_Login, ae.Rol, ae.Evento, ae.Modulo,

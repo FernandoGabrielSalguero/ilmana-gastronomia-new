@@ -257,19 +257,10 @@ $ajustarHora = function ($fechaRaw) {
                         </div>
                         <div class="form-modern filtro-logs">
                             <div class="input-group">
-                                <label for="auditoria-fecha-desde">Fecha desde</label>
+                                <label for="auditoria-fecha">Fecha</label>
                                 <div class="input-icon">
                                     <span class="material-icons">event</span>
-                                    <input type="date" id="auditoria-fecha-desde" name="auditoria-fecha-desde" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-modern filtro-logs">
-                            <div class="input-group">
-                                <label for="auditoria-fecha-hasta">Fecha hasta</label>
-                                <div class="input-icon">
-                                    <span class="material-icons">event</span>
-                                    <input type="date" id="auditoria-fecha-hasta" name="auditoria-fecha-hasta" />
+                                    <input type="date" id="auditoria-fecha" name="auditoria-fecha" />
                                 </div>
                             </div>
                         </div>
@@ -356,8 +347,7 @@ $ajustarHora = function ($fechaRaw) {
         const logsTableBody = document.getElementById('logs-table-body');
         const auditoriaSearchInput = document.getElementById('auditoria-search');
         const auditoriaTableBody = document.getElementById('auditoria-table-body');
-        const auditoriaFechaDesde = document.getElementById('auditoria-fecha-desde');
-        const auditoriaFechaHasta = document.getElementById('auditoria-fecha-hasta');
+        const auditoriaFecha = document.getElementById('auditoria-fecha');
 
         const escapeHtml = (value) => {
             const text = String(value ?? '');
@@ -520,11 +510,8 @@ $ajustarHora = function ($fechaRaw) {
             formData.append('action', 'buscar_auditoria');
             formData.append('termino', termino);
             formData.append('ajax', '1');
-            if (auditoriaFechaDesde && auditoriaFechaDesde.value) {
-                formData.append('fecha_desde', auditoriaFechaDesde.value);
-            }
-            if (auditoriaFechaHasta && auditoriaFechaHasta.value) {
-                formData.append('fecha_hasta', auditoriaFechaHasta.value);
+            if (auditoriaFecha && auditoriaFecha.value) {
+                formData.append('fecha', auditoriaFecha.value);
             }
 
             fetch(window.location.href, {
@@ -596,11 +583,8 @@ $ajustarHora = function ($fechaRaw) {
             }
         };
 
-        if (auditoriaFechaDesde) {
-            auditoriaFechaDesde.addEventListener('change', handleAuditoriaFechaChange);
-        }
-        if (auditoriaFechaHasta) {
-            auditoriaFechaHasta.addEventListener('change', handleAuditoriaFechaChange);
+        if (auditoriaFecha) {
+            auditoriaFecha.addEventListener('change', handleAuditoriaFechaChange);
         }
     </script>
 </body>
