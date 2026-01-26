@@ -18,6 +18,7 @@ if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'administrador') {
 }
 
 require_once __DIR__ . '/../models/admin_usuariosModel.php';
+require_once __DIR__ . '/../mail/Mail.php';
 
 $model = new AdminUsuariosModel($pdo);
 $errores = [];
@@ -416,6 +417,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
         $resultado = $model->crearUsuarioConHijos($data, $rol === 'papas' ? $hijos : []);
         if ($resultado['ok']) {
             $mensaje = $resultado['mensaje'];
+            if ($correo !== '') {
+                $mailResult = \SVE\Mail\Maill::enviarCorreoBienvenida([
+                    'nombre' => $nombre,
+                    'correo' => $correo,
+                    'usuario' => $usuario,
+                    'contrasena' => $contrasena,
+                    'link' => 'https://viandas.ilmanagastronomia.com/',
+                    'telefono' => '+54 9 2613 40-6173'
+                ]);
+                if (!$mailResult['ok']) {
+                    $mensaje = trim($mensaje . ' (No se pudo enviar el correo de bienvenida).');
+                }
+            }
             $formData = [
                 'nombre' => '',
                 'usuario' => '',

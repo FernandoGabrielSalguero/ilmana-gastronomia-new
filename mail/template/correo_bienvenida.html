@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <title>{{title}}</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f6f7fb;
+            color: #111;
+            margin: 0;
+            padding: 24px;
+        }
+
+        .card {
+            max-width: 640px;
+            margin: auto;
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #eee;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin: 0 0 12px;
+            color: #111827;
+        }
+
+        .muted {
+            color: #6b7280;
+        }
+
+        .data {
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 12px 0;
+        }
+
+        .data p {
+            margin: 6px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid #111827;
+            color: #111827;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>Bienvenido a Il'mana Gastronomia, {{nombre}}</h1>
+        <p>Tu cuenta fue creada correctamente. Estos son tus datos de acceso:</p>
+        <div class="data">
+            <p><strong>Usuario:</strong> {{usuario}}</p>
+            <p><strong>Contrasena:</strong> {{contrasena}}</p>
+            <p><strong>Link de acceso:</strong> <a href="{{link}}">{{link}}</a></p>
+            <p><strong>Telefono de contacto:</strong> {{telefono}}</p>
+        </div>
+        <a class="btn" href="{{link}}">Ingresar al sistema</a>
+        <p class="muted">Si no solicitaste este alta, contactanos.</p>
+    </div>
+</body>
+
+</html>
