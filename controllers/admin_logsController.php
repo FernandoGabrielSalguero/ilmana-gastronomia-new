@@ -21,8 +21,19 @@ require_once __DIR__ . '/../models/admin_logsModel.php';
 
 $model = new AdminLogsModel($pdo);
 
-$usuarioId = filter_input(INPUT_GET, 'usuario', FILTER_VALIDATE_INT);
-$usuarioId = $usuarioId ?: null;
+$isAjax = strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest'
+    || ($_POST['ajax'] ?? '') === '1';
+$action = $_POST['action'] ?? $_GET['action'] ?? '';
 
-$usuariosFiltro = $model->obtenerUsuariosConCorreosLog();
-$logs = $model->obtenerCorreosLog($usuarioId);
+if ($isAjax && $action === 'buscar') {
+    $termino = trim((string) ($_POST['termino'] ?? $_GET['termino'] ?? ''));
+    $logs = $model->buscarCorreosLog($termino);
+    header('Content-Type: application/json; charset=UTF-8');
+    echo json_encode([
+        'ok' => true,
+        'logs' => $logs
+    ]);
+    exit;
+}
+
+$logs = $model->obtenerCorreosLog();

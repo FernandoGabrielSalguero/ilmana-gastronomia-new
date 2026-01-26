@@ -11,24 +11,6 @@ $estadoBadgeClass = function ($estado) {
     }
     return '';
 };
-
-$usuarioOptionsHtml = '<option value="">Todos los usuarios</option>';
-foreach ($usuariosFiltro as $usuario) {
-    $usuarioIdOption = (int) ($usuario['Id'] ?? 0);
-    $nombre = trim((string) ($usuario['Nombre'] ?? ''));
-    $correo = trim((string) ($usuario['Correo'] ?? ''));
-    $label = $nombre !== '' ? $nombre : ($correo !== '' ? $correo : 'Usuario ' . $usuarioIdOption);
-    if ($correo !== '' && $nombre !== '') {
-        $label .= ' (' . $correo . ')';
-    }
-    $selected = ($usuarioId ?? null) === $usuarioIdOption ? ' selected' : '';
-    $usuarioOptionsHtml .= sprintf(
-        '<option value="%s"%s>%s</option>',
-        htmlspecialchars((string) $usuarioIdOption),
-        $selected,
-        htmlspecialchars($label)
-    );
-}
 ?>
 
 <!DOCTYPE html>
@@ -75,8 +57,13 @@ foreach ($usuariosFiltro as $usuario) {
             max-width: 360px;
         }
 
-        .filtro-logs select {
+        .filtro-logs input {
             width: 100%;
+        }
+
+        .tabla-wrapper.logs-scroll {
+            max-height: 420px;
+            overflow: auto;
         }
 
         .data-table td.wrap-text,
@@ -162,24 +149,17 @@ foreach ($usuariosFiltro as $usuario) {
                 <div class="card">
                     <div class="tabla-header">
                         <h3>Correos registrados</h3>
-                        <form class="form-modern filtro-logs" method="get">
+                        <div class="form-modern filtro-logs">
                             <div class="input-group">
-                                <label for="usuario">Filtrar por usuario</label>
-                                <div class="input-icon">
-                                    <span class="material-icons">person</span>
-                                    <select id="usuario" name="usuario">
-                                        <?= $usuarioOptionsHtml ?>
-                                    </select>
+                                <label for="logs-search">Filtrar por usuario</label>
+                                <div class="input-icon input-icon-name">
+                                    <input type="text" id="logs-search" name="logs-search" placeholder="Escribe un nombre o correo" autocomplete="off" />
                                 </div>
                             </div>
-                            <div class="form-buttons">
-                                <button class="btn btn-info" type="submit">Filtrar</button>
-                                <a class="btn btn-cancelar" href="admin_logs.php">Limpiar</a>
-                            </div>
-                        </form>
+                        </div>
                     </div>
 
-                    <div class="tabla-wrapper">
+                    <div class="tabla-wrapper logs-scroll">
                         <table class="data-table">
                             <thead>
                                 <tr>
@@ -193,7 +173,7 @@ foreach ($usuariosFiltro as $usuario) {
                                     <th>Fecha</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="logs-table-body">
                                 <?php if (!empty($logs)): ?>
                                     <?php foreach ($logs as $log): ?>
                                         <?php
@@ -257,6 +237,116 @@ foreach ($usuariosFiltro as $usuario) {
 
         </div>
     </div>
+
+    <script>
+        const logsSearchInput = document.getElementById('logs-search');
+        const logsTableBody = document.getElementById('logs-table-body');
+
+        const escapeHtml = (value) => {
+            const text = String(value ?? '');
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        };
+
+        const badgeClass = (estado) => {
+            const value = String(estado || '').toLowerCase().trim();
+            if (value === 'enviado') return 'success';
+            if (value === 'fallido') return 'danger';
+            return '';
+        };
+
+        const buildLogRow = (log) => {
+            const usuarioNombre = String(log.UsuarioNombre || log.Nombre || '').trim();
+            const usuarioCorreo = String(log.UsuarioCorreo || log.Correo || '').trim();
+            const usuarioLogin = String(log.UsuarioLogin || '').trim();
+            const estado = String(log.Estado || '').trim();
+            const fechaRaw = String(log.Creado_En || '').trim();
+            const fechaParts = fechaRaw !== '' ? fechaRaw.split(/\s+/, 2) : [];
+            const fechaTexto = fechaParts[0] || '';
+            const horaTexto = fechaParts[1] || '';
+
+            return `
+                <tr>
+                    <td>${escapeHtml(log.Id || 0)}</td>
+                    <td>
+                        <div class="log-usuario">
+                            <strong>${escapeHtml(usuarioNombre !== '' ? usuarioNombre : 'Sin usuario')}</strong>
+                            ${usuarioCorreo !== '' ? `<span class="gform-helper" style="font-size: 0.85rem;">${escapeHtml(usuarioCorreo)}</span>` : ''}
+                            ${usuarioLogin !== '' ? `<span class="gform-helper" style="font-size: 0.85rem;">${escapeHtml(usuarioLogin)}</span>` : ''}
+                        </div>
+                    </td>
+                    <td>${escapeHtml(log.Correo || '-')}</td>
+                    <td class="wrap-text">${escapeHtml(log.Asunto || '-')}</td>
+                    <td>${escapeHtml(log.Template || '-')}</td>
+                    <td>${estado !== '' ? `<span class="badge ${badgeClass(estado)}">${escapeHtml(estado)}</span>` : '-'}</td>
+                    <td class="wrap-text">${escapeHtml(log.Error || '-')}</td>
+                    <td>
+                        <div>${escapeHtml(fechaTexto)}</div>
+                        <div class="gform-helper" style="font-size: 0.85rem;">${escapeHtml(horaTexto)}</div>
+                    </td>
+                </tr>
+            `;
+        };
+
+        const renderLogsTable = (logs) => {
+            if (!logsTableBody) return;
+            if (!Array.isArray(logs) || logs.length === 0) {
+                logsTableBody.innerHTML = '<tr><td colspan="8">No hay logs de correos para mostrar.</td></tr>';
+                return;
+            }
+            logsTableBody.innerHTML = logs.map((log) => buildLogRow(log)).join('');
+        };
+
+        const fetchLogs = (termino) => {
+            const formData = new FormData();
+            formData.append('action', 'buscar');
+            formData.append('termino', termino);
+            formData.append('ajax', '1');
+
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.ok) {
+                        renderLogsTable(data.logs || []);
+                    }
+                })
+                .catch(() => {
+                    renderLogsTable([]);
+                });
+        };
+
+        if (logsSearchInput) {
+            let searchTimeout = null;
+            let lastSearchValue = '';
+
+            logsSearchInput.addEventListener('input', () => {
+                const termino = logsSearchInput.value.trim();
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
+                }
+                if (termino.length >= 3 || (termino.length === 0 && lastSearchValue.length >= 3)) {
+                    searchTimeout = setTimeout(() => {
+                        fetchLogs(termino);
+                        lastSearchValue = termino;
+                    }, 300);
+                    return;
+                }
+                if (termino.length === 0) {
+                    lastSearchValue = '';
+                }
+            });
+        }
+    </script>
 </body>
 
 </html>

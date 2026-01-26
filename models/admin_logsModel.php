@@ -50,4 +50,35 @@ class AdminLogsModel
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function buscarCorreosLog($termino, $limit = 200)
+    {
+        $termino = trim((string) $termino);
+        if ($termino === '') {
+            return $this->obtenerCorreosLog(null, $limit);
+        }
+
+        $limit = (int) $limit;
+        if ($limit <= 0) {
+            $limit = 200;
+        }
+
+        $like = '%' . $termino . '%';
+        $sql = "SELECT cl.Id, cl.Usuario_Id, cl.Correo, cl.Nombre, cl.Asunto, cl.Template,
+                    cl.Mensaje_HTML, cl.Mensaje_Text, cl.Estado, cl.Error, cl.Creado_En,
+                    u.Nombre AS UsuarioNombre, u.Correo AS UsuarioCorreo, u.Usuario AS UsuarioLogin
+                FROM Correos_Log cl
+                LEFT JOIN Usuarios u ON u.Id = cl.Usuario_Id
+                WHERE u.Nombre LIKE :termino
+                   OR u.Correo LIKE :termino
+                   OR u.Usuario LIKE :termino
+                   OR cl.Correo LIKE :termino
+                   OR cl.Nombre LIKE :termino
+                ORDER BY cl.Id DESC
+                LIMIT " . $limit;
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['termino' => $like]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
