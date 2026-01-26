@@ -417,6 +417,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
         $resultado = $model->crearUsuarioConHijos($data, $rol === 'papas' ? $hijos : []);
         if ($resultado['ok']) {
             $mensaje = $resultado['mensaje'];
+            $mailError = '';
             if ($correo !== '') {
                 $mailResult = \SVE\Mail\Maill::enviarCorreoBienvenida([
                     'nombre' => $nombre,
@@ -427,7 +428,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
                     'telefono' => '+54 9 2613 40-6173'
                 ]);
                 if (!$mailResult['ok']) {
-                    $mensaje = trim($mensaje . ' (No se pudo enviar el correo de bienvenida).');
+                    $mailError = (string)($mailResult['error'] ?? '');
+                    $detalle = $mailError !== '' ? ' Detalle: ' . $mailError : '';
+                    $mensaje = trim($mensaje . ' (No se pudo enviar el correo de bienvenida.' . $detalle . ')');
                 }
             }
             $formData = [
@@ -464,6 +467,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
             'ok' => empty($errores),
             'mensaje' => $mensaje,
             'errores' => $errores,
+            'mail_error' => $mailError ?? '',
             'usuario' => empty($errores) ? [
                 'id' => $resultado['usuario_id'] ?? null,
                 'nombre' => $nombre,

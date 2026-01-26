@@ -1220,6 +1220,9 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                             toggleHijosSection();
                             updateHijoTitles();
                             renderFeedback('success', data.mensaje || 'Usuario creado correctamente.');
+                            if (data.mail_error) {
+                                console.error('Error envio correo bienvenida:', data.mail_error);
+                            }
                         } else {
                             renderFeedback('error', data.errores || 'No se pudo crear el usuario.');
                         }
