@@ -21,6 +21,10 @@ final class Maill
         $port = (int)(getenv('SMTP_PORT') ?: 0);
         $secure = getenv('SMTP_SECURE') ?: '';
 
+        if ($host === '' || $user === '' || $pass === '') {
+            throw new \RuntimeException('Configuracion SMTP incompleta.');
+        }
+
         if ($secure === '') {
             $secure = $port === 465 ? 'ssl' : 'tls';
         }
@@ -36,10 +40,18 @@ final class Maill
         $m->SMTPAuth   = true;
         $m->Username   = $user;
         $m->Password   = $pass;
-        $m->SMTPSecure = $secure;
+        if ($secure === 'ssl') {
+            $m->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $m->SMTPAutoTLS = false;
+        } elseif ($secure === 'tls') {
+            $m->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        } else {
+            $m->SMTPSecure = $secure;
+        }
         $m->Port       = $port;
         $m->CharSet    = 'UTF-8';
         $m->setFrom($from, $fromName);
+        $m->Sender = $from;
         $m->addReplyTo($from, $fromName);
         $m->isHTML(true);
         $m->Encoding   = 'base64';
