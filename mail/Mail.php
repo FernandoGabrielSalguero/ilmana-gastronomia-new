@@ -20,7 +20,6 @@ final class Maill
         $pass = getenv('SMTP_PASSWORD') ?: '';
         $port = (int)(getenv('SMTP_PORT') ?: 0);
         $secure = getenv('SMTP_SECURE') ?: '';
-        $debugEnabled = getenv('SMTP_DEBUG') === '1';
 
         if ($host === '' || $user === '' || $pass === '') {
             throw new \RuntimeException('Configuracion SMTP incompleta.');
@@ -57,7 +56,7 @@ final class Maill
         $m->isHTML(true);
         $m->Encoding   = 'base64';
 
-        if ($debugEnabled && $debugLog !== null) {
+        if ($debugLog !== null) {
             $m->SMTPDebug = 2;
             $m->Debugoutput = function ($str, $level) use (&$debugLog) {
                 $line = trim((string)$str);
@@ -91,6 +90,7 @@ final class Maill
     public static function enviarCorreoBienvenida(array $data): array
     {
         $debugLog = [];
+        $mail = null;
         try {
             $tplPath = __DIR__ . '/template/correo_bienvenida.html';
             $tpl = is_file($tplPath)
@@ -141,12 +141,17 @@ final class Maill
             $mail->send();
             return ['ok' => true];
         } catch (\Throwable $e) {
+            $mailError = $mail instanceof PHPMailer ? trim((string)$mail->ErrorInfo) : '';
             $debugText = '';
             if (!empty($debugLog)) {
                 $tail = array_slice($debugLog, -10);
                 $debugText = ' SMTP Log: ' . implode(' | ', $tail);
             }
-            return ['ok' => false, 'error' => $e->getMessage() . $debugText];
+            $errorBase = $e->getMessage();
+            if ($mailError !== '' && stripos($errorBase, $mailError) === false) {
+                $errorBase .= ' | ErrorInfo: ' . $mailError;
+            }
+            return ['ok' => false, 'error' => $errorBase . $debugText];
         }
     }
 }
