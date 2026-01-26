@@ -5,6 +5,21 @@ Id	int(11)	NO	PRI		auto_increment
 Nombre	varchar(100)	YES			
 Dirección	varchar(255)	YES			
 
+📄 Tabla: Correos_Log
+Columna	Tipo	Nulo	Clave	Default	Extra
+Id	bigint(20) unsigned	NO	PRI		auto_increment
+Usuario_Id	bigint(20) unsigned	YES	MUL		
+Correo	varchar(255)	NO	MUL		
+Nombre	varchar(255)	YES			
+Asunto	varchar(255)	NO			
+Template	varchar(120)	YES	MUL		
+Mensaje_HTML	longtext	YES			
+Mensaje_Text	longtext	YES			
+Estado	enum('enviado','fallido')	NO	MUL	enviado	
+Error	text	YES			
+Meta	longtext	YES			
+Creado_En	datetime	NO	MUL	current_timestamp()	
+
 📄 Tabla: Cursos
 Columna	Tipo	Nulo	Clave	Default	Extra
 Id	int(11)	NO	PRI		auto_increment
@@ -78,7 +93,7 @@ Saldo	decimal(10,2)	YES
 Estado	enum('Pendiente de aprobacion','Cancelado','Aprobado')	YES			
 Comprobante	varchar(255)	YES			
 Fecha_pedido	datetime	YES			
-Observaciones	text	NO		'Sin observaciones'	
+Observaciones	text	YES			
 
 🔗 Relaciones:
 Columna Usuario_Id referencia a Usuarios.Id

@@ -114,11 +114,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['
                 }
                 if (!empty($cambios)) {
                     $mailResult = \SVE\Mail\Maill::enviarActualizacionUsuario([
+                        'usuario_id' => $usuarioId,
                         'nombre' => $nombreDestino,
                         'correo' => $correoDestino,
                         'cambios' => $cambios,
                         'estado_antes' => $estadoAntes,
-                        'estado_despues' => $estado
+                        'estado_despues' => $estado,
+                        'meta' => [
+                            'evento' => 'cambio_estado_usuario',
+                            'usuario_id' => $usuarioId
+                        ]
                     ]);
                     if (!$mailResult['ok']) {
                         $mailError = (string)($mailResult['error'] ?? '');
@@ -337,11 +342,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'edita
 
                 if (!empty($cambios)) {
                     $mailResult = \SVE\Mail\Maill::enviarActualizacionUsuario([
+                        'usuario_id' => $usuarioId,
                         'nombre' => $nombreDestino,
                         'correo' => $correoDestino,
                         'cambios' => $cambios,
                         'estado_antes' => $estadoAntes,
-                        'estado_despues' => $estadoDespues
+                        'estado_despues' => $estadoDespues,
+                        'meta' => [
+                            'evento' => 'edicion_usuario',
+                            'usuario_id' => $usuarioId
+                        ]
                     ]);
                     if (!$mailResult['ok']) {
                         $mailError = (string)($mailResult['error'] ?? '');
@@ -514,12 +524,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
             $mailError = '';
             if ($correo !== '') {
                 $mailResult = \SVE\Mail\Maill::enviarCorreoBienvenida([
+                    'usuario_id' => $resultado['usuario_id'] ?? null,
                     'nombre' => $nombre,
                     'correo' => $correo,
                     'usuario' => $usuario,
                     'contrasena' => $contrasena,
                     'link' => 'https://viandas.ilmanagastronomia.com/',
-                    'telefono' => '+54 9 2613 40-6173'
+                    'telefono' => '+54 9 2613 40-6173',
+                    'meta' => [
+                        'evento' => 'alta_usuario'
+                    ]
                 ]);
                 if (!$mailResult['ok']) {
                     $mailError = (string)($mailResult['error'] ?? '');

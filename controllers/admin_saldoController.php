@@ -71,12 +71,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, ['aprobar', 'canc
 
                 if ($correoDestino !== '') {
                     $mailResult = \SVE\Mail\Maill::enviarGestionSaldo([
+                        'usuario_id' => $solicitud['Usuario_Id'] ?? null,
                         'nombre' => $nombreDestino,
                         'correo' => $correoDestino,
                         'accion' => $nuevoEstado,
                         'saldo_actual' => $saldoActual,
                         'saldo_nuevo' => $saldoNuevo,
-                        'motivo' => $motivo
+                        'motivo' => $motivo,
+                        'meta' => [
+                            'evento' => 'gestion_saldo',
+                            'pedido_id' => $pedidoId,
+                            'estado' => $nuevoEstado
+                        ]
                     ]);
                     if (!$mailResult['ok']) {
                         $mailError = (string)($mailResult['error'] ?? '');

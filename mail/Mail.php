@@ -17,6 +17,43 @@ final class Maill
         return number_format((float)$value, 2, ',', '.');
     }
 
+    private static function logEmail(array $data): void
+    {
+        try {
+            global $pdo;
+            if (!($pdo instanceof \PDO)) {
+                return;
+            }
+
+            $meta = null;
+            if (isset($data['meta']) && $data['meta'] !== null) {
+                $meta = json_encode($data['meta']);
+            }
+
+            $stmt = $pdo->prepare(
+                "INSERT INTO Correos_Log
+                    (Usuario_Id, Correo, Nombre, Asunto, Template, Mensaje_HTML, Mensaje_Text, Estado, Error, Meta)
+                 VALUES
+                    (:usuario_id, :correo, :nombre, :asunto, :template, :mensaje_html, :mensaje_text, :estado, :error, :meta)"
+            );
+
+            $stmt->execute([
+                'usuario_id' => $data['usuario_id'] ?? null,
+                'correo' => $data['correo'] ?? '',
+                'nombre' => $data['nombre'] ?? null,
+                'asunto' => $data['asunto'] ?? '',
+                'template' => $data['template'] ?? null,
+                'mensaje_html' => $data['mensaje_html'] ?? null,
+                'mensaje_text' => $data['mensaje_text'] ?? null,
+                'estado' => $data['estado'] ?? 'fallido',
+                'error' => $data['error'] ?? null,
+                'meta' => $meta
+            ]);
+        } catch (\Throwable $e) {
+            // No interrumpir el flujo principal si falla el log.
+        }
+    }
+
     private static function baseMailer(?array &$debugLog = null): PHPMailer
     {
         $m = new PHPMailer(true);
@@ -96,6 +133,7 @@ final class Maill
     {
         $debugLog = [];
         $mail = null;
+        $html = '';
         try {
             $tplPath = __DIR__ . '/template/correo_bienvenida.html';
             $tpl = is_file($tplPath)
@@ -137,13 +175,25 @@ final class Maill
             }
 
             $mail = self::baseMailer($debugLog);
-            $mail->Subject = 'Bienvenido a Il\'mana Gastronomia [' . $nombre . ']';
+            $subject = 'Bienvenido a Il\'mana Gastronomia [' . $nombre . ']';
+            $mail->Subject = $subject;
             $mail->Body    = $html;
             $mail->AltBody = 'Bienvenido a Il\'mana Gastronomia [' . $nombre . '] - Usuario: ' . $usuario;
 
             $mail->addAddress((string)($data['correo'] ?? ''), $nombre);
 
             $mail->send();
+            self::logEmail([
+                'usuario_id' => $data['usuario_id'] ?? null,
+                'correo' => $data['correo'] ?? '',
+                'nombre' => $nombre,
+                'asunto' => $subject,
+                'template' => 'correo_bienvenida',
+                'mensaje_html' => $html,
+                'mensaje_text' => $mail->AltBody ?? null,
+                'estado' => 'enviado',
+                'meta' => $data['meta'] ?? null
+            ]);
             return ['ok' => true];
         } catch (\Throwable $e) {
             $mailError = $mail instanceof PHPMailer ? trim((string)$mail->ErrorInfo) : '';
@@ -156,6 +206,18 @@ final class Maill
             if ($mailError !== '' && stripos($errorBase, $mailError) === false) {
                 $errorBase .= ' | ErrorInfo: ' . $mailError;
             }
+            self::logEmail([
+                'usuario_id' => $data['usuario_id'] ?? null,
+                'correo' => $data['correo'] ?? '',
+                'nombre' => $nombre ?? '',
+                'asunto' => 'Bienvenido a Il\'mana Gastronomia',
+                'template' => 'correo_bienvenida',
+                'mensaje_html' => $html ?: null,
+                'mensaje_text' => $mail instanceof PHPMailer ? ($mail->AltBody ?? null) : null,
+                'estado' => 'fallido',
+                'error' => $errorBase . $debugText,
+                'meta' => $data['meta'] ?? null
+            ]);
             return ['ok' => false, 'error' => $errorBase . $debugText];
         }
     }
@@ -175,6 +237,7 @@ final class Maill
     {
         $debugLog = [];
         $mail = null;
+        $html = '';
         try {
             $tplPath = __DIR__ . '/template/actualizacion_usuarios.html';
             $tpl = is_file($tplPath)
@@ -219,13 +282,25 @@ final class Maill
             }
 
             $mail = self::baseMailer($debugLog);
-            $mail->Subject = $nombre . ' actualizamos tu perfil';
+            $subject = $nombre . ' actualizamos tu perfil';
+            $mail->Subject = $subject;
             $mail->Body    = $html;
             $mail->AltBody = $nombre . ' actualizamos tu perfil';
 
             $mail->addAddress((string)($data['correo'] ?? ''), $nombre);
 
             $mail->send();
+            self::logEmail([
+                'usuario_id' => $data['usuario_id'] ?? null,
+                'correo' => $data['correo'] ?? '',
+                'nombre' => $nombre,
+                'asunto' => $subject,
+                'template' => 'actualizacion_usuarios',
+                'mensaje_html' => $html,
+                'mensaje_text' => $mail->AltBody ?? null,
+                'estado' => 'enviado',
+                'meta' => $data['meta'] ?? null
+            ]);
             return ['ok' => true];
         } catch (\Throwable $e) {
             $mailError = $mail instanceof PHPMailer ? trim((string)$mail->ErrorInfo) : '';
@@ -238,6 +313,18 @@ final class Maill
             if ($mailError !== '' && stripos($errorBase, $mailError) === false) {
                 $errorBase .= ' | ErrorInfo: ' . $mailError;
             }
+            self::logEmail([
+                'usuario_id' => $data['usuario_id'] ?? null,
+                'correo' => $data['correo'] ?? '',
+                'nombre' => $nombre ?? '',
+                'asunto' => $nombre ? ($nombre . ' actualizamos tu perfil') : 'Actualizamos tu perfil',
+                'template' => 'actualizacion_usuarios',
+                'mensaje_html' => $html ?: null,
+                'mensaje_text' => $mail instanceof PHPMailer ? ($mail->AltBody ?? null) : null,
+                'estado' => 'fallido',
+                'error' => $errorBase . $debugText,
+                'meta' => $data['meta'] ?? null
+            ]);
             return ['ok' => false, 'error' => $errorBase . $debugText];
         }
     }
@@ -258,6 +345,7 @@ final class Maill
     {
         $debugLog = [];
         $mail = null;
+        $html = '';
         try {
             $tplPath = __DIR__ . '/template/gestion_saldos_escuelas.html';
             $tpl = is_file($tplPath)
@@ -303,13 +391,25 @@ final class Maill
             }
 
             $mail = self::baseMailer($debugLog);
-            $mail->Subject = 'Gestion de saldo I\'lMana';
+            $subject = 'Gestion de saldo I\'lMana';
+            $mail->Subject = $subject;
             $mail->Body    = $html;
             $mail->AltBody = 'Gestion de saldo I\'lMana';
 
             $mail->addAddress((string)($data['correo'] ?? ''), $nombre);
 
             $mail->send();
+            self::logEmail([
+                'usuario_id' => $data['usuario_id'] ?? null,
+                'correo' => $data['correo'] ?? '',
+                'nombre' => $nombre,
+                'asunto' => $subject,
+                'template' => 'gestion_saldos_escuelas',
+                'mensaje_html' => $html,
+                'mensaje_text' => $mail->AltBody ?? null,
+                'estado' => 'enviado',
+                'meta' => $data['meta'] ?? null
+            ]);
             return ['ok' => true];
         } catch (\Throwable $e) {
             $mailError = $mail instanceof PHPMailer ? trim((string)$mail->ErrorInfo) : '';
@@ -322,6 +422,18 @@ final class Maill
             if ($mailError !== '' && stripos($errorBase, $mailError) === false) {
                 $errorBase .= ' | ErrorInfo: ' . $mailError;
             }
+            self::logEmail([
+                'usuario_id' => $data['usuario_id'] ?? null,
+                'correo' => $data['correo'] ?? '',
+                'nombre' => $nombre ?? '',
+                'asunto' => 'Gestion de saldo I\'lMana',
+                'template' => 'gestion_saldos_escuelas',
+                'mensaje_html' => $html ?: null,
+                'mensaje_text' => $mail instanceof PHPMailer ? ($mail->AltBody ?? null) : null,
+                'estado' => 'fallido',
+                'error' => $errorBase . $debugText,
+                'meta' => $data['meta'] ?? null
+            ]);
             return ['ok' => false, 'error' => $errorBase . $debugText];
         }
     }
