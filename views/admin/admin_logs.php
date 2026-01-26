@@ -245,6 +245,24 @@ $estadoBadgeClass = function ($estado) {
                                 </div>
                             </div>
                         </div>
+                        <div class="form-modern filtro-logs">
+                            <div class="input-group">
+                                <label for="auditoria-fecha-desde">Fecha desde</label>
+                                <div class="input-icon">
+                                    <span class="material-icons">event</span>
+                                    <input type="date" id="auditoria-fecha-desde" name="auditoria-fecha-desde" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-modern filtro-logs">
+                            <div class="input-group">
+                                <label for="auditoria-fecha-hasta">Fecha hasta</label>
+                                <div class="input-icon">
+                                    <span class="material-icons">event</span>
+                                    <input type="date" id="auditoria-fecha-hasta" name="auditoria-fecha-hasta" />
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="tabla-wrapper logs-scroll">
@@ -330,6 +348,8 @@ $estadoBadgeClass = function ($estado) {
         const logsTableBody = document.getElementById('logs-table-body');
         const auditoriaSearchInput = document.getElementById('auditoria-search');
         const auditoriaTableBody = document.getElementById('auditoria-table-body');
+        const auditoriaFechaDesde = document.getElementById('auditoria-fecha-desde');
+        const auditoriaFechaHasta = document.getElementById('auditoria-fecha-hasta');
 
         const escapeHtml = (value) => {
             const text = String(value ?? '');
@@ -467,6 +487,12 @@ $estadoBadgeClass = function ($estado) {
             formData.append('action', 'buscar_auditoria');
             formData.append('termino', termino);
             formData.append('ajax', '1');
+            if (auditoriaFechaDesde && auditoriaFechaDesde.value) {
+                formData.append('fecha_desde', auditoriaFechaDesde.value);
+            }
+            if (auditoriaFechaHasta && auditoriaFechaHasta.value) {
+                formData.append('fecha_hasta', auditoriaFechaHasta.value);
+            }
 
             fetch(window.location.href, {
                 method: 'POST',
@@ -528,6 +554,20 @@ $estadoBadgeClass = function ($estado) {
                     lastSearchValue = '';
                 }
             });
+        }
+
+        const handleAuditoriaFechaChange = () => {
+            const termino = auditoriaSearchInput ? auditoriaSearchInput.value.trim() : '';
+            if (termino.length >= 3 || termino.length === 0) {
+                fetchAuditoria(termino);
+            }
+        };
+
+        if (auditoriaFechaDesde) {
+            auditoriaFechaDesde.addEventListener('change', handleAuditoriaFechaChange);
+        }
+        if (auditoriaFechaHasta) {
+            auditoriaFechaHasta.addEventListener('change', handleAuditoriaFechaChange);
         }
     </script>
 </body>

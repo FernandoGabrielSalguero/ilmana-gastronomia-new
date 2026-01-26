@@ -82,31 +82,46 @@ class AdminLogsModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function obtenerAuditoriaEventos($limit = 200)
+    public function obtenerAuditoriaEventos($limit = 200, $desde = null, $hasta = null)
     {
         $limit = (int) $limit;
         if ($limit <= 0) {
             $limit = 200;
         }
 
+        $where = [];
+        $params = [];
+        if (!empty($desde)) {
+            $where[] = "ae.Creado_En >= :desde";
+            $params['desde'] = $desde . ' 00:00:00';
+        }
+        if (!empty($hasta)) {
+            $where[] = "ae.Creado_En <= :hasta";
+            $params['hasta'] = $hasta . ' 23:59:59';
+        }
+
         $sql = "SELECT ae.Id, ae.Usuario_Id, ae.Usuario_Login, ae.Rol, ae.Evento, ae.Modulo,
                     ae.Entidad, ae.Entidad_Id, ae.Estado, ae.Ip, ae.Datos, ae.Creado_En,
                     u.Nombre AS UsuarioNombre, u.Correo AS UsuarioCorreo, u.Usuario AS UsuarioLogin
                 FROM Auditoria_Eventos ae
-                LEFT JOIN Usuarios u ON u.Id = ae.Usuario_Id
-                ORDER BY ae.Id DESC
-                LIMIT " . $limit;
+                LEFT JOIN Usuarios u ON u.Id = ae.Usuario_Id";
+
+        if ($where) {
+            $sql .= " WHERE " . implode(' AND ', $where);
+        }
+
+        $sql .= " ORDER BY ae.Id DESC LIMIT " . $limit;
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute();
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function buscarAuditoriaEventos($termino, $limit = 200)
+    public function buscarAuditoriaEventos($termino, $limit = 200, $desde = null, $hasta = null)
     {
         $termino = trim((string) $termino);
         if ($termino === '') {
-            return $this->obtenerAuditoriaEventos($limit);
+            return $this->obtenerAuditoriaEventos($limit, $desde, $hasta);
         }
 
         $limit = (int) $limit;
@@ -115,20 +130,36 @@ class AdminLogsModel
         }
 
         $like = '%' . $termino . '%';
+        $where = [
+            "(
+                u.Nombre LIKE :termino
+                OR u.Correo LIKE :termino
+                OR u.Usuario LIKE :termino
+                OR ae.Usuario_Login LIKE :termino
+            )"
+        ];
+        $params = ['termino' => $like];
+
+        if (!empty($desde)) {
+            $where[] = "ae.Creado_En >= :desde";
+            $params['desde'] = $desde . ' 00:00:00';
+        }
+        if (!empty($hasta)) {
+            $where[] = "ae.Creado_En <= :hasta";
+            $params['hasta'] = $hasta . ' 23:59:59';
+        }
+
         $sql = "SELECT ae.Id, ae.Usuario_Id, ae.Usuario_Login, ae.Rol, ae.Evento, ae.Modulo,
                     ae.Entidad, ae.Entidad_Id, ae.Estado, ae.Ip, ae.Datos, ae.Creado_En,
                     u.Nombre AS UsuarioNombre, u.Correo AS UsuarioCorreo, u.Usuario AS UsuarioLogin
                 FROM Auditoria_Eventos ae
                 LEFT JOIN Usuarios u ON u.Id = ae.Usuario_Id
-                WHERE u.Nombre LIKE :termino
-                   OR u.Correo LIKE :termino
-                   OR u.Usuario LIKE :termino
-                   OR ae.Usuario_Login LIKE :termino
+                WHERE " . implode(' AND ', $where) . "
                 ORDER BY ae.Id DESC
                 LIMIT " . $limit;
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute(['termino' => $like]);
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

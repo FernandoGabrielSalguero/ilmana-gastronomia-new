@@ -39,7 +39,9 @@ if ($isAjax && $action === 'buscar') {
 $actionAuditoria = $action === 'buscar_auditoria';
 if ($isAjax && $actionAuditoria) {
     $termino = trim((string) ($_POST['termino'] ?? $_GET['termino'] ?? ''));
-    $auditoria = $model->buscarAuditoriaEventos($termino);
+    $desde = trim((string) ($_POST['fecha_desde'] ?? $_GET['fecha_desde'] ?? ''));
+    $hasta = trim((string) ($_POST['fecha_hasta'] ?? $_GET['fecha_hasta'] ?? ''));
+    $auditoria = $model->buscarAuditoriaEventos($termino, 200, $desde !== '' ? $desde : null, $hasta !== '' ? $hasta : null);
     header('Content-Type: application/json; charset=UTF-8');
     echo json_encode([
         'ok' => true,
