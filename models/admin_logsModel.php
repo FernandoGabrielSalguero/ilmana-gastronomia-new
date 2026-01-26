@@ -81,4 +81,54 @@ class AdminLogsModel
         $stmt->execute(['termino' => $like]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function obtenerAuditoriaEventos($limit = 200)
+    {
+        $limit = (int) $limit;
+        if ($limit <= 0) {
+            $limit = 200;
+        }
+
+        $sql = "SELECT ae.Id, ae.Usuario_Id, ae.Usuario_Login, ae.Rol, ae.Evento, ae.Modulo,
+                    ae.Entidad, ae.Entidad_Id, ae.Estado, ae.Ip, ae.Datos, ae.Creado_En,
+                    u.Nombre AS UsuarioNombre, u.Correo AS UsuarioCorreo, u.Usuario AS UsuarioLogin
+                FROM Auditoria_Eventos ae
+                LEFT JOIN Usuarios u ON u.Id = ae.Usuario_Id
+                ORDER BY ae.Id DESC
+                LIMIT " . $limit;
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function buscarAuditoriaEventos($termino, $limit = 200)
+    {
+        $termino = trim((string) $termino);
+        if ($termino === '') {
+            return $this->obtenerAuditoriaEventos($limit);
+        }
+
+        $limit = (int) $limit;
+        if ($limit <= 0) {
+            $limit = 200;
+        }
+
+        $like = '%' . $termino . '%';
+        $sql = "SELECT ae.Id, ae.Usuario_Id, ae.Usuario_Login, ae.Rol, ae.Evento, ae.Modulo,
+                    ae.Entidad, ae.Entidad_Id, ae.Estado, ae.Ip, ae.Datos, ae.Creado_En,
+                    u.Nombre AS UsuarioNombre, u.Correo AS UsuarioCorreo, u.Usuario AS UsuarioLogin
+                FROM Auditoria_Eventos ae
+                LEFT JOIN Usuarios u ON u.Id = ae.Usuario_Id
+                WHERE u.Nombre LIKE :termino
+                   OR u.Correo LIKE :termino
+                   OR u.Usuario LIKE :termino
+                   OR ae.Usuario_Login LIKE :termino
+                ORDER BY ae.Id DESC
+                LIMIT " . $limit;
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['termino' => $like]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

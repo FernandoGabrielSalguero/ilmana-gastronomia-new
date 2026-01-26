@@ -36,4 +36,17 @@ if ($isAjax && $action === 'buscar') {
     exit;
 }
 
+$actionAuditoria = $action === 'buscar_auditoria';
+if ($isAjax && $actionAuditoria) {
+    $termino = trim((string) ($_POST['termino'] ?? $_GET['termino'] ?? ''));
+    $auditoria = $model->buscarAuditoriaEventos($termino);
+    header('Content-Type: application/json; charset=UTF-8');
+    echo json_encode([
+        'ok' => true,
+        'auditoria' => $auditoria
+    ]);
+    exit;
+}
+
 $logs = $model->obtenerCorreosLog();
+$auditoria = $model->obtenerAuditoriaEventos();

@@ -233,6 +233,93 @@ $estadoBadgeClass = function ($estado) {
                         </table>
                     </div>
                 </div>
+
+                <div class="card">
+                    <div class="tabla-header">
+                        <h3>Monitor de actividades</h3>
+                        <div class="form-modern filtro-logs">
+                            <div class="input-group">
+                                <label for="auditoria-search">Filtrar por usuario</label>
+                                <div class="input-icon input-icon-name">
+                                    <input type="text" id="auditoria-search" name="auditoria-search" placeholder="Escribe un nombre o correo" autocomplete="off" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tabla-wrapper logs-scroll">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Usuario</th>
+                                    <th>Rol</th>
+                                    <th>Evento</th>
+                                    <th>Modulo</th>
+                                    <th>Entidad</th>
+                                    <th>Estado</th>
+                                    <th>IP</th>
+                                    <th>Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody id="auditoria-table-body">
+                                <?php if (!empty($auditoria)): ?>
+                                    <?php foreach ($auditoria as $item): ?>
+                                        <?php
+                                        $usuarioNombre = trim((string) ($item['UsuarioNombre'] ?? ''));
+                                        $usuarioCorreo = trim((string) ($item['UsuarioCorreo'] ?? ''));
+                                        $usuarioLogin = trim((string) ($item['UsuarioLogin'] ?? $item['Usuario_Login'] ?? ''));
+                                        $rol = trim((string) ($item['Rol'] ?? ''));
+                                        $evento = trim((string) ($item['Evento'] ?? ''));
+                                        $modulo = trim((string) ($item['Modulo'] ?? ''));
+                                        $entidad = trim((string) ($item['Entidad'] ?? ''));
+                                        $estado = trim((string) ($item['Estado'] ?? ''));
+                                        $ip = trim((string) ($item['Ip'] ?? ''));
+                                        $fechaRaw = trim((string) ($item['Creado_En'] ?? ''));
+                                        $fechaParts = $fechaRaw !== '' ? preg_split('/\s+/', $fechaRaw, 2) : [];
+                                        $fechaTexto = $fechaParts[0] ?? '';
+                                        $horaTexto = $fechaParts[1] ?? '';
+                                        ?>
+                                        <tr>
+                                            <td><?= (int) ($item['Id'] ?? 0) ?></td>
+                                            <td>
+                                                <div class="log-usuario">
+                                                    <strong><?= htmlspecialchars($usuarioNombre !== '' ? $usuarioNombre : 'Sin usuario') ?></strong>
+                                                    <?php if ($usuarioCorreo !== ''): ?>
+                                                        <span class="gform-helper" style="font-size: 0.85rem;">
+                                                            <?= htmlspecialchars($usuarioCorreo) ?>
+                                                        </span>
+                                                    <?php endif; ?>
+                                                    <?php if ($usuarioLogin !== ''): ?>
+                                                        <span class="gform-helper" style="font-size: 0.85rem;">
+                                                            <?= htmlspecialchars($usuarioLogin) ?>
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </td>
+                                            <td><?= htmlspecialchars($rol !== '' ? $rol : '-') ?></td>
+                                            <td><?= htmlspecialchars($evento !== '' ? $evento : '-') ?></td>
+                                            <td><?= htmlspecialchars($modulo !== '' ? $modulo : '-') ?></td>
+                                            <td><?= htmlspecialchars($entidad !== '' ? $entidad : '-') ?></td>
+                                            <td><?= htmlspecialchars($estado !== '' ? $estado : '-') ?></td>
+                                            <td><?= htmlspecialchars($ip !== '' ? $ip : '-') ?></td>
+                                            <td>
+                                                <div><?= htmlspecialchars($fechaTexto) ?></div>
+                                                <div class="gform-helper" style="font-size: 0.85rem;">
+                                                    <?= htmlspecialchars($horaTexto) ?>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="9">No hay eventos de auditoria para mostrar.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
 
         </div>
@@ -241,6 +328,8 @@ $estadoBadgeClass = function ($estado) {
     <script>
         const logsSearchInput = document.getElementById('logs-search');
         const logsTableBody = document.getElementById('logs-table-body');
+        const auditoriaSearchInput = document.getElementById('auditoria-search');
+        const auditoriaTableBody = document.getElementById('auditoria-table-body');
 
         const escapeHtml = (value) => {
             const text = String(value ?? '');
@@ -301,6 +390,54 @@ $estadoBadgeClass = function ($estado) {
             logsTableBody.innerHTML = logs.map((log) => buildLogRow(log)).join('');
         };
 
+        const buildAuditoriaRow = (item) => {
+            const usuarioNombre = String(item.UsuarioNombre || '').trim();
+            const usuarioCorreo = String(item.UsuarioCorreo || '').trim();
+            const usuarioLogin = String(item.UsuarioLogin || item.Usuario_Login || '').trim();
+            const rol = String(item.Rol || '').trim();
+            const evento = String(item.Evento || '').trim();
+            const modulo = String(item.Modulo || '').trim();
+            const entidad = String(item.Entidad || '').trim();
+            const estado = String(item.Estado || '').trim();
+            const ip = String(item.Ip || '').trim();
+            const fechaRaw = String(item.Creado_En || '').trim();
+            const fechaParts = fechaRaw !== '' ? fechaRaw.split(/\s+/, 2) : [];
+            const fechaTexto = fechaParts[0] || '';
+            const horaTexto = fechaParts[1] || '';
+
+            return `
+                <tr>
+                    <td>${escapeHtml(item.Id || 0)}</td>
+                    <td>
+                        <div class="log-usuario">
+                            <strong>${escapeHtml(usuarioNombre !== '' ? usuarioNombre : 'Sin usuario')}</strong>
+                            ${usuarioCorreo !== '' ? `<span class="gform-helper" style="font-size: 0.85rem;">${escapeHtml(usuarioCorreo)}</span>` : ''}
+                            ${usuarioLogin !== '' ? `<span class="gform-helper" style="font-size: 0.85rem;">${escapeHtml(usuarioLogin)}</span>` : ''}
+                        </div>
+                    </td>
+                    <td>${escapeHtml(rol !== '' ? rol : '-')}</td>
+                    <td>${escapeHtml(evento !== '' ? evento : '-')}</td>
+                    <td>${escapeHtml(modulo !== '' ? modulo : '-')}</td>
+                    <td>${escapeHtml(entidad !== '' ? entidad : '-')}</td>
+                    <td>${escapeHtml(estado !== '' ? estado : '-')}</td>
+                    <td>${escapeHtml(ip !== '' ? ip : '-')}</td>
+                    <td>
+                        <div>${escapeHtml(fechaTexto)}</div>
+                        <div class="gform-helper" style="font-size: 0.85rem;">${escapeHtml(horaTexto)}</div>
+                    </td>
+                </tr>
+            `;
+        };
+
+        const renderAuditoriaTable = (items) => {
+            if (!auditoriaTableBody) return;
+            if (!Array.isArray(items) || items.length === 0) {
+                auditoriaTableBody.innerHTML = '<tr><td colspan="9">No hay eventos de auditoria para mostrar.</td></tr>';
+                return;
+            }
+            auditoriaTableBody.innerHTML = items.map((item) => buildAuditoriaRow(item)).join('');
+        };
+
         const fetchLogs = (termino) => {
             const formData = new FormData();
             formData.append('action', 'buscar');
@@ -325,6 +462,30 @@ $estadoBadgeClass = function ($estado) {
                 });
         };
 
+        const fetchAuditoria = (termino) => {
+            const formData = new FormData();
+            formData.append('action', 'buscar_auditoria');
+            formData.append('termino', termino);
+            formData.append('ajax', '1');
+
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.ok) {
+                        renderAuditoriaTable(data.auditoria || []);
+                    }
+                })
+                .catch(() => {
+                    renderAuditoriaTable([]);
+                });
+        };
+
         if (logsSearchInput) {
             let searchTimeout = null;
             let lastSearchValue = '';
@@ -337,6 +498,28 @@ $estadoBadgeClass = function ($estado) {
                 if (termino.length >= 3 || (termino.length === 0 && lastSearchValue.length >= 3)) {
                     searchTimeout = setTimeout(() => {
                         fetchLogs(termino);
+                        lastSearchValue = termino;
+                    }, 300);
+                    return;
+                }
+                if (termino.length === 0) {
+                    lastSearchValue = '';
+                }
+            });
+        }
+
+        if (auditoriaSearchInput) {
+            let searchTimeout = null;
+            let lastSearchValue = '';
+
+            auditoriaSearchInput.addEventListener('input', () => {
+                const termino = auditoriaSearchInput.value.trim();
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
+                }
+                if (termino.length >= 3 || (termino.length === 0 && lastSearchValue.length >= 3)) {
+                    searchTimeout = setTimeout(() => {
+                        fetchAuditoria(termino);
                         lastSearchValue = termino;
                     }, 300);
                     return;
