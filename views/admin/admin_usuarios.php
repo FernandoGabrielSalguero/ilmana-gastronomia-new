@@ -1223,6 +1223,9 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                             if (data.mail_error) {
                                 console.error('Error envio correo bienvenida:', data.mail_error);
                             }
+                            if (data.mensaje) {
+                                console.error('Mensaje servidor (alta usuario):', data.mensaje);
+                            }
                         } else {
                             renderFeedback('error', data.errores || 'No se pudo crear el usuario.');
                         }
