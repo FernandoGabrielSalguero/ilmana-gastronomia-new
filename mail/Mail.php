@@ -12,7 +12,7 @@ require_once __DIR__ . '/lib/Exception.php';
 
 final class Maill
 {
-    private static function baseMailer(): PHPMailer
+    private static function baseMailer(?array &$debugLog = null): PHPMailer
     {
         $m = new PHPMailer(true);
         $host = getenv('SMTP_HOST') ?: '';
@@ -20,6 +20,7 @@ final class Maill
         $pass = getenv('SMTP_PASSWORD') ?: '';
         $port = (int)(getenv('SMTP_PORT') ?: 0);
         $secure = getenv('SMTP_SECURE') ?: '';
+        $debugEnabled = getenv('SMTP_DEBUG') === '1';
 
         if ($host === '' || $user === '' || $pass === '') {
             throw new \RuntimeException('Configuracion SMTP incompleta.');
@@ -56,6 +57,22 @@ final class Maill
         $m->isHTML(true);
         $m->Encoding   = 'base64';
 
+        if ($debugEnabled && $debugLog !== null) {
+            $m->SMTPDebug = 2;
+            $m->Debugoutput = function ($str, $level) use (&$debugLog) {
+                $line = trim((string)$str);
+                if (stripos($line, 'CLIENT -> SERVER: AUTH') === 0) {
+                    $debugLog[] = 'CLIENT -> SERVER: AUTH [redacted]';
+                    return;
+                }
+                if (preg_match('/^CLIENT -> SERVER: [A-Za-z0-9+\\/=]+$/', $line) === 1) {
+                    $debugLog[] = 'CLIENT -> SERVER: [redacted]';
+                    return;
+                }
+                $debugLog[] = $line;
+            };
+        }
+
         return $m;
     }
 
@@ -73,6 +90,7 @@ final class Maill
      */
     public static function enviarCorreoBienvenida(array $data): array
     {
+        $debugLog = [];
         try {
             $tplPath = __DIR__ . '/template/correo_bienvenida.html';
             $tpl = is_file($tplPath)
@@ -113,7 +131,7 @@ final class Maill
                 $html = str_replace(array_keys($replacements), array_values($replacements), $tpl);
             }
 
-            $mail = self::baseMailer();
+            $mail = self::baseMailer($debugLog);
             $mail->Subject = 'Bienvenido a Il\'mana Gastronomia [' . $nombre . ']';
             $mail->Body    = $html;
             $mail->AltBody = 'Bienvenido a Il\'mana Gastronomia [' . $nombre . '] - Usuario: ' . $usuario;
@@ -123,7 +141,12 @@ final class Maill
             $mail->send();
             return ['ok' => true];
         } catch (\Throwable $e) {
-            return ['ok' => false, 'error' => $e->getMessage()];
+            $debugText = '';
+            if (!empty($debugLog)) {
+                $tail = array_slice($debugLog, -10);
+                $debugText = ' SMTP Log: ' . implode(' | ', $tail);
+            }
+            return ['ok' => false, 'error' => $e->getMessage() . $debugText];
         }
     }
 }
