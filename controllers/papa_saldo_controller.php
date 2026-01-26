@@ -48,9 +48,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errores)) {
-        if ($model->crearSolicitudSaldo($usuarioId, $monto, $comprobanteNombre)) {
+        $pedidoId = $model->crearSolicitudSaldo($usuarioId, $monto, $comprobanteNombre);
+        if ($pedidoId > 0) {
             $exito = true;
             $saldoPendiente = $model->obtenerSaldoPendiente($usuarioId);
+            registrarAuditoria($pdo, [
+                'evento' => 'papa_saldo_solicitud',
+                'modulo' => 'papa',
+                'entidad' => 'Pedidos_Saldo',
+                'entidad_id' => $pedidoId,
+                'estado' => 'ok',
+                'datos' => [
+                    'monto' => $monto,
+                    'comprobante' => $comprobanteNombre,
+                ],
+            ]);
         } else {
             $errores[] = 'Error al realizar el pedido de saldo.';
         }

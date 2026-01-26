@@ -245,6 +245,22 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
     <script>
         console.log(<?php echo json_encode($_SESSION); ?>);
 
+        const auditoriaEndpoint = '/controllers/auditoriaController.php';
+        const registrarAuditoria = (evento, datos = {}) => {
+            fetch(auditoriaEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    evento,
+                    modulo: 'cuyo_placas',
+                    datos
+                })
+            }).catch(() => { });
+        };
+
         const detallePedidosExcel = <?php echo json_encode($detallePedidosExcel); ?>;
         const filtrosExcel = <?php
         echo json_encode([
@@ -256,6 +272,7 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
 
         const toggleFiltros = document.getElementById('toggleFiltros');
         const panelFiltros = document.getElementById('panelFiltros');
+        const filtrosForm = panelFiltros.querySelector('form');
         const filtroTodos = panelFiltros.querySelector('input[value="todos"]');
         const filtrosPlanta = Array.from(panelFiltros.querySelectorAll('input[name="planta[]"]')).filter(
             (input) => input.value !== 'todos'
@@ -289,12 +306,30 @@ require_once __DIR__ . '/../../controllers/cuyo_placa_dashboardController.php';
             });
         });
 
+        if (filtrosForm) {
+            filtrosForm.addEventListener('submit', () => {
+                const fechaDesde = filtrosForm.querySelector('input[name="fecha_desde"]')?.value || '';
+                const fechaHasta = filtrosForm.querySelector('input[name="fecha_hasta"]')?.value || '';
+                const plantas = filtrosPlanta.filter((input) => input.checked).map((input) => input.value);
+                registrarAuditoria('cuyo_placa_filtro_fecha', {
+                    fecha_desde: fechaDesde,
+                    fecha_hasta: fechaHasta,
+                    plantas: plantas.length ? plantas : ['todos']
+                });
+            });
+        }
+
         const botonDescarga = document.getElementById('descargarExcel');
         botonDescarga.addEventListener('click', () => {
             if (!Array.isArray(detallePedidosExcel) || detallePedidosExcel.length === 0) {
                 alert('No hay datos para exportar con los filtros actuales.');
                 return;
             }
+            registrarAuditoria('cuyo_placa_descargar_excel', {
+                fecha_desde: filtrosExcel.fecha_desde || '',
+                fecha_hasta: filtrosExcel.fecha_hasta || '',
+                plantas: filtrosExcel.plantas || ''
+            });
 
             const filas = detallePedidosExcel.map((fila) => ({
                 'Pedido ID': fila.pedido_id ?? '',

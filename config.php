@@ -41,4 +41,64 @@ try {
     die('Error de conexión: ' . $e->getMessage());
 }
 
+function obtenerValorSesion($clave)
+{
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        return null;
+    }
+    return $_SESSION[$clave] ?? null;
+}
 
+function registrarAuditoria(PDO $pdo, array $data)
+{
+    $evento = isset($data['evento']) ? trim((string) $data['evento']) : '';
+    if ($evento === '') {
+        return false;
+    }
+
+    $usuarioId = $data['usuario_id'] ?? obtenerValorSesion('usuario_id');
+    $usuarioLogin = $data['usuario_login'] ?? obtenerValorSesion('usuario');
+    $rol = $data['rol'] ?? obtenerValorSesion('rol');
+    $url = $data['url'] ?? ($_SERVER['REQUEST_URI'] ?? null);
+    $metodo = $data['metodo'] ?? ($_SERVER['REQUEST_METHOD'] ?? null);
+    $ip = $data['ip'] ?? ($_SERVER['REMOTE_ADDR'] ?? null);
+    $userAgent = $data['user_agent'] ?? ($_SERVER['HTTP_USER_AGENT'] ?? null);
+    $datos = $data['datos'] ?? null;
+
+    if (is_array($datos) || is_object($datos)) {
+        $datos = json_encode($datos, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    if ($userAgent !== null) {
+        $userAgent = substr((string) $userAgent, 0, 255);
+    }
+
+    $sql = "INSERT INTO Auditoria_Eventos
+            (Usuario_Id, Usuario_Login, Rol, Evento, Modulo, Url, Metodo, Entidad, Entidad_Id, Estado,
+             Codigo_Http, Ip, User_Agent, Datos, Creado_En)
+            VALUES
+            (:usuario_id, :usuario_login, :rol, :evento, :modulo, :url, :metodo, :entidad, :entidad_id, :estado,
+             :codigo_http, :ip, :user_agent, :datos, NOW())";
+
+    try {
+        $stmt = $pdo->prepare($sql);
+        return $stmt->execute([
+            'usuario_id' => $usuarioId,
+            'usuario_login' => $usuarioLogin,
+            'rol' => $rol,
+            'evento' => $evento,
+            'modulo' => $data['modulo'] ?? null,
+            'url' => $url,
+            'metodo' => $metodo,
+            'entidad' => $data['entidad'] ?? null,
+            'entidad_id' => $data['entidad_id'] ?? null,
+            'estado' => $data['estado'] ?? null,
+            'codigo_http' => $data['codigo_http'] ?? null,
+            'ip' => $ip,
+            'user_agent' => $userAgent,
+            'datos' => $datos,
+        ]);
+    } catch (Exception $e) {
+        return false;
+    }
+}

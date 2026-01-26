@@ -245,12 +245,12 @@ class CuyoPlacaPedidosModel
             }
 
             $this->db->commit();
-            return true;
+            return $pedidoId;
         } catch (Exception $e) {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            return false;
+            return 0;
         }
     }
 

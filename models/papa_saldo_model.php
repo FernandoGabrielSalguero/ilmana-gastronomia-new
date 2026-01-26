@@ -15,11 +15,13 @@ class PapaSaldoModel
         $sql = "INSERT INTO Pedidos_Saldo (Usuario_Id, Saldo, Estado, Comprobante, Fecha_pedido)
                 VALUES (:usuarioId, :monto, 'Pendiente de aprobacion', :comprobante, NOW())";
         $stmt = $this->db->prepare($sql);
-        return $stmt->execute([
+        $ok = $stmt->execute([
             'usuarioId' => $usuarioId,
             'monto' => $monto,
             'comprobante' => $comprobante
         ]);
+
+        return $ok ? (int) $this->db->lastInsertId() : 0;
     }
 
     public function obtenerSaldoPendiente($usuarioId)

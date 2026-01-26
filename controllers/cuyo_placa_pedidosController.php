@@ -192,10 +192,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
         } else {
             $esActualizacion = $pedidoExistente ? true : false;
+            $pedidoId = $pedidoExistente ? (int) $pedidoExistente['id'] : 0;
             if ($esActualizacion) {
-                $ok = $model->actualizarPedido((int) $pedidoExistente['id'], $detalles);
+                $ok = $model->actualizarPedido($pedidoId, $detalles);
             } else {
-                $ok = $model->crearPedido($usuarioId, $fechaSeleccionada, $detalles);
+                $pedidoId = (int) $model->crearPedido($usuarioId, $fechaSeleccionada, $detalles);
+                $ok = $pedidoId > 0;
+            }
+
+            if ($ok) {
+                $totalItems = count($detalles);
+                $totalCantidad = 0;
+                foreach ($detalles as $detalle) {
+                    $totalCantidad += (int) ($detalle['cantidad'] ?? 0);
+                }
+                registrarAuditoria($pdo, [
+                    'evento' => $esActualizacion ? 'cuyo_placa_pedido_actualizar' : 'cuyo_placa_pedido_nuevo',
+                    'modulo' => 'cuyo_placas',
+                    'entidad' => 'Pedidos_Cuyo_Placa',
+                    'entidad_id' => $pedidoId ?: null,
+                    'estado' => 'ok',
+                    'datos' => [
+                        'fecha' => $fechaSeleccionada,
+                        'items' => $totalItems,
+                        'cantidad' => $totalCantidad,
+                    ],
+                ]);
             }
 
             $alerta = [

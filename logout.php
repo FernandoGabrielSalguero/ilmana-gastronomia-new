@@ -1,6 +1,12 @@
 <?php
 // Iniciar sesión
 session_start();
+require_once __DIR__ . '/config.php';
+
+registrarAuditoria($pdo, [
+    'evento' => 'logout',
+    'estado' => 'ok',
+]);
 
 // Eliminar todas las variables de sesión
 session_unset();

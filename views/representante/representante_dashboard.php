@@ -546,6 +546,22 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
     <script src="../../views/partials/spinner-global.js"></script>
 
     <script>
+        const auditoriaEndpoint = '/controllers/auditoriaController.php';
+        const registrarAuditoria = (evento, datos = {}) => {
+            fetch(auditoriaEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    evento,
+                    modulo: 'representante',
+                    datos
+                })
+            }).catch(() => { });
+        };
+
         const toggleResumenFiltros = document.getElementById('toggleResumenFiltros');
         const panelResumenFiltros = document.getElementById('panelResumenFiltros');
         const resumenForm = document.getElementById('resumen-filtros-form');
@@ -872,6 +888,11 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                     if (cursoCell) {
                         cursoCell.textContent = data.cursoNombre || 'Sin curso asignado';
                     }
+                    registrarAuditoria('representante_actualizar_curso', {
+                        hijo_id: hijoId,
+                        curso_id: cursoId,
+                        curso_anterior: prev
+                    });
                     showAlertSafe('success', 'Curso actualizado correctamente.');
                     if (fechaEntregaInput && fechaEntregaInput.value) {
                         cargarResumenAjax(fechaEntregaInput.value, {
@@ -887,13 +908,16 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             resumenForm.addEventListener('submit', (event) => {
                 event.preventDefault();
                 const fecha = fechaEntregaInput ? fechaEntregaInput.value : '';
+                registrarAuditoria('representante_filtro', { fecha });
                 cargarResumenAjax(fecha);
             });
         }
 
         if (fechaEntregaInput) {
             fechaEntregaInput.addEventListener('change', () => {
-                cargarResumenAjax(fechaEntregaInput.value);
+                const fecha = fechaEntregaInput.value;
+                registrarAuditoria('representante_filtro', { fecha });
+                cargarResumenAjax(fecha);
             });
         }
 

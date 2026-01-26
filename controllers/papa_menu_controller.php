@@ -18,6 +18,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $esAjax) {
         $_SESSION['saldo'] = $saldoActual;
     }
 
+    if ($resultado['ok']) {
+        $totalItems = 0;
+        if (is_array($selecciones)) {
+            foreach ($selecciones as $porFecha) {
+                if (!is_array($porFecha)) {
+                    continue;
+                }
+                foreach ($porFecha as $menuId) {
+                    if ((int) $menuId > 0) {
+                        $totalItems++;
+                    }
+                }
+            }
+        }
+        registrarAuditoria($pdo, [
+            'evento' => 'papa_pedido_comida',
+            'modulo' => 'papa',
+            'entidad' => 'Pedidos_Comida',
+            'estado' => 'ok',
+            'datos' => [
+                'pedido_ids' => $resultado['pedidoIds'],
+                'total' => $resultado['total'],
+                'items' => $totalItems,
+            ],
+        ]);
+    }
+
     header('Content-Type: application/json');
     echo json_encode([
         'ok' => $resultado['ok'],

@@ -1209,6 +1209,22 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
     <!-- Spinner Global -->
     <script src="../../views/partials/spinner-global.js"></script>
     <script>
+        const auditoriaEndpoint = '/controllers/auditoriaController.php';
+        const registrarAuditoria = (evento, datos = {}) => {
+            fetch(auditoriaEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    evento,
+                    modulo: 'cocina',
+                    datos
+                })
+            }).catch(() => { });
+        };
+
         const toggleViandasFiltros = document.getElementById('toggleViandasFiltros');
         const refreshViandas = document.getElementById('refreshViandas');
         const panelViandasFiltros = document.getElementById('panelViandasFiltros');
@@ -1295,6 +1311,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             viandasForm.addEventListener('submit', (event) => {
                 event.preventDefault();
                 const fecha = viandasFechaInput ? viandasFechaInput.value : '';
+                registrarAuditoria('cocina_filtro_fecha', { fecha });
                 cargarViandasAjax(fecha);
             });
         }
@@ -1310,6 +1327,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
         if (refreshViandas) {
             refreshViandas.addEventListener('click', () => {
                 const fecha = viandasFechaInput ? viandasFechaInput.value : '';
+                registrarAuditoria('cocina_actualizar', { fecha });
                 cargarViandasAjax(fecha);
             });
         }
@@ -1360,6 +1378,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             if (!modal) return;
             modal.classList.add('is-open');
             modal.setAttribute('aria-hidden', 'false');
+            const fecha = viandasFechaInput ? viandasFechaInput.value : '';
+            registrarAuditoria('cocina_ver_resumen', { fecha });
         };
 
         const closeResumenModal = () => {

@@ -37,6 +37,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $auth->login($usuario, $contrasena);
 
     if (is_array($user) && isset($user['error'])) {
+        registrarAuditoria($pdo, [
+            'evento' => 'login_error',
+            'estado' => $user['error'],
+            'datos' => [
+                'usuario' => $usuario,
+            ],
+        ]);
         if ($user['error'] === 'inactive') {
             $error = 'No tenes permiso para acceder, contactate con el administrador';
         } else {
@@ -52,6 +59,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['rol'] = $user['Rol'];
         $_SESSION['estado'] = $user['Estado'];
         $_SESSION['saldo'] = $user['Saldo'] ?? 0.00;
+
+        registrarAuditoria($pdo, [
+            'evento' => 'login_ok',
+            'estado' => 'ok',
+            'usuario_id' => $user['Id'],
+            'usuario_login' => $user['Usuario'],
+            'rol' => $user['Rol'],
+        ]);
 
         // RedirecciÃ³n por Rol
         switch ($user['Rol']) {
@@ -75,6 +90,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         exit;
     } else {
+        registrarAuditoria($pdo, [
+            'evento' => 'login_error',
+            'estado' => 'invalid',
+            'datos' => [
+                'usuario' => $usuario,
+            ],
+        ]);
         $error = 'Usuario o contrasena incorrectos.';
     }
 }

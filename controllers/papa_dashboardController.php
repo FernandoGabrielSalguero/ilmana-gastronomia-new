@@ -29,6 +29,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $esAjax && ($_POST['accion'] ?? '')
         $_SESSION['saldo'] = $saldoActual;
     }
     $saldoPendiente = $resultado['ok'] ? $model->obtenerSaldoPendiente($usuarioId) : null;
+    if ($resultado['ok']) {
+        registrarAuditoria($pdo, [
+            'evento' => 'papa_cancelar_pedido',
+            'modulo' => 'papa',
+            'entidad' => 'Pedidos_Comida',
+            'entidad_id' => $pedidoId,
+            'estado' => 'ok',
+            'datos' => [
+                'motivo' => $motivo,
+            ],
+        ]);
+    }
     echo json_encode([
         'ok' => $resultado['ok'],
         'error' => $resultado['error'] ?? '',
