@@ -52,12 +52,14 @@ ob_start();
         <form method="post" action="papa_saldo_view.php" enctype="multipart/form-data" class="form-modern" id="saldo-form">
             <div class="input-group">
                 <label for="monto">Monto a recargar</label>
-                <select id="monto" name="monto" required>
-                    <option value="">Selecciona un monto</option>
-                    <?php foreach ($montosValidos as $monto): ?>
-                        <option value="<?= $monto ?>">$<?= number_format($monto, 2, ',', '.') ?></option>
-                    <?php endforeach; ?>
-                </select>
+                <div class="input-icon">
+                    <select id="monto" name="monto" required>
+                        <option value="">Selecciona un monto</option>
+                        <?php foreach ($montosValidos as $monto): ?>
+                            <option value="<?= $monto ?>">$<?= number_format($monto, 2, ',', '.') ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
 
             <div class="input-group">
@@ -73,7 +75,7 @@ ob_start();
         <h3>Datos bancarios</h3>
         <p><strong>CUIT:</strong> 20273627651</p>
         <p><strong>CBU:</strong> <span id="cbu">0340300408300313721004</span>
-            <button class="btn btn-small btn-info" type="button" data-copy-cbu>Copiar</button>
+            <button class="btn btn-small btn-info" type="button" data-copy-cbu>Copiar CBU</button>
         </p>
         <p><strong>Banco:</strong> BANCO PATAGONIA</p>
         <p><strong>Titular de la cuenta:</strong> Federico Figueroa</p>
