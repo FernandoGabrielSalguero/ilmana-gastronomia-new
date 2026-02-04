@@ -260,11 +260,8 @@
             {
                 title: 'Actualizar curso',
                 element: '[data-tutorial="btn-actualizar-curso"]',
-                message: 'Si cambia el curso de tu hijo, podes actualizarlo desde este icono.',
-                position: 'bottom',
-                optional: true,
-                onEnter: () => openCursosModal(),
-                onExit: () => closeCursosModal()
+                message: 'El icono del lapiz te permite actualizar el curso del hijo.',
+                position: 'bottom'
             },
             {
                 title: 'Detalle del pedido',
