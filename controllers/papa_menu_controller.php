@@ -40,6 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $esAjax) {
             'datos' => [
                 'pedido_ids' => $resultado['pedidoIds'],
                 'total' => $resultado['total'],
+                'descuento' => $resultado['descuento'] ?? 0,
+                'total_final' => $resultado['total_final'] ?? $resultado['total'],
                 'items' => $totalItems,
             ],
         ]);
@@ -51,6 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $esAjax) {
         'errores' => $resultado['errores'],
         'pedidoIds' => $resultado['pedidoIds'],
         'total' => $resultado['total'],
+        'descuento' => $resultado['descuento'] ?? 0,
+        'totalFinal' => $resultado['total_final'] ?? $resultado['total'],
         'saldoActual' => $saldoActual,
         'saldoRestante' => $saldoActual,
         'mensaje' => $resultado['ok'] ? 'Pedido guardado correctamente.' : ''

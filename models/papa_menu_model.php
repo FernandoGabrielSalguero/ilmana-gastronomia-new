@@ -82,6 +82,8 @@ class PapaMenuModel
         $errores = [];
         $pedidoIds = [];
         $total = 0.0;
+        $descuento = 0.0;
+        $totalFinal = 0.0;
 
         if (!$usuarioId) {
             return [
@@ -113,18 +115,33 @@ class PapaMenuModel
                 'ok' => false,
                 'errores' => ['Selecciona al menos una vianda.'],
                 'pedidoIds' => [],
-                'total' => 0.0
+                'total' => 0.0,
+                'descuento' => 0.0,
+                'total_final' => 0.0
             ];
         }
 
         $stmtHijo = $this->db->prepare("SELECT 1 FROM Usuarios_Hijos WHERE Usuario_Id = :usuarioId AND Hijo_Id = :hijoId");
         $stmtMenu = $this->db->prepare("SELECT Id, Fecha_entrega, Precio FROM Menú WHERE Id = :menuId AND Estado = 'En venta' AND (Fecha_hora_compra IS NULL OR Fecha_hora_compra >= NOW()) LIMIT 1");
         $stmtPref = $this->db->prepare("SELECT Preferencias_Alimenticias FROM Hijos WHERE Id = :hijoId LIMIT 1");
+        $stmtNivel = $this->db->prepare("SELECT c.Nivel_Educativo
+            FROM Hijos h
+            LEFT JOIN Cursos c ON c.Id = h.Curso_Id
+            WHERE h.Id = :hijoId
+            LIMIT 1");
+        $stmtDias = $this->db->prepare("SELECT COUNT(DISTINCT Fecha_entrega) AS con_fecha,
+            SUM(CASE WHEN Fecha_entrega IS NULL THEN 1 ELSE 0 END) AS sin_fecha
+            FROM Menú
+            WHERE Estado = 'En venta'
+            AND Nivel_Educativo = :nivel
+            AND (Fecha_hora_compra IS NULL OR Fecha_hora_compra >= NOW())");
         $stmtInsert = $this->db->prepare("INSERT INTO Pedidos_Comida (Fecha_entrega, Preferencias_alimenticias, Hijo_Id, Fecha_pedido, Estado, Menú_Id)
             VALUES (:fecha_entrega, :preferencias, :hijo_id, NOW(), 'Procesando', :menu_id)");
 
         $menuCache = [];
         $prefCache = [];
+        $nivelCache = [];
+        $diasCache = [];
 
         foreach ($items as $item) {
             $stmtHijo->execute(['usuarioId' => $usuarioId, 'hijoId' => $item['hijoId']]);
@@ -158,6 +175,40 @@ class PapaMenuModel
             $total += $menuData['Precio'] !== null ? (float)$menuData['Precio'] : 0.0;
         }
 
+        $seleccionesPorHijo = [];
+        $totalesPorHijo = [];
+        foreach ($items as $item) {
+            $menuData = $menuCache[$item['menuId']];
+            $seleccionesPorHijo[$item['hijoId']] = ($seleccionesPorHijo[$item['hijoId']] ?? 0) + 1;
+            $totalesPorHijo[$item['hijoId']] = ($totalesPorHijo[$item['hijoId']] ?? 0.0)
+                + ($menuData['Precio'] !== null ? (float)$menuData['Precio'] : 0.0);
+        }
+
+        foreach ($totalesPorHijo as $hijoId => $totalHijo) {
+            if (!isset($nivelCache[$hijoId])) {
+                $stmtNivel->execute(['hijoId' => $hijoId]);
+                $nivelCache[$hijoId] = $stmtNivel->fetchColumn() ?: null;
+            }
+            $nivel = $nivelCache[$hijoId];
+            if (!$nivel) {
+                continue;
+            }
+            if (!isset($diasCache[$nivel])) {
+                $stmtDias->execute(['nivel' => $nivel]);
+                $row = $stmtDias->fetch(PDO::FETCH_ASSOC) ?: ['con_fecha' => 0, 'sin_fecha' => 0];
+                $conFecha = (int)($row['con_fecha'] ?? 0);
+                $sinFecha = (int)($row['sin_fecha'] ?? 0);
+                $diasCache[$nivel] = $conFecha + ($sinFecha > 0 ? 1 : 0);
+            }
+            $requiredDays = (int)($diasCache[$nivel] ?? 0);
+            $seleccionados = (int)($seleccionesPorHijo[$hijoId] ?? 0);
+            if ($requiredDays > 0 && $seleccionados === $requiredDays) {
+                $descuento += $totalHijo * 0.1;
+            }
+        }
+
+        $totalFinal = max(0.0, $total - $descuento);
+
         try {
             $this->db->beginTransaction();
 
@@ -165,13 +216,15 @@ class PapaMenuModel
             $stmtSaldoActual->execute(['usuarioId' => $usuarioId]);
             $saldoDisponible = (float)($stmtSaldoActual->fetchColumn() ?: 0.0);
 
-            if ($saldoDisponible <= 0 || $saldoDisponible < $total) {
+            if ($saldoDisponible <= 0 || $saldoDisponible < $totalFinal) {
                 $this->db->rollBack();
                 return [
                     'ok' => false,
                     'errores' => ['Saldo insuficiente para completar el pedido.'],
                     'pedidoIds' => [],
-                    'total' => 0.0
+                    'total' => 0.0,
+                    'descuento' => 0.0,
+                    'total_final' => 0.0
                 ];
             }
 
@@ -197,7 +250,7 @@ class PapaMenuModel
                 SET Saldo = Saldo - :total
                 WHERE Id = :usuarioId");
             $stmtSaldo->execute([
-                'total' => $total,
+                'total' => $totalFinal,
                 'usuarioId' => $usuarioId
             ]);
 
@@ -216,7 +269,9 @@ class PapaMenuModel
             'ok' => true,
             'errores' => [],
             'pedidoIds' => $pedidoIds,
-            'total' => $total
+            'total' => $total,
+            'descuento' => $descuento,
+            'total_final' => $totalFinal
         ];
     }
 }
