@@ -81,4 +81,50 @@ class AdminRegalosColegioModel
             'menus' => $data['menus']
         ]);
     }
+
+    public function existeRegalo(string $alumnoNombre, string $fechaJueves): bool
+    {
+        $sql = "SELECT 1
+            FROM Regalos_Colegio
+            WHERE Alumno_Nombre = :alumno
+              AND Fecha_Entrega_Jueves = :fecha
+            LIMIT 1";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'alumno' => $alumnoNombre,
+            'fecha' => $fechaJueves
+        ]);
+        return (bool) $stmt->fetchColumn();
+    }
+
+    public function obtenerRegalos(string $fechaDesde, string $fechaHasta)
+    {
+        $sql = "SELECT
+                Id,
+                Alumno_Nombre,
+                Colegio_Nombre,
+                Curso_Nombre,
+                Nivel_Educativo,
+                Fecha_Entrega_Jueves,
+                Menus_Semana,
+                Creado_En
+            FROM Regalos_Colegio
+            WHERE Fecha_Entrega_Jueves BETWEEN :desde AND :hasta
+            ORDER BY Fecha_Entrega_Jueves DESC, Alumno_Nombre";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'desde' => $fechaDesde,
+            'hasta' => $fechaHasta
+        ]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function eliminarRegalo(int $id): bool
+    {
+        $sql = "DELETE FROM Regalos_Colegio WHERE Id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute(['id' => $id]);
+    }
 }

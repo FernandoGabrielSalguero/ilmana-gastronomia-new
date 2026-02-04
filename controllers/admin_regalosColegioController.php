@@ -116,6 +116,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'agreg
     }
 
     if (empty($errores)) {
+        if ($model->existeRegalo($alumno, $fechaJueves)) {
+            $errores[] = 'El regalo ya fue registrado para este alumno en la fecha seleccionada.';
+        }
+    }
+
+    if (empty($errores)) {
         $ok = $model->insertarRegalo([
             'alumno' => $alumno,
             'colegio' => $colegio,
@@ -133,8 +139,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'agreg
     }
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'eliminar_regalo') {
+    $regaloId = (int) ($_POST['regalo_id'] ?? 0);
+    if ($regaloId <= 0) {
+        $errores[] = 'El regalo seleccionado no es valido.';
+    } else {
+        $ok = $model->eliminarRegalo($regaloId);
+        if ($ok) {
+            $mensajeExito = 'Regalo eliminado correctamente.';
+        } else {
+            $errores[] = 'No se pudo eliminar el regalo.';
+        }
+    }
+}
+
 $registros = $model->obtenerResumenSemanal($fechaDesde, $fechaHasta);
 $resumenEntregas = $model->obtenerResumenPorEntrega($fechaDesde, $fechaHasta);
+$regalos = $model->obtenerRegalos($fechaDesde, $fechaHasta);
+$regalosIndex = [];
+foreach ($regalos as $regalo) {
+    $alumnoKey = strtolower(trim((string) ($regalo['Alumno_Nombre'] ?? '')));
+    $fechaKey = (string) ($regalo['Fecha_Entrega_Jueves'] ?? '');
+    if ($alumnoKey !== '' && $fechaKey !== '') {
+        $regalosIndex[$alumnoKey . '|' . $fechaKey] = true;
+    }
+}
 
 $totalNinos = count($registros);
 $totalViandas = 0;
