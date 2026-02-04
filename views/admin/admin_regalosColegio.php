@@ -382,7 +382,18 @@ $formatDate = function ($value) {
     <div id="modalEntregas" class="modal hidden">
         <div class="modal-content">
             <h3 id="modalEntregasTitulo">Detalle de entregas</h3>
-            <div id="modalEntregasBody"></div>
+            <div id="modalEntregasResumen" class="gform-helper" style="margin: 8px 0;"></div>
+            <div class="tabla-wrapper" style="max-height: 360px;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Dia</th>
+                            <th>Vianda</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalEntregasBody"></tbody>
+                </table>
+            </div>
             <div class="form-buttons">
                 <button class="btn btn-aceptar" type="button" onclick="cerrarModalEntregas()">Cerrar</button>
             </div>
@@ -393,22 +404,31 @@ $formatDate = function ($value) {
         const modalEntregas = document.getElementById('modalEntregas');
         const modalEntregasTitulo = document.getElementById('modalEntregasTitulo');
         const modalEntregasBody = document.getElementById('modalEntregasBody');
+        const modalEntregasResumen = document.getElementById('modalEntregasResumen');
 
         function abrirModalEntregas(nombre, detalles) {
             modalEntregasTitulo.textContent = `Entregas de ${nombre}`;
             if (!Array.isArray(detalles) || detalles.length === 0) {
-                modalEntregasBody.innerHTML = '<p>Sin entregas en el rango seleccionado.</p>';
+                modalEntregasResumen.textContent = 'Sin entregas en el rango seleccionado.';
+                modalEntregasBody.innerHTML = `
+                    <tr>
+                        <td colspan="2">No hay registros.</td>
+                    </tr>
+                `;
             } else {
                 const items = detalles.map((item) => {
                     const fecha = (item.fecha || '').split('-').reverse().join('-');
-                    const menu = item.menu ? ` - ${item.menu}` : '';
-                    return `<li><strong>${fecha}</strong>${menu}</li>`;
+                    const menu = item.menu ? item.menu : '-';
+                    return `
+                        <tr>
+                            <td><strong>${fecha}</strong></td>
+                            <td>${menu}</td>
+                        </tr>
+                    `;
                 }).join('');
                 const diasUnicos = new Set(detalles.map((item) => item.fecha || '')).size;
-                modalEntregasBody.innerHTML = `
-                    <p>Se entregaron viandas en ${diasUnicos} dia(s).</p>
-                    <ul>${items}</ul>
-                `;
+                modalEntregasResumen.textContent = `Se entregaron viandas en ${diasUnicos} dia(s).`;
+                modalEntregasBody.innerHTML = items;
             }
             modalEntregas.classList.remove('hidden');
         }
