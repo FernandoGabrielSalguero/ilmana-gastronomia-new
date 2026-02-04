@@ -865,6 +865,8 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
 
             const saldoActual = parseFloat(form.dataset.saldoActual || '0') || 0;
             const totalEl = document.getElementById('vianda-total');
+            const descuentoEl = document.getElementById('vianda-descuento');
+            const totalFinalEl = document.getElementById('vianda-total-final');
             const saldoRestanteEl = document.getElementById('vianda-saldo-restante');
             const submitBtn = document.getElementById('vianda-submit');
             const warningEl = document.getElementById('vianda-saldo-warning');
@@ -877,8 +879,8 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                 }).format(numero);
             };
 
-            const actualizarEstadoSubmit = (total) => {
-                const saldoInsuficiente = saldoActual <= 0 || total > saldoActual;
+            const actualizarEstadoSubmit = (totalFinal) => {
+                const saldoInsuficiente = saldoActual <= 0 || totalFinal > saldoActual;
                 if (submitBtn) {
                     submitBtn.disabled = saldoInsuficiente;
                     submitBtn.classList.toggle('btn-disabled', saldoInsuficiente);
@@ -897,23 +899,60 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
             };
 
             const recalcularTotales = () => {
-                let total = 0;
-                const selects = form.querySelectorAll('select[name^="menu_por_dia"]');
-                selects.forEach((select) => {
-                    const option = select.options[select.selectedIndex];
-                    const precio = option ? parseFloat(option.dataset.precio || '0') : 0;
-                    if (!Number.isNaN(precio)) {
-                        total += precio;
+                let subtotal = 0;
+                let descuento = 0;
+                const filas = form.querySelectorAll('tbody tr');
+                filas.forEach((fila) => {
+                    const requiredDays = parseInt(fila.dataset.requiredDays || '0', 10) || 0;
+                    let seleccionados = 0;
+                    let totalHijo = 0;
+                    const selects = fila.querySelectorAll('select[name^="menu_por_dia"]');
+                    selects.forEach((select) => {
+                        if (!select.value) return;
+                        seleccionados += 1;
+                        const option = select.options[select.selectedIndex];
+                        const precio = option ? parseFloat(option.dataset.precio || '0') : 0;
+                        if (!Number.isNaN(precio)) {
+                            totalHijo += precio;
+                        }
+                    });
+                    subtotal += totalHijo;
+                    if (requiredDays > 0 && seleccionados === requiredDays) {
+                        descuento += totalHijo * 0.1;
+                    }
+                    const leyenda = fila.querySelector('[data-vianda-leyenda]');
+                    if (leyenda) {
+                        if (requiredDays > 0) {
+                            const faltan = Math.max(requiredDays - seleccionados, 0);
+                            if (faltan > 0) {
+                                leyenda.textContent = `Faltan ${faltan} viandas para 10% off.`;
+                                leyenda.classList.remove('ok');
+                            } else {
+                                leyenda.textContent = 'Tenes 10% off aplicado.';
+                                leyenda.classList.add('ok');
+                            }
+                            leyenda.style.display = 'block';
+                        } else {
+                            leyenda.textContent = '';
+                            leyenda.style.display = 'none';
+                        }
                     }
                 });
+                const totalFinal = subtotal - descuento;
                 if (totalEl) {
-                    totalEl.textContent = formatearMonto(total);
+                    totalEl.textContent = formatearMonto(subtotal);
+                }
+                if (descuentoEl) {
+                    descuentoEl.textContent = formatearMonto(descuento);
+                }
+                if (totalFinalEl) {
+                    totalFinalEl.textContent = formatearMonto(totalFinal);
                 }
                 if (saldoRestanteEl) {
-                    saldoRestanteEl.textContent = formatearMonto(saldoActual - total);
+                    saldoRestanteEl.textContent = formatearMonto(saldoActual - totalFinal);
                 }
-                actualizarEstadoSubmit(total);
-                return total;
+                actualizarEstadoSubmit(totalFinal);
+                return totalFinal;
             };
 
             const showAlert = (type, message) => {
@@ -940,8 +979,8 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
 
             form.addEventListener('submit', (event) => {
                 event.preventDefault();
-                const total = recalcularTotales();
-                if (saldoActual <= 0 || total > saldoActual) {
+                const totalFinal = recalcularTotales();
+                if (saldoActual <= 0 || totalFinal > saldoActual) {
                     showAlert('warning', saldoActual <= 0
                         ? 'No tienes saldo disponible para realizar pedidos.'
                         : 'El total del pedido supera el saldo disponible.');

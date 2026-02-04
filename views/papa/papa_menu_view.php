@@ -81,6 +81,18 @@ if (isset($fechasMap['sin_fecha'])) {
         margin-top: 8px;
         display: none;
     }
+
+    .vianda-descuento-leyenda {
+        color: #dc2626;
+        font-size: 12px;
+        margin-top: 4px;
+        font-weight: 600;
+        display: none;
+    }
+
+    .vianda-descuento-leyenda.ok {
+        color: #16a34a;
+    }
 </style>
 
 <div>
@@ -110,9 +122,18 @@ if (isset($fechasMap['sin_fecha'])) {
                         $nivel = $hijo['Nivel_Educativo'] ?? 'Sin Curso Asignado';
                         $menusPorFecha = $menusPorNivel[$nivel] ?? [];
                         $esSeleccionado = $hijoSeleccionadoId && (int)$hijo['Id'] === (int)$hijoSeleccionadoId;
+                        $diasDisponibles = 0;
+                        foreach ($fechasOrdenadas as $fechaKey => $fechaLabel) {
+                            if (!empty($menusPorFecha[$fechaKey])) {
+                                $diasDisponibles++;
+                            }
+                        }
                         ?>
-                        <tr class="<?= $esSeleccionado ? 'vianda-selected-row' : '' ?>">
-                            <td><?= htmlspecialchars($hijo['Nombre']) ?></td>
+                        <tr class="<?= $esSeleccionado ? 'vianda-selected-row' : '' ?>" data-required-days="<?= (int) $diasDisponibles ?>">
+                            <td>
+                                <div><?= htmlspecialchars($hijo['Nombre']) ?></div>
+                                <div class="vianda-descuento-leyenda" data-vianda-leyenda></div>
+                            </td>
                             <?php foreach ($fechasOrdenadas as $fechaKey => $fechaLabel): ?>
                                 <?php $listaMenus = $menusPorFecha[$fechaKey] ?? []; ?>
                                 <td>
@@ -153,6 +174,14 @@ if (isset($fechasMap['sin_fecha'])) {
                 <div>
                     <strong>Total pedido:</strong>
                     $<span id="vianda-total">0,00</span>
+                </div>
+                <div>
+                    <strong>Descuento 10%:</strong>
+                    $<span id="vianda-descuento">0,00</span>
+                </div>
+                <div>
+                    <strong>Total final:</strong>
+                    $<span id="vianda-total-final">0,00</span>
                 </div>
                 <div>
                     <strong>Saldo restante:</strong>
