@@ -86,6 +86,17 @@ $formatDate = function ($value) {
             font-weight: 700;
             color: #111827;
         }
+
+        .action-icon {
+            cursor: pointer;
+            font-size: 20px;
+            color: #5b21b6;
+            vertical-align: middle;
+        }
+
+        .action-icon + .action-icon {
+            margin-left: 10px;
+        }
     </style>
 </head>
 
@@ -287,6 +298,7 @@ $formatDate = function ($value) {
                                         <th>Dias de compra</th>
                                         <th>Viandas en semana</th>
                                         <th>Semana completa</th>
+                                        <th>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -299,6 +311,10 @@ $formatDate = function ($value) {
                                             $esCompleta = $diasHabiles > 0 && $diasConEntrega >= $diasHabiles;
                                             $badgeClass = $esCompleta ? 'success' : 'warning';
                                             $badgeLabel = $esCompleta ? 'Completa' : 'Incompleta';
+                                            $fechasEntregaRaw = (string) ($row['Fechas_Entrega'] ?? '');
+                                            $fechasEntrega = array_values(array_filter(array_map('trim', explode(',', $fechasEntregaRaw))));
+                                            $fechasEntregaJson = htmlspecialchars(json_encode($fechasEntrega, JSON_UNESCAPED_UNICODE));
+                                            $alumnoNombre = htmlspecialchars((string) ($row['Hijo_Nombre'] ?? ''));
                                             ?>
                                             <tr>
                                                 <td><?= htmlspecialchars($row['Hijo_Nombre'] ?? '') ?></td>
@@ -323,11 +339,22 @@ $formatDate = function ($value) {
                                                         <?= htmlspecialchars($badgeLabel) ?>
                                                     </span>
                                                 </td>
+                                                <td>
+                                                    <span class="material-icons action-icon"
+                                                        title="Ver entregas por dia"
+                                                        data-action="ver-entregas"
+                                                        data-alumno="<?= $alumnoNombre ?>"
+                                                        data-fechas='<?= $fechasEntregaJson ?>'>event</span>
+                                                    <span class="material-icons action-icon"
+                                                        title="Agregar regalo"
+                                                        data-action="agregar-regalo"
+                                                        data-alumno="<?= $alumnoNombre ?>">card_giftcard</span>
+                                                </td>
                                             </tr>
                                         <?php endforeach; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="7">Sin datos para el rango seleccionado.</td>
+                                            <td colspan="8">Sin datos para el rango seleccionado.</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
@@ -338,6 +365,57 @@ $formatDate = function ($value) {
             </section>
         </div>
     </div>
+
+    <div id="modalEntregas" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="modalEntregasTitulo">Detalle de entregas</h3>
+            <div id="modalEntregasBody"></div>
+            <div class="form-buttons">
+                <button class="btn btn-aceptar" type="button" onclick="cerrarModalEntregas()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modalEntregas = document.getElementById('modalEntregas');
+        const modalEntregasTitulo = document.getElementById('modalEntregasTitulo');
+        const modalEntregasBody = document.getElementById('modalEntregasBody');
+
+        function abrirModalEntregas(nombre, fechas) {
+            modalEntregasTitulo.textContent = `Entregas de ${nombre}`;
+            if (!Array.isArray(fechas) || fechas.length === 0) {
+                modalEntregasBody.innerHTML = '<p>Sin entregas en el rango seleccionado.</p>';
+            } else {
+                const items = fechas.map((fecha) => `<li>${fecha.split('-').reverse().join('-')}</li>`).join('');
+                modalEntregasBody.innerHTML = `
+                    <p>Se entregaron viandas en ${fechas.length} dia(s).</p>
+                    <ul>${items}</ul>
+                `;
+            }
+            modalEntregas.classList.remove('hidden');
+        }
+
+        function cerrarModalEntregas() {
+            modalEntregas.classList.add('hidden');
+        }
+
+        document.addEventListener('click', (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) {
+                return;
+            }
+            const accion = target.dataset.action;
+            if (accion === 'ver-entregas') {
+                const nombre = target.dataset.alumno || 'Alumno';
+                const fechas = target.dataset.fechas ? JSON.parse(target.dataset.fechas) : [];
+                abrirModalEntregas(nombre, fechas);
+            }
+            if (accion === 'agregar-regalo') {
+                // Placeholder sin logica por ahora
+                alert(`Agregar regalo para ${target.dataset.alumno || 'Alumno'}`);
+            }
+        });
+    </script>
 </body>
 
 </html>
