@@ -87,6 +87,16 @@ $formatDate = function ($value) {
             color: #111827;
         }
 
+        .modal-content.modal-large {
+            width: fit-content;
+            max-width: 95vw;
+        }
+
+        .modal-content.modal-large .tabla-wrapper {
+            max-height: none;
+            overflow: visible;
+        }
+
         .action-icon {
             cursor: pointer;
             font-size: 20px;
@@ -380,10 +390,10 @@ $formatDate = function ($value) {
     </div>
 
     <div id="modalEntregas" class="modal hidden">
-        <div class="modal-content">
+        <div class="modal-content modal-large">
             <h3 id="modalEntregasTitulo">Detalle de entregas</h3>
             <div id="modalEntregasResumen" class="gform-helper" style="margin: 8px 0;"></div>
-            <div class="tabla-wrapper" style="max-height: 360px;">
+            <div class="tabla-wrapper">
                 <table class="data-table">
                     <thead>
                         <tr>
