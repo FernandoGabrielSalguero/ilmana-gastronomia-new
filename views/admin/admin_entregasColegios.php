@@ -1175,6 +1175,9 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
                     <li onclick="location.href='admin_logs.php'">
                         <span class="material-icons" style="color: #5b21b6;">history</span><span class="link-text">Logs</span>
                     </li>
+                    <li onclick="location.href='admin_regalosColegio.php'">
+                        <span class="material-icons" style="color: #5b21b6;">card_giftcard</span><span class="link-text">Regalos</span>
+                    </li>
                     <li onclick="location.href='../../../logout.php'">
                         <span class="material-icons" style="color: red;">logout</span><span class="link-text">Salir</span>
                     </li>

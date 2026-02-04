@@ -9,7 +9,7 @@ require_once __DIR__ . '/../../controllers/admin_cuyoController.php';
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>IlMana Gastronomia</title>
-    
+
     <!-- Iconos de Material Design -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link rel="stylesheet"
@@ -67,6 +67,9 @@ require_once __DIR__ . '/../../controllers/admin_cuyoController.php';
                     </li>
                     <li onclick="location.href='admin_logs.php'">
                         <span class="material-icons" style="color: #5b21b6;">history</span><span class="link-text">Logs</span>
+                    </li>
+                    <li onclick="location.href='admin_regalosColegio.php'">
+                        <span class="material-icons" style="color: #5b21b6;">card_giftcard</span><span class="link-text">Regalos</span>
                     </li>
                     <li onclick="location.href='../../../logout.php'">
                         <span class="material-icons" style="color: red;">logout</span><span class="link-text">Salir</span>
@@ -179,7 +182,7 @@ require_once __DIR__ . '/../../controllers/admin_cuyoController.php';
                                 <?php
                                 $menusMostrados = [];
                                 foreach ($menuGrupos as $grupo) :
-                                    ?>
+                                ?>
                                     <div class="resumen-grupo"><?= htmlspecialchars($grupo['label']) ?></div>
                                     <?php foreach ($grupo['menus'] as $menu): ?>
                                         <div class="resumen-menu">
@@ -221,7 +224,7 @@ require_once __DIR__ . '/../../controllers/admin_cuyoController.php';
                                         <?php
                                         $menusMostrados = [];
                                         foreach ($menuGrupos as $grupo) :
-                                            ?>
+                                        ?>
                                             <div class="resumen-grupo"><?= htmlspecialchars($grupo['label']) ?></div>
                                             <?php foreach ($grupo['menus'] as $menu): ?>
                                                 <div class="resumen-menu">
@@ -262,12 +265,12 @@ require_once __DIR__ . '/../../controllers/admin_cuyoController.php';
 
         const detallePedidosExcel = <?php echo json_encode($detallePedidosExcel); ?>;
         const filtrosExcel = <?php
-        echo json_encode([
-            'fecha_desde' => $fechaDesde ?: '',
-            'fecha_hasta' => $fechaHasta ?: '',
-            'plantas' => $usarTodasLasPlantas ? 'Todas' : $plantasFiltro,
-        ]);
-        ?>;
+                                echo json_encode([
+                                    'fecha_desde' => $fechaDesde ?: '',
+                                    'fecha_hasta' => $fechaHasta ?: '',
+                                    'plantas' => $usarTodasLasPlantas ? 'Todas' : $plantasFiltro,
+                                ]);
+                                ?>;
 
         const toggleFiltros = document.getElementById('toggleFiltros');
         const panelFiltros = document.getElementById('panelFiltros');
@@ -324,16 +327,33 @@ require_once __DIR__ . '/../../controllers/admin_cuyoController.php';
             }));
 
             const hoja = XLSX.utils.json_to_sheet(filas);
-            hoja['!cols'] = [
-                { wch: 12 },
-                { wch: 14 },
-                { wch: 20 },
-                { wch: 12 },
-                { wch: 24 },
-                { wch: 16 },
-                { wch: 12 },
-                { wch: 26 },
-                { wch: 10 },
+            hoja['!cols'] = [{
+                    wch: 12
+                },
+                {
+                    wch: 14
+                },
+                {
+                    wch: 20
+                },
+                {
+                    wch: 12
+                },
+                {
+                    wch: 24
+                },
+                {
+                    wch: 16
+                },
+                {
+                    wch: 12
+                },
+                {
+                    wch: 26
+                },
+                {
+                    wch: 10
+                },
             ];
 
             const libro = XLSX.utils.book_new();
