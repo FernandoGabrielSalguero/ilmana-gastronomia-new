@@ -9,6 +9,40 @@ $hasta = $_GET['hasta'] ?? null;
 
 $esAjax = isset($_POST['ajax']) || (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $esAjax && ($_POST['accion'] ?? '') === 'actualizar_cursos') {
+    header('Content-Type: application/json');
+
+    $cursos = $_POST['cursos'] ?? [];
+    if (!is_array($cursos)) {
+        $cursos = [];
+    }
+
+    $resultado = $model->actualizarCursosHijos($usuarioId, $cursos);
+
+    if ($resultado['ok']) {
+        registrarAuditoria($pdo, [
+            'evento' => 'papa_actualizar_curso',
+            'modulo' => 'papa',
+            'entidad' => 'Hijos',
+            'estado' => 'ok',
+            'datos' => [
+                'actualizados' => $resultado['actualizados'] ?? 0,
+                'detalles' => $resultado['detalles'] ?? [],
+            ],
+        ]);
+    }
+
+    $hijosActualizados = $resultado['ok'] ? $model->obtenerHijosDetallePorUsuario($usuarioId) : [];
+
+    echo json_encode([
+        'ok' => (bool) ($resultado['ok'] ?? false),
+        'error' => $resultado['error'] ?? '',
+        'actualizados' => $resultado['actualizados'] ?? 0,
+        'hijos' => $hijosActualizados
+    ]);
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $esAjax && ($_POST['accion'] ?? '') === 'cancelar_pedido') {
     header('Content-Type: application/json');
 
@@ -51,12 +85,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $esAjax && ($_POST['accion'] ?? '')
 }
 
 $hijosDetalle = $model->obtenerHijosDetallePorUsuario($usuarioId);
+$cursosDisponibles = $model->obtenerCursosDisponibles();
 $pedidosSaldo = $model->obtenerPedidosSaldo($usuarioId, $desde, $hasta);
 $pedidosComida = $model->obtenerPedidosComida($usuarioId, $hijoSeleccionado, $desde, $hasta);
 $saldoPendiente = $model->obtenerSaldoPendiente($usuarioId);
 $saldoActual = $model->obtenerSaldoUsuario($usuarioId);
 if ($usuarioId) {
     $_SESSION['saldo'] = $saldoActual;
+}
+
+$cursosPorColegio = [];
+foreach ($cursosDisponibles as $curso) {
+    $colegioId = $curso['Colegio_Id'] !== null ? (int) $curso['Colegio_Id'] : 0;
+    if (!isset($cursosPorColegio[$colegioId])) {
+        $cursosPorColegio[$colegioId] = [];
+    }
+    $cursosPorColegio[$colegioId][] = $curso;
+}
+
+$mostrarModalCursos = false;
+if ($usuarioId && !empty($hijosDetalle)) {
+    $mostrarModalCursos = !$model->tieneActualizacionCursoAnual($usuarioId, (int) date('Y'));
 }
 
 // cargamos los datos dinamicamente con ajax

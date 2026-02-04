@@ -244,6 +244,13 @@
                 onEnter: () => closeSaldoModal()
             },
             {
+                title: 'Actualizar curso',
+                element: '[data-tutorial="btn-actualizar-curso"]',
+                message: 'Si cambia el curso de tu hijo, podes actualizarlo desde este icono.',
+                position: 'bottom',
+                optional: true
+            },
+            {
                 title: 'Detalle del pedido',
                 element: '#vianda-modal .modal-content',
                 message: 'Selecciona menus por dia, revisa el total y confirma el pedido.',

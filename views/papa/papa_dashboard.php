@@ -237,6 +237,37 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         background: #0f172a;
         color: #ffffff;
     }
+
+    .card-header-inline {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .card-header-inline h3 {
+        margin: 0;
+    }
+
+    .btn-icon.btn-icon-small {
+        font-size: 1.2rem;
+    }
+
+    .hijo-curso-card {
+        transition: box-shadow 0.2s ease, transform 0.2s ease, border 0.2s ease;
+        border: 1px solid transparent;
+    }
+
+    .hijo-curso-card.highlight {
+        border-color: #4f46e5;
+        box-shadow: 0 10px 22px rgba(79, 70, 229, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .modal-helper {
+        margin-bottom: 14px;
+        color: #475569;
+    }
 </style>
 
 <body>
@@ -326,11 +357,20 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                             $colegio = trim($hijo['Colegio'] ?? '');
                             $curso = trim($hijo['Curso'] ?? '');
                             ?>
-                            <div class="card">
-                                <h3><?= htmlspecialchars($hijo['Nombre']) ?></h3>
+                            <div class="card" data-hijo-card="<?= (int) ($hijo['Id'] ?? 0) ?>">
+                                <div class="card-header-inline">
+                                    <h3><?= htmlspecialchars($hijo['Nombre']) ?></h3>
+                                    <button class="btn-icon btn-icon-small"
+                                        type="button"
+                                        data-tooltip="Actualizar curso"
+                                        data-tutorial="btn-actualizar-curso"
+                                        onclick="abrirModalActualizarCursos(<?= (int) ($hijo['Id'] ?? 0) ?>)">
+                                        <span class="material-icons">edit</span>
+                                    </button>
+                                </div>
                                 <p><strong>Preferencias alimenticias:</strong> <?= $preferencias !== '' ? htmlspecialchars($preferencias) : 'Sin preferencias' ?></p>
                                 <p><strong>Nombre del colegio:</strong> <?= $colegio !== '' ? htmlspecialchars($colegio) : 'Sin colegio' ?></p>
-                                <p><strong>Curso:</strong> <?= $curso !== '' ? htmlspecialchars($curso) : 'Sin curso' ?></p>
+                                <p><strong>Curso:</strong> <span data-hijo-curso><?= $curso !== '' ? htmlspecialchars($curso) : 'Sin curso' ?></span></p>
                                 <br>
                                 <button class="btn btn-aceptar" type="button" onclick="abrirModalVianda(<?= (int)($hijo['Id'] ?? 0) ?>, '<?= htmlspecialchars($hijo['Nombre']) ?>')" data-tutorial="btn-pedir-vianda">Pedir vianda</button>
                             </div>
@@ -515,6 +555,64 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         </div>
     </div>
 
+    <!-- Modal actualizar cursos -->
+    <div class="modal-overlay" id="actualizar-cursos-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Actualizar curso de tus hijos</h3>
+                <button class="btn btn-small btn-cancelar" type="button" onclick="cerrarModalActualizarCursos()">Cerrar</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-helper">Confirma el curso actual de cada hijo para que las viandas lleguen correctamente.</p>
+                <?php if (!empty($hijosDetalle)): ?>
+                    <form id="actualizar-cursos-form" class="form-modern">
+                        <div class="card-grid grid-2">
+                            <?php foreach ($hijosDetalle as $hijo): ?>
+                                <?php
+                                $hijoId = (int) ($hijo['Id'] ?? 0);
+                                $colegioId = isset($hijo['Colegio_Id']) ? (int) $hijo['Colegio_Id'] : 0;
+                                $cursosListado = $cursosPorColegio[$colegioId] ?? ($cursosPorColegio[0] ?? []);
+                                $cursoActualId = isset($hijo['Curso_Id']) ? (int) $hijo['Curso_Id'] : 0;
+                                ?>
+                                <div class="card hijo-curso-card" data-hijo-row="<?= $hijoId ?>">
+                                    <h4><?= htmlspecialchars($hijo['Nombre'] ?? '') ?></h4>
+                                    <p><strong>Colegio:</strong> <?= htmlspecialchars($hijo['Colegio'] ?? 'Sin colegio') ?></p>
+                                    <div class="input-group">
+                                        <label for="curso-hijo-<?= $hijoId ?>">Curso</label>
+                                        <div class="input-icon">
+                                            <span class="material-icons">school</span>
+                                            <select id="curso-hijo-<?= $hijoId ?>" name="cursos[<?= $hijoId ?>]">
+                                                <option value="">Seleccionar curso</option>
+                                                <?php foreach ($cursosListado as $cursoItem): ?>
+                                                    <?php
+                                                    $cursoId = (int) ($cursoItem['Id'] ?? 0);
+                                                    $cursoNombre = trim((string) ($cursoItem['Nombre'] ?? ''));
+                                                    $cursoNivel = trim((string) ($cursoItem['Nivel_Educativo'] ?? ''));
+                                                    $cursoLabel = $cursoNombre !== '' && $cursoNivel !== ''
+                                                        ? $cursoNombre . ' (' . $cursoNivel . ')'
+                                                        : ($cursoNombre !== '' ? $cursoNombre : 'Curso');
+                                                    ?>
+                                                    <option value="<?= $cursoId ?>" <?= $cursoId === $cursoActualId ? 'selected' : '' ?>>
+                                                        <?= htmlspecialchars($cursoLabel) ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="form-buttons">
+                            <button class="btn btn-aceptar" type="submit">Guardar cambios</button>
+                        </div>
+                    </form>
+                <?php else: ?>
+                    <p>No hay hijos asociados para actualizar.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
     <!-- Spinner Global -->
     <script src="../partials/spinner-global.js"></script>
 
@@ -578,6 +676,32 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         function cerrarModalCancelacion() {
             const modal = document.getElementById('cancelar-modal');
             modal.style.display = 'none';
+        }
+
+        function abrirModalActualizarCursos(hijoId = null) {
+            const modal = document.getElementById('actualizar-cursos-modal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+
+            if (hijoId) {
+                const target = modal.querySelector(`[data-hijo-row="${hijoId}"]`);
+                if (target) {
+                    target.classList.add('highlight');
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const select = target.querySelector('select');
+                    if (select) {
+                        setTimeout(() => select.focus(), 250);
+                    }
+                    setTimeout(() => target.classList.remove('highlight'), 1800);
+                }
+            }
+        }
+
+        function cerrarModalActualizarCursos() {
+            const modal = document.getElementById('actualizar-cursos-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
         }
 
         function formatearMonto(valor) {
@@ -1149,6 +1273,57 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
             });
         }
 
+        const actualizarCursosForm = document.getElementById('actualizar-cursos-form');
+        if (actualizarCursosForm) {
+            actualizarCursosForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const formData = new FormData(actualizarCursosForm);
+                formData.append('ajax', '1');
+                formData.append('accion', 'actualizar_cursos');
+
+                fetch('papa_dashboard.php', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin'
+                })
+                    .then(async (res) => {
+                        if (!res.ok) {
+                            const body = await res.text();
+                            console.error('Error actualizando cursos:', {
+                                status: res.status,
+                                statusText: res.statusText,
+                                body
+                            });
+                            throw new Error('Error actualizando cursos');
+                        }
+                        return res.json();
+                    })
+                    .then((data) => {
+                        if (data.ok) {
+                            showAlertSafe('success', 'Cursos actualizados correctamente.');
+                            if (Array.isArray(data.hijos)) {
+                                data.hijos.forEach((hijo) => {
+                                    const card = document.querySelector(`[data-hijo-card="${hijo.Id}"]`);
+                                    if (!card) return;
+                                    const cursoSpan = card.querySelector('[data-hijo-curso]');
+                                    if (cursoSpan) {
+                                        const texto = hijo.Curso && String(hijo.Curso).trim() !== '' ? hijo.Curso : 'Sin curso';
+                                        cursoSpan.textContent = texto;
+                                    }
+                                });
+                            }
+                            cerrarModalActualizarCursos();
+                            return;
+                        }
+                        showAlertSafe('warning', data.error || 'No se detectaron cambios.');
+                    })
+                    .catch((err) => {
+                        console.error('Error de conexion actualizando cursos:', err);
+                        showAlertSafe('error', 'Error de conexion. Intenta nuevamente.');
+                    });
+            });
+        }
+
         document.getElementById('saldo-modal').addEventListener('click', (event) => {
             if (event.target.id === 'saldo-modal') {
                 cerrarModalSaldo();
@@ -1172,6 +1347,24 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                 cerrarModalCancelacion();
             }
         });
+
+        const actualizarCursosModal = document.getElementById('actualizar-cursos-modal');
+        if (actualizarCursosModal) {
+            actualizarCursosModal.addEventListener('click', (event) => {
+                if (event.target.id === 'actualizar-cursos-modal') {
+                    cerrarModalActualizarCursos();
+                }
+            });
+        }
+
+        const mostrarModalCursos = <?= $mostrarModalCursos ? 'true' : 'false' ?>;
+        if (mostrarModalCursos) {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => abrirModalActualizarCursos());
+            } else {
+                abrirModalActualizarCursos();
+            }
+        }
 
         console.log(<?php echo json_encode($_SESSION); ?>);
     </script>
