@@ -22,6 +22,7 @@ require_once __DIR__ . '/../models/admin_regalosColegioModel.php';
 $model = new AdminRegalosColegioModel($pdo);
 $errores = [];
 $mensaje = null;
+$mensajeExito = null;
 
 $normalizarFecha = function ($value) {
     $value = trim((string) $value);
@@ -84,6 +85,53 @@ $contarDiasHabiles = function ($desde, $hasta) {
 };
 
 $diasHabiles = $contarDiasHabiles($fechaDesde, $fechaHasta);
+$juevesSemana = (new DateTime($fechaDesde))->modify('thursday this week')->format('Y-m-d');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'agregar_regalo') {
+    $alumno = trim((string) ($_POST['alumno_nombre'] ?? ''));
+    $colegio = trim((string) ($_POST['colegio_nombre'] ?? ''));
+    $curso = trim((string) ($_POST['curso_nombre'] ?? ''));
+    $nivel = trim((string) ($_POST['nivel_educativo'] ?? ''));
+    $fechaJueves = $normalizarFecha($_POST['fecha_entrega_jueves'] ?? '');
+    $menusSemana = trim((string) ($_POST['menus_semana'] ?? ''));
+
+    if ($alumno === '') {
+        $errores[] = 'El nombre del alumno es obligatorio.';
+    }
+    if ($colegio === '') {
+        $errores[] = 'El colegio es obligatorio.';
+    }
+    if ($curso === '') {
+        $errores[] = 'El curso es obligatorio.';
+    }
+    if ($nivel === '') {
+        $errores[] = 'El nivel educativo es obligatorio.';
+    }
+    if (!$fechaJueves) {
+        $errores[] = 'La fecha de entrega (jueves) no es valida.';
+    }
+    $menusDecoded = json_decode($menusSemana, true);
+    if (!is_array($menusDecoded)) {
+        $errores[] = 'El detalle de menus no tiene un formato valido.';
+    }
+
+    if (empty($errores)) {
+        $ok = $model->insertarRegalo([
+            'alumno' => $alumno,
+            'colegio' => $colegio,
+            'curso' => $curso,
+            'nivel' => $nivel,
+            'fecha_jueves' => $fechaJueves,
+            'menus' => $menusSemana
+        ]);
+
+        if ($ok) {
+            $mensajeExito = 'Regalo registrado correctamente.';
+        } else {
+            $errores[] = 'No se pudo registrar el regalo. Intente nuevamente.';
+        }
+    }
+}
 
 $registros = $model->obtenerResumenSemanal($fechaDesde, $fechaHasta);
 $resumenEntregas = $model->obtenerResumenPorEntrega($fechaDesde, $fechaHasta);

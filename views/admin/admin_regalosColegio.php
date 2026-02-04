@@ -189,6 +189,11 @@ $formatDate = function ($value) {
                         </ul>
                     </div>
                 <?php endif; ?>
+                <?php if (!empty($mensajeExito)): ?>
+                    <div class="card" style="border-left: 4px solid #16a34a;">
+                        <p><strong><?= htmlspecialchars($mensajeExito) ?></strong></p>
+                    </div>
+                <?php endif; ?>
 
                 <div class="card">
                     <div class="card-header">
@@ -338,6 +343,9 @@ $formatDate = function ($value) {
                                             }
                                             $detalleEntregasJson = htmlspecialchars(json_encode($detalleEntregas, JSON_UNESCAPED_UNICODE));
                                             $alumnoNombre = htmlspecialchars((string) ($row['Hijo_Nombre'] ?? ''));
+                                            $colegioNombre = htmlspecialchars((string) ($row['Colegio_Nombre'] ?? '-'));
+                                            $cursoNombre = htmlspecialchars((string) ($row['Curso_Nombre'] ?? '-'));
+                                            $nivelNombre = htmlspecialchars((string) ($row['Nivel_Educativo'] ?? '-'));
                                             ?>
                                             <tr>
                                                 <td><?= htmlspecialchars($row['Hijo_Nombre'] ?? '') ?></td>
@@ -371,7 +379,12 @@ $formatDate = function ($value) {
                                                     <span class="material-icons action-icon"
                                                         title="Agregar regalo"
                                                         data-action="agregar-regalo"
-                                                        data-alumno="<?= $alumnoNombre ?>">card_giftcard</span>
+                                                        data-alumno="<?= $alumnoNombre ?>"
+                                                        data-colegio="<?= $colegioNombre ?>"
+                                                        data-curso="<?= $cursoNombre ?>"
+                                                        data-nivel="<?= $nivelNombre ?>"
+                                                        data-fecha-jueves="<?= htmlspecialchars($juevesSemana) ?>"
+                                                        data-detalle='<?= $detalleEntregasJson ?>'>card_giftcard</span>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -410,11 +423,77 @@ $formatDate = function ($value) {
         </div>
     </div>
 
+    <div id="modalRegalo" class="modal hidden">
+        <div class="modal-content modal-large">
+            <h3>Registrar regalo</h3>
+            <div class="gform-helper" style="margin: 6px 0 12px;">
+                El regalo se entrega el ultimo jueves de la semana seleccionada.
+            </div>
+            <div class="card-grid grid-2" style="margin-bottom: 12px;">
+                <div class="summary-card">
+                    <div class="summary-label">Alumno</div>
+                    <div class="summary-value" id="regaloAlumno">-</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Fecha entrega (jueves)</div>
+                    <div class="summary-value" id="regaloFechaJueves">-</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Colegio</div>
+                    <div class="summary-value" id="regaloColegio">-</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Curso / Nivel</div>
+                    <div class="summary-value" id="regaloCursoNivel">-</div>
+                </div>
+            </div>
+
+            <div class="tabla-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Dia</th>
+                            <th>Menu</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalRegaloBody"></tbody>
+                </table>
+            </div>
+
+            <form method="post" style="margin-top: 16px;">
+                <input type="hidden" name="accion" value="agregar_regalo" />
+                <input type="hidden" name="alumno_nombre" id="inputAlumnoNombre" />
+                <input type="hidden" name="colegio_nombre" id="inputColegioNombre" />
+                <input type="hidden" name="curso_nombre" id="inputCursoNombre" />
+                <input type="hidden" name="nivel_educativo" id="inputNivelEducativo" />
+                <input type="hidden" name="fecha_entrega_jueves" id="inputFechaJueves" />
+                <input type="hidden" name="menus_semana" id="inputMenusSemana" />
+
+                <div class="form-buttons">
+                    <button class="btn btn-aceptar" type="submit">Guardar regalo</button>
+                    <button class="btn btn-cancelar" type="button" onclick="cerrarModalRegalo()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         const modalEntregas = document.getElementById('modalEntregas');
         const modalEntregasTitulo = document.getElementById('modalEntregasTitulo');
         const modalEntregasBody = document.getElementById('modalEntregasBody');
         const modalEntregasResumen = document.getElementById('modalEntregasResumen');
+        const modalRegalo = document.getElementById('modalRegalo');
+        const modalRegaloBody = document.getElementById('modalRegaloBody');
+        const regaloAlumno = document.getElementById('regaloAlumno');
+        const regaloFechaJueves = document.getElementById('regaloFechaJueves');
+        const regaloColegio = document.getElementById('regaloColegio');
+        const regaloCursoNivel = document.getElementById('regaloCursoNivel');
+        const inputAlumnoNombre = document.getElementById('inputAlumnoNombre');
+        const inputColegioNombre = document.getElementById('inputColegioNombre');
+        const inputCursoNombre = document.getElementById('inputCursoNombre');
+        const inputNivelEducativo = document.getElementById('inputNivelEducativo');
+        const inputFechaJueves = document.getElementById('inputFechaJueves');
+        const inputMenusSemana = document.getElementById('inputMenusSemana');
 
         function abrirModalEntregas(nombre, detalles) {
             modalEntregasTitulo.textContent = `Entregas de ${nombre}`;
@@ -447,6 +526,39 @@ $formatDate = function ($value) {
             modalEntregas.classList.add('hidden');
         }
 
+        function abrirModalRegalo(payload) {
+            const detalles = payload.detalle || [];
+            const items = detalles.map((item) => {
+                const fecha = (item.fecha || '').split('-').reverse().join('-');
+                const menu = item.menu ? item.menu : '-';
+                return `
+                    <tr>
+                        <td><strong>${fecha}</strong></td>
+                        <td>${menu}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            modalRegaloBody.innerHTML = items || '<tr><td colspan="2">No hay registros.</td></tr>';
+            regaloAlumno.textContent = payload.alumno || '-';
+            regaloColegio.textContent = payload.colegio || '-';
+            regaloCursoNivel.textContent = `${payload.curso || '-'} / ${payload.nivel || '-'}`;
+            regaloFechaJueves.textContent = (payload.fechaJueves || '').split('-').reverse().join('-');
+
+            inputAlumnoNombre.value = payload.alumno || '';
+            inputColegioNombre.value = payload.colegio || '';
+            inputCursoNombre.value = payload.curso || '';
+            inputNivelEducativo.value = payload.nivel || '';
+            inputFechaJueves.value = payload.fechaJueves || '';
+            inputMenusSemana.value = JSON.stringify(detalles);
+
+            modalRegalo.classList.remove('hidden');
+        }
+
+        function cerrarModalRegalo() {
+            modalRegalo.classList.add('hidden');
+        }
+
         document.addEventListener('click', (event) => {
             const target = event.target;
             if (!(target instanceof HTMLElement)) {
@@ -459,8 +571,15 @@ $formatDate = function ($value) {
                 abrirModalEntregas(nombre, detalle);
             }
             if (accion === 'agregar-regalo') {
-                // Placeholder sin logica por ahora
-                alert(`Agregar regalo para ${target.dataset.alumno || 'Alumno'}`);
+                const detalle = target.dataset.detalle ? JSON.parse(target.dataset.detalle) : [];
+                abrirModalRegalo({
+                    alumno: target.dataset.alumno || '',
+                    colegio: target.dataset.colegio || '',
+                    curso: target.dataset.curso || '',
+                    nivel: target.dataset.nivel || '',
+                    fechaJueves: target.dataset.fechaJueves || '',
+                    detalle
+                });
             }
         });
     </script>

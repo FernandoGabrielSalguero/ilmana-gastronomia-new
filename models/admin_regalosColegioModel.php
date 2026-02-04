@@ -64,4 +64,21 @@ class AdminRegalosColegioModel
         ]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-} 
+
+    public function insertarRegalo(array $data): bool
+    {
+        $sql = "INSERT INTO Regalos_Colegio
+                (Alumno_Nombre, Colegio_Nombre, Curso_Nombre, Nivel_Educativo, Fecha_Entrega_Jueves, Menus_Semana)
+                VALUES (:alumno, :colegio, :curso, :nivel, :fecha_jueves, :menus)";
+
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            'alumno' => $data['alumno'],
+            'colegio' => $data['colegio'],
+            'curso' => $data['curso'],
+            'nivel' => $data['nivel'],
+            'fecha_jueves' => $data['fecha_jueves'],
+            'menus' => $data['menus']
+        ]);
+    }
+}
