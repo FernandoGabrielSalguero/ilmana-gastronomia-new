@@ -268,6 +268,15 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
         margin-bottom: 14px;
         color: #475569;
     }
+
+    .card-grid .card {
+        overflow: visible;
+    }
+
+    .card-grid .card,
+    .card-grid .card *[data-tooltip] {
+        z-index: 1;
+    }
 </style>
 
 <body>
@@ -559,11 +568,11 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
     <div class="modal-overlay" id="actualizar-cursos-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Actualizar curso de tus hijos</h3>
+                <h3>Actualizar curso de los alumnos</h3>
                 <button class="btn btn-small btn-cancelar" type="button" onclick="cerrarModalActualizarCursos()">Cerrar</button>
             </div>
             <div class="modal-body">
-                <p class="modal-helper">Confirma el curso actual de cada hijo para que las viandas lleguen correctamente.</p>
+                <p class="modal-helper">Si el alumno cambio de curso, por favor, actualizalo para que podamos entregarle la vianda de manera correcta</p>
                 <?php if (!empty($hijosDetalle)): ?>
                     <form id="actualizar-cursos-form" class="form-modern">
                         <div class="card-grid grid-2">

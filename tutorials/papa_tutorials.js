@@ -68,6 +68,20 @@
         }
     };
 
+    const closeCursosModal = () => {
+        if (typeof window.cerrarModalActualizarCursos === 'function') {
+            window.cerrarModalActualizarCursos();
+        }
+    };
+
+    const openCursosModal = () => {
+        if (typeof window.abrirModalActualizarCursos === 'function') {
+            window.abrirModalActualizarCursos();
+            return;
+        }
+        clickFirst('[data-tutorial="btn-actualizar-curso"]');
+    };
+
     const clickFirst = (selector) => {
         const el = document.querySelector(selector);
         if (el) el.click();
@@ -248,7 +262,9 @@
                 element: '[data-tutorial="btn-actualizar-curso"]',
                 message: 'Si cambia el curso de tu hijo, podes actualizarlo desde este icono.',
                 position: 'bottom',
-                optional: true
+                optional: true,
+                onEnter: () => openCursosModal(),
+                onExit: () => closeCursosModal()
             },
             {
                 title: 'Detalle del pedido',
