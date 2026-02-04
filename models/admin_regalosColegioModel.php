@@ -25,8 +25,10 @@ class AdminRegalosColegioModel
                 MAX(pc.Fecha_entrega) AS Ultima_Entrega,
                 MIN(DATE(pc.Fecha_pedido)) AS Primera_Compra,
                 MAX(DATE(pc.Fecha_pedido)) AS Ultima_Compra,
-                GROUP_CONCAT(DISTINCT pc.Fecha_entrega ORDER BY pc.Fecha_entrega SEPARATOR ',') AS Fechas_Entrega
+                GROUP_CONCAT(DISTINCT pc.Fecha_entrega ORDER BY pc.Fecha_entrega SEPARATOR ',') AS Fechas_Entrega,
+                GROUP_CONCAT(DISTINCT CONCAT(pc.Fecha_entrega,'|',COALESCE(m.Nombre,'')) ORDER BY pc.Fecha_entrega SEPARATOR '||') AS Detalle_Entrega
             FROM Pedidos_Comida pc
+            LEFT JOIN `Menú` m ON m.Id = pc.Menú_Id
             JOIN Hijos h ON h.Id = pc.Hijo_Id
             LEFT JOIN Cursos c ON c.Id = h.Curso_Id
             LEFT JOIN Colegios co ON co.Id = h.Colegio_Id

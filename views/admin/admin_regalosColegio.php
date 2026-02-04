@@ -311,9 +311,22 @@ $formatDate = function ($value) {
                                             $esCompleta = $diasHabiles > 0 && $diasConEntrega >= $diasHabiles;
                                             $badgeClass = $esCompleta ? 'success' : 'warning';
                                             $badgeLabel = $esCompleta ? 'Completa' : 'Incompleta';
-                                            $fechasEntregaRaw = (string) ($row['Fechas_Entrega'] ?? '');
-                                            $fechasEntrega = array_values(array_filter(array_map('trim', explode(',', $fechasEntregaRaw))));
-                                            $fechasEntregaJson = htmlspecialchars(json_encode($fechasEntrega, JSON_UNESCAPED_UNICODE));
+                                            $detalleRaw = (string) ($row['Detalle_Entrega'] ?? '');
+                                            $detalleItems = array_values(array_filter(array_map('trim', explode('||', $detalleRaw))));
+                                            $detalleEntregas = [];
+                                            foreach ($detalleItems as $item) {
+                                                $parts = explode('|', $item, 2);
+                                                $fechaItem = $parts[0] ?? '';
+                                                $menuItem = $parts[1] ?? '';
+                                                if ($fechaItem === '') {
+                                                    continue;
+                                                }
+                                                $detalleEntregas[] = [
+                                                    'fecha' => $fechaItem,
+                                                    'menu' => $menuItem
+                                                ];
+                                            }
+                                            $detalleEntregasJson = htmlspecialchars(json_encode($detalleEntregas, JSON_UNESCAPED_UNICODE));
                                             $alumnoNombre = htmlspecialchars((string) ($row['Hijo_Nombre'] ?? ''));
                                             ?>
                                             <tr>
@@ -344,7 +357,7 @@ $formatDate = function ($value) {
                                                         title="Ver entregas por dia"
                                                         data-action="ver-entregas"
                                                         data-alumno="<?= $alumnoNombre ?>"
-                                                        data-fechas='<?= $fechasEntregaJson ?>'>event</span>
+                                                        data-detalle='<?= $detalleEntregasJson ?>'>event</span>
                                                     <span class="material-icons action-icon"
                                                         title="Agregar regalo"
                                                         data-action="agregar-regalo"
@@ -381,14 +394,19 @@ $formatDate = function ($value) {
         const modalEntregasTitulo = document.getElementById('modalEntregasTitulo');
         const modalEntregasBody = document.getElementById('modalEntregasBody');
 
-        function abrirModalEntregas(nombre, fechas) {
+        function abrirModalEntregas(nombre, detalles) {
             modalEntregasTitulo.textContent = `Entregas de ${nombre}`;
-            if (!Array.isArray(fechas) || fechas.length === 0) {
+            if (!Array.isArray(detalles) || detalles.length === 0) {
                 modalEntregasBody.innerHTML = '<p>Sin entregas en el rango seleccionado.</p>';
             } else {
-                const items = fechas.map((fecha) => `<li>${fecha.split('-').reverse().join('-')}</li>`).join('');
+                const items = detalles.map((item) => {
+                    const fecha = (item.fecha || '').split('-').reverse().join('-');
+                    const menu = item.menu ? ` - ${item.menu}` : '';
+                    return `<li><strong>${fecha}</strong>${menu}</li>`;
+                }).join('');
+                const diasUnicos = new Set(detalles.map((item) => item.fecha || '')).size;
                 modalEntregasBody.innerHTML = `
-                    <p>Se entregaron viandas en ${fechas.length} dia(s).</p>
+                    <p>Se entregaron viandas en ${diasUnicos} dia(s).</p>
                     <ul>${items}</ul>
                 `;
             }
@@ -407,8 +425,8 @@ $formatDate = function ($value) {
             const accion = target.dataset.action;
             if (accion === 'ver-entregas') {
                 const nombre = target.dataset.alumno || 'Alumno';
-                const fechas = target.dataset.fechas ? JSON.parse(target.dataset.fechas) : [];
-                abrirModalEntregas(nombre, fechas);
+                const detalle = target.dataset.detalle ? JSON.parse(target.dataset.detalle) : [];
+                abrirModalEntregas(nombre, detalle);
             }
             if (accion === 'agregar-regalo') {
                 // Placeholder sin logica por ahora
