@@ -155,7 +155,7 @@ $formatDate = function ($value) {
             <section class="content">
                 <div class="card">
                     <h2>Regalos por semana</h2>
-                    <p>Filtra una semana y revisa cuantas viandas pidio cada hijo para asignar premios.</p>
+                    <p>Filtra una semana (lunes a jueves) y revisa cuantas viandas pidio cada hijo para asignar premios.</p>
                 </div>
 
                 <?php if (!empty($errores)): ?>
@@ -201,7 +201,7 @@ $formatDate = function ($value) {
                             </div>
 
                             <div class="gform-helper" style="margin-top: 6px;">
-                                Solo se cuentan pedidos no cancelados.
+                                Solo se cuentan pedidos no cancelados. Semana valida: lunes a jueves.
                             </div>
 
                             <div class="form-buttons">
@@ -235,9 +235,46 @@ $formatDate = function ($value) {
 
                 <div class="card">
                     <div class="card-header">
+                        <h3 class="card-title">Viandas por fecha de entrega</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="tabla-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha de entrega</th>
+                                        <th>Viandas</th>
+                                        <th>Hijos unicos</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($resumenEntregas)): ?>
+                                        <?php foreach ($resumenEntregas as $row): ?>
+                                            <tr>
+                                                <td><?= $formatDate($row['Fecha_Entrega'] ?? '') ?></td>
+                                                <td><?= number_format((int) ($row['Total_Viandas'] ?? 0), 0, ',', '.') ?></td>
+                                                <td><?= number_format((int) ($row['Hijos_Unicos'] ?? 0), 0, ',', '.') ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="3">Sin datos de entrega para el rango seleccionado.</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
                         <h3 class="card-title">Detalle por hijo</h3>
                     </div>
                     <div class="card-body">
+                        <div class="gform-helper" style="margin-bottom: 10px;">
+                            Semana completa = una entrega por cada dia habil (lunes a jueves).
+                        </div>
                         <div class="tabla-wrapper">
                             <table class="data-table">
                                 <thead>
@@ -246,7 +283,8 @@ $formatDate = function ($value) {
                                         <th>Colegio</th>
                                         <th>Curso</th>
                                         <th>Nivel</th>
-                                        <th>Dias con compra</th>
+                                        <th>Dias con entrega</th>
+                                        <th>Dias de compra</th>
                                         <th>Viandas en semana</th>
                                         <th>Semana completa</th>
                                     </tr>
@@ -255,9 +293,10 @@ $formatDate = function ($value) {
                                     <?php if (!empty($registros)): ?>
                                         <?php foreach ($registros as $row): ?>
                                             <?php
+                                            $diasConEntrega = (int) ($row['Dias_Con_Entrega'] ?? 0);
                                             $diasConCompra = (int) ($row['Dias_Con_Compra'] ?? 0);
                                             $totalPedidos = (int) ($row['Total_Pedidos'] ?? 0);
-                                            $esCompleta = $diasHabiles > 0 && $diasConCompra >= $diasHabiles;
+                                            $esCompleta = $diasHabiles > 0 && $diasConEntrega >= $diasHabiles;
                                             $badgeClass = $esCompleta ? 'success' : 'warning';
                                             $badgeLabel = $esCompleta ? 'Completa' : 'Incompleta';
                                             ?>
@@ -267,9 +306,15 @@ $formatDate = function ($value) {
                                                 <td><?= htmlspecialchars($row['Curso_Nombre'] ?? '-') ?></td>
                                                 <td><?= htmlspecialchars($row['Nivel_Educativo'] ?? '-') ?></td>
                                                 <td>
-                                                    <?= number_format($diasConCompra, 0, ',', '.') ?>
+                                                    <?= number_format($diasConEntrega, 0, ',', '.') ?>
                                                     <div class="cell-muted">
                                                         de <?= number_format($diasHabiles, 0, ',', '.') ?> habiles
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <?= number_format($diasConCompra, 0, ',', '.') ?>
+                                                    <div class="cell-muted">
+                                                        <?= $formatDate($row['Primera_Compra'] ?? '') ?> → <?= $formatDate($row['Ultima_Compra'] ?? '') ?>
                                                     </div>
                                                 </td>
                                                 <td><?= number_format($totalPedidos, 0, ',', '.') ?></td>

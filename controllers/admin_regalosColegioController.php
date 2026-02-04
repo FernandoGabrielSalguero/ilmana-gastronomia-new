@@ -41,7 +41,7 @@ $normalizarFecha = function ($value) {
 
 $hoy = new DateTime('now');
 $inicioSemana = (clone $hoy)->modify('monday this week');
-$finSemana = (clone $inicioSemana)->modify('friday this week');
+$finSemana = (clone $inicioSemana)->modify('thursday this week');
 
 $fechaDesdeInput = $_GET['fecha_desde'] ?? '';
 $fechaHastaInput = $_GET['fecha_hasta'] ?? '';
@@ -76,7 +76,7 @@ $contarDiasHabiles = function ($desde, $hasta) {
     $dias = 0;
     for ($d = clone $inicio; $d <= $fin; $d->modify('+1 day')) {
         $numero = (int) $d->format('N');
-        if ($numero <= 5) {
+        if ($numero <= 4) {
             $dias++;
         }
     }
@@ -86,6 +86,7 @@ $contarDiasHabiles = function ($desde, $hasta) {
 $diasHabiles = $contarDiasHabiles($fechaDesde, $fechaHasta);
 
 $registros = $model->obtenerResumenSemanal($fechaDesde, $fechaHasta);
+$resumenEntregas = $model->obtenerResumenPorEntrega($fechaDesde, $fechaHasta);
 
 $totalNinos = count($registros);
 $totalViandas = 0;
@@ -93,8 +94,8 @@ $totalCompletos = 0;
 
 foreach ($registros as $row) {
     $totalViandas += (int) ($row['Total_Pedidos'] ?? 0);
-    $diasConCompra = (int) ($row['Dias_Con_Compra'] ?? 0);
-    if ($diasHabiles > 0 && $diasConCompra >= $diasHabiles) {
+    $diasConEntrega = (int) ($row['Dias_Con_Entrega'] ?? 0);
+    if ($diasHabiles > 0 && $diasConEntrega >= $diasHabiles) {
         $totalCompletos++;
     }
 }
