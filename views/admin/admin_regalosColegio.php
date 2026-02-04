@@ -189,11 +189,6 @@ $formatDate = function ($value) {
                         </ul>
                     </div>
                 <?php endif; ?>
-                <?php if (!empty($mensajeExito)): ?>
-                    <div class="card" style="border-left: 4px solid #16a34a;">
-                        <p><strong><?= htmlspecialchars($mensajeExito) ?></strong></p>
-                    </div>
-                <?php endif; ?>
 
                 <div class="card">
                     <div class="card-header">
@@ -479,24 +474,12 @@ $formatDate = function ($value) {
 
     <script>
         const alertMensaje = <?= json_encode($mensajeExito ?? '') ?>;
-        const showAlertSafe = (type, message) => {
-            if (typeof window.showAlert === 'function') {
-                try {
-                    if (window.showAlert.length <= 1) {
-                        window.showAlert({ type, message });
-                    } else {
-                        window.showAlert(type, message);
-                    }
-                    return;
-                } catch (err) {
-                    console.warn('showAlert failed, falling back to alert.', err);
-                }
+        if (alertMensaje && typeof window.showAlert === 'function') {
+            if (window.showAlert.length <= 1) {
+                window.showAlert({ type: 'success', message: alertMensaje });
+            } else {
+                window.showAlert('success', alertMensaje);
             }
-            alert(message);
-        };
-
-        if (alertMensaje) {
-            showAlertSafe('success', alertMensaje);
         }
 
         const modalEntregas = document.getElementById('modalEntregas');
