@@ -478,6 +478,27 @@ $formatDate = function ($value) {
     </div>
 
     <script>
+        const alertMensaje = <?= json_encode($mensajeExito ?? '') ?>;
+        const showAlertSafe = (type, message) => {
+            if (typeof window.showAlert === 'function') {
+                try {
+                    if (window.showAlert.length <= 1) {
+                        window.showAlert({ type, message });
+                    } else {
+                        window.showAlert(type, message);
+                    }
+                    return;
+                } catch (err) {
+                    console.warn('showAlert failed, falling back to alert.', err);
+                }
+            }
+            alert(message);
+        };
+
+        if (alertMensaje) {
+            showAlertSafe('success', alertMensaje);
+        }
+
         const modalEntregas = document.getElementById('modalEntregas');
         const modalEntregasTitulo = document.getElementById('modalEntregasTitulo');
         const modalEntregasBody = document.getElementById('modalEntregasBody');
