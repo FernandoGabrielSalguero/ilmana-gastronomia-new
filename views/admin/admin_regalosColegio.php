@@ -575,9 +575,6 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
         const inputNivelEducativo = document.getElementById('inputNivelEducativo');
         const inputFechaJueves = document.getElementById('inputFechaJueves');
         const inputMenusSemana = document.getElementById('inputMenusSemana');
-        const filtrosForm = document.querySelector('form.form-modern');
-        const fechaDesdeInput = document.getElementById('fecha_desde');
-        const fechaHastaInput = document.getElementById('fecha_hasta');
         const regalosContenido = document.getElementById('regalosContenido');
         const modalConfirmEliminar = document.getElementById('modalConfirmEliminar');
         const btnConfirmEliminar = document.getElementById('btnConfirmEliminar');
@@ -585,6 +582,7 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
         const formRegistrarRegalo = document.getElementById('formRegistrarRegalo');
         let formEliminarPendiente = null;
         let fetchContenido = null;
+        let ajaxTimer = null;
 
         function abrirModalEntregas(nombre, detalles) {
             modalEntregasTitulo.textContent = `Entregas de ${nombre}`;
@@ -740,11 +738,11 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
             btnCancelarEliminar.addEventListener('click', cerrarModalConfirmEliminar);
         }
 
-        if (filtrosForm && fechaDesdeInput && fechaHastaInput && regalosContenido) {
-            let ajaxTimer = null;
-
+        if (regalosContenido) {
             fetchContenido = () => {
-                const params = new URLSearchParams(new FormData(filtrosForm));
+                const form = document.querySelector('form.form-modern');
+                if (!form) return;
+                const params = new URLSearchParams(new FormData(form));
                 params.set('ajax', '1');
                 const url = `${window.location.pathname}?${params.toString()}`;
 
@@ -772,8 +770,13 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
                 ajaxTimer = setTimeout(fetchContenido, 300);
             };
 
-            fechaDesdeInput.addEventListener('change', scheduleFetch);
-            fechaHastaInput.addEventListener('change', scheduleFetch);
+            document.addEventListener('change', (event) => {
+                const target = event.target;
+                if (!(target instanceof HTMLElement)) return;
+                if (target.id === 'fecha_desde' || target.id === 'fecha_hasta') {
+                    scheduleFetch();
+                }
+            });
         }
 
         if (formRegistrarRegalo) {
