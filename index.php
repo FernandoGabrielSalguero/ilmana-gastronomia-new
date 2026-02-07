@@ -102,14 +102,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar sesión</title>
-    <!-- Iconos de Material Design -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,500,0,0" />
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
+            font-family: 'Manrope', Arial, sans-serif;
+            background-color: #f7f7fb;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -118,18 +118,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .login-container {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background: #ffffff;
+            padding: 28px;
+            border-radius: 14px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
             width: 100%;
-            max-width: 400px;
+            max-width: 520px;
         }
 
         .login-container h1 {
-            text-align: center;
-            color: #673ab7;
-            margin-bottom: 20px;
+            text-align: left;
+            color: #1f1a46;
+            margin: 0 0 6px;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .login-subtitle {
+            margin: 0 0 18px;
+            color: #6b7280;
+            font-size: 14px;
         }
 
         .form-group {
@@ -139,40 +147,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .form-group label {
             display: block;
             margin-bottom: 5px;
-            color: #555;
+            color: #3f3f46;
+            font-weight: 600;
+            font-size: 14px;
         }
 
         .form-group input {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
+            padding: 12px 14px;
+            border: 1.5px solid #c7c9d9;
+            border-radius: 10px;
+            font-size: 15px;
+            color: #111827;
+            background: #ffffff;
         }
 
         .form-group input:focus {
-            border-color: #673ab7;
+            border-color: #7c83f2;
             outline: none;
+            box-shadow: 0 0 0 3px rgba(124, 131, 242, 0.18);
         }
 
         .form-group button {
             width: 100%;
-            padding: 10px;
-            background-color: #673ab7;
+            padding: 12px;
+            background-color: #6f77f6;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 10px;
             cursor: pointer;
             transition: background-color 0.3s;
+            font-weight: 600;
+            font-size: 15px;
         }
 
         .form-group button:hover {
-            background-color: #5e35b1;
+            background-color: #5b64ee;
         }
 
         .error {
-            color: red;
-            margin-bottom: 10px;
-            text-align: center;
+            color: #b91c1c;
+            margin-bottom: 12px;
+            text-align: left;
+            background: #fee2e2;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #fecaca;
         }
 
         .password-container {
@@ -181,19 +201,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .toggle-password {
             position: absolute;
-            right: 10px;
+            right: 12px;
             top: 50%;
             transform: translateY(-50%);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 28px;
-            height: 28px;
+            width: 30px;
+            height: 30px;
             cursor: pointer;
-            color: #673ab7;
+            color: #6f77f6;
             user-select: none;
             line-height: 1;
-            font-size: 20px;
+            font-size: 22px;
+        }
+
+        .field-required {
+            color: #ef4444;
+            margin-left: 3px;
         }
     </style>
 </head>
@@ -201,21 +226,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="login-container">
         <h1>Iniciar Sesión</h1>
+        <p class="login-subtitle">Ingresá tu usuario y contraseña para continuar.</p>
         <?php if ($error): ?>
             <div class="error"><?= $error ?></div>
         <?php endif; ?>
         <form action="" method="POST">
             <div class="form-group">
-                <label for="usuario">Usuario:</label>
-                <input type="text" name="usuario" id="usuario" required>
+                <label for="usuario">Usuario<span class="field-required">*</span></label>
+                <input type="text" name="usuario" id="usuario" placeholder="Ingresá tu usuario" required>
             </div>
             <div class="form-group password-container">
-                <label for="contrasena">Contraseña:</label>
-                <input type="password" name="contrasena" id="contrasena" required>
-                <span class="toggle-password material-icons" role="button" aria-label="Mostrar contrasena">visibility</span>
+                <label for="contrasena">Contraseña<span class="field-required">*</span></label>
+                <input type="password" name="contrasena" id="contrasena" placeholder="Ingresá tu contraseña" required>
+                <span class="toggle-password material-symbols-outlined" role="button" aria-label="Mostrar contrasena">visibility</span>
             </div>
             <div class="form-group">
-                <button type="submit">INGRESAR</button>
+                <button type="submit">Ingresar</button>
             </div>
         </form>
     </div>
@@ -229,7 +255,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             togglePassword.addEventListener('click', () => {
                 const isPassword = passwordField.getAttribute('type') === 'password';
                 passwordField.setAttribute('type', isPassword ? 'text' : 'password');
-                if (togglePassword.classList.contains('material-icons')) {
+                if (togglePassword.classList.contains('material-symbols-outlined')) {
                     togglePassword.textContent = isPassword ? 'visibility_off' : 'visibility';
                 }
 
