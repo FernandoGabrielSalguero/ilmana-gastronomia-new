@@ -103,4 +103,34 @@ class CocinaDashboardModel
 
         return sha1($payload);
     }
+
+    public function obtenerTotalRegalosDia(string $fechaEntrega): int
+    {
+        $sql = "SELECT COUNT(rc.Id) AS Total
+            FROM Regalos_Colegio rc
+            WHERE rc.Fecha_Entrega_Jueves = :fechaEntrega";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'fechaEntrega' => $fechaEntrega
+        ]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? (int) $row['Total'] : 0;
+    }
+
+    public function obtenerRegalosPorNivel(string $fechaEntrega): array
+    {
+        $sql = "SELECT
+                rc.Nivel_Educativo AS Nivel_Educativo,
+                COUNT(rc.Id) AS Total
+            FROM Regalos_Colegio rc
+            WHERE rc.Fecha_Entrega_Jueves = :fechaEntrega
+            GROUP BY rc.Nivel_Educativo";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'fechaEntrega' => $fechaEntrega
+        ]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

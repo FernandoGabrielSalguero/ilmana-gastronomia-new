@@ -26,7 +26,7 @@ $correo = $_SESSION['correo'] ?? 'Sin correo';
 $usuario = $_SESSION['usuario'] ?? 'Sin usuario';
 $telefono = $_SESSION['telefono'] ?? 'Sin telefono';
 
-function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel, $menusResumenList)
+function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel, $menusResumenList, $totalRegalosDia, $regalosPorNivel)
 {
     $nivelesOrden = ['Inicial', 'Primaria', 'Secundaria'];
     $menusResumenOrden = $menusResumenList;
@@ -307,6 +307,10 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
                         <div class="resumen-modal-label">Menus sin preferencias</div>
                         <div class="resumen-modal-number"><?= number_format($totalSinPreferencias, 0, ',', '.') ?></div>
                     </div>
+                    <div class="resumen-modal-card is-gift">
+                        <div class="resumen-modal-label">Regalos del dia</div>
+                        <div class="resumen-modal-number"><?= number_format($totalRegalosDia, 0, ',', '.') ?></div>
+                    </div>
                 </div>
 
                 <div class="resumen-modal-section">
@@ -364,6 +368,7 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
                             $nivelMenusPref = $menuPrefsPorNivel[$nivelNombre] ?? [];
                             $nivelMenusTotal = $menusPorNivel[$nivelNombre] ?? [];
                             $nivelTotalMenus = (int) ($totalesPorNivel[$nivelNombre] ?? 0);
+                            $nivelRegalos = (int) ($regalosPorNivel[$nivelNombre] ?? 0);
                             ?>
                             <div class="resumen-modal-nivel">
                                 <div class="resumen-modal-nivel-header">
@@ -374,6 +379,9 @@ function renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNiv
                                         </span>
                                         <span class="resumen-modal-pill is-total">
                                             <?= number_format($nivelTotalMenus, 0, ',', '.') ?> menus
+                                        </span>
+                                        <span class="resumen-modal-pill is-gift">
+                                            <?= number_format($nivelRegalos, 0, ',', '.') ?> regalos
                                         </span>
                                     </div>
                                 </div>
@@ -435,7 +443,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'ping') {
 }
 if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
     ob_start();
-    renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel, $menusResumenList);
+    renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel, $menusResumenList, $totalRegalosDia, $regalosPorNivel);
     $bodyHtml = ob_get_clean();
     header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
     header('Content-Type: application/json; charset=utf-8');
@@ -609,6 +617,11 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
             border-color: #bbf7d0;
         }
 
+        .resumen-modal-card.is-gift {
+            background: #fdf2f8;
+            border-color: #fbcfe8;
+        }
+
         .resumen-modal-label {
             font-size: 13px;
             font-weight: 700;
@@ -742,6 +755,11 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
         .resumen-modal-pill.is-total {
             background: #e0f2fe;
             color: #075985;
+        }
+
+        .resumen-modal-pill.is-gift {
+            background: #fce7f3;
+            color: #9d174d;
         }
 
         .resumen-modal-chip-group {

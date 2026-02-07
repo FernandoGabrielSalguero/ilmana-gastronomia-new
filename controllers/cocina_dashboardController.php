@@ -11,6 +11,8 @@ $resumenMenusRaw = $model->obtenerMenusPorCurso($fechaEntrega);
 $preferenciasRaw = $model->obtenerPreferenciasPorMenuNivel($fechaEntrega);
 $totalPedidosDia = $model->obtenerTotalPedidosDia($fechaEntrega);
 $firmaPedidosDia = $model->obtenerFirmaPedidosDia($fechaEntrega);
+$totalRegalosDia = $model->obtenerTotalRegalosDia($fechaEntrega);
+$regalosPorNivelRaw = $model->obtenerRegalosPorNivel($fechaEntrega);
 
 $nivelesOrden = ['Inicial', 'Primaria', 'Secundaria'];
 $nivelesTarjetas = [];
@@ -78,6 +80,17 @@ $totalesPorNivel = [
     'Primaria' => $nivelesTarjetas['Primaria']['total'] ?? 0,
     'Secundaria' => $nivelesTarjetas['Secundaria']['total'] ?? 0
 ];
+
+$regalosPorNivel = [
+    'Inicial' => 0,
+    'Primaria' => 0,
+    'Secundaria' => 0
+];
+foreach ($regalosPorNivelRaw as $row) {
+    $nivelRaw = trim((string) ($row['Nivel_Educativo'] ?? ''));
+    $nivel = in_array($nivelRaw, $nivelesOrden, true) ? $nivelRaw : 'Inicial';
+    $regalosPorNivel[$nivel] = (int) ($row['Total'] ?? 0);
+}
 
 $menusResumen = [];
 foreach ($resumenMenusRaw as $row) {
