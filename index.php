@@ -160,6 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 15px;
             color: #111827;
             background: #ffffff;
+            box-sizing: border-box;
         }
 
         .form-group input:focus {
@@ -199,6 +200,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             position: relative;
         }
 
+        .password-container input {
+            padding-right: 46px;
+        }
+
         .toggle-password {
             position: absolute;
             right: 12px;
@@ -207,12 +212,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             cursor: pointer;
             color: #6f77f6;
             user-select: none;
-            line-height: 1;
+            line-height: 0;
             font-size: 22px;
         }
 
