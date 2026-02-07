@@ -12,6 +12,8 @@ $formatDate = function ($value) {
     }
     return htmlspecialchars($parts[2] . '-' . $parts[1] . '-' . $parts[0]);
 };
+
+$isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
 ?>
 
 <!DOCTYPE html>
@@ -180,6 +182,9 @@ $formatDate = function ($value) {
 
             <!-- CONTENIDO -->
             <section class="content">
+                <?php if ($isAjax): ?>
+                    <div id="regalosContenido">
+                <?php endif; ?>
                 <div class="card">
                     <h2>Regalos por semana</h2>
                     <p>Filtra una semana (lunes a jueves) y revisa cuantas viandas pidio cada hijo para asignar premios.</p>
@@ -218,22 +223,6 @@ $formatDate = function ($value) {
                                             value="<?= htmlspecialchars($fechaHasta) ?>" required />
                                     </div>
                                 </div>
-
-                                <div class="input-group">
-                                    <label>Dias habiles</label>
-                                    <div class="input-icon">
-                                        <input type="text" value="<?= (int) $diasHabiles ?>" readonly />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="gform-helper" style="margin-top: 6px;">
-                                Solo se cuentan pedidos no cancelados. Semana valida: lunes a jueves.
-                            </div>
-
-                            <div class="form-buttons">
-                                <button class="btn btn-aceptar" type="submit">Filtrar</button>
-                                <a class="btn btn-cancelar" href="admin_regalosColegio.php">Semana actual</a>
                             </div>
                         </form>
                     </div>
@@ -254,7 +243,7 @@ $formatDate = function ($value) {
                             <div class="summary-value"><?= number_format($totalViandas, 0, ',', '.') ?></div>
                         </div>
                         <div class="summary-card">
-                            <div class="summary-label">Semana completa</div>
+                            <div class="summary-label">Alumnos semana completa</div>
                             <div class="summary-value"><?= number_format($totalCompletos, 0, ',', '.') ?></div>
                         </div>
                     </div>
@@ -431,6 +420,9 @@ $formatDate = function ($value) {
                         </div>
                     </div>
                 </div>
+                <?php if ($isAjax): ?>
+                    </div>
+                <?php endif; ?>
             </section>
         </div>
     </div>
@@ -536,6 +528,10 @@ $formatDate = function ($value) {
         const inputNivelEducativo = document.getElementById('inputNivelEducativo');
         const inputFechaJueves = document.getElementById('inputFechaJueves');
         const inputMenusSemana = document.getElementById('inputMenusSemana');
+        const filtrosForm = document.querySelector('form.form-modern');
+        const fechaDesdeInput = document.getElementById('fecha_desde');
+        const fechaHastaInput = document.getElementById('fecha_hasta');
+        const regalosContenido = document.getElementById('regalosContenido');
 
         function abrirModalEntregas(nombre, detalles) {
             modalEntregasTitulo.textContent = `Entregas de ${nombre}`;
@@ -624,6 +620,42 @@ $formatDate = function ($value) {
                 });
             }
         });
+
+        if (filtrosForm && fechaDesdeInput && fechaHastaInput && regalosContenido) {
+            let ajaxTimer = null;
+
+            const fetchContenido = () => {
+                const params = new URLSearchParams(new FormData(filtrosForm));
+                params.set('ajax', '1');
+                const url = `${window.location.pathname}?${params.toString()}`;
+
+                regalosContenido.style.opacity = '0.6';
+                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then((res) => res.text())
+                    .then((html) => {
+                        const wrapper = document.createElement('div');
+                        wrapper.innerHTML = html;
+                        const nuevoContenido = wrapper.querySelector('#regalosContenido');
+                        if (nuevoContenido) {
+                            regalosContenido.innerHTML = nuevoContenido.innerHTML;
+                            window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+                        }
+                    })
+                    .finally(() => {
+                        regalosContenido.style.opacity = '';
+                    });
+            };
+
+            const scheduleFetch = () => {
+                if (ajaxTimer) {
+                    clearTimeout(ajaxTimer);
+                }
+                ajaxTimer = setTimeout(fetchContenido, 300);
+            };
+
+            fechaDesdeInput.addEventListener('change', scheduleFetch);
+            fechaHastaInput.addEventListener('change', scheduleFetch);
+        }
     </script>
 </body>
 
