@@ -182,9 +182,7 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
 
             <!-- CONTENIDO -->
             <section class="content">
-                <?php if ($isAjax): ?>
-                    <div id="regalosContenido">
-                <?php endif; ?>
+                <div id="regalosContenido">
                 <div class="card">
                     <h2>Regalos por semana</h2>
                     <p>Filtra una semana (lunes a jueves) y revisa cuantas viandas pidio cada hijo para asignar premios.</p>
@@ -428,9 +426,7 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
                         </div>
                     </div>
                 </div>
-                <?php if ($isAjax): ?>
-                    </div>
-                <?php endif; ?>
+                </div>
             </section>
         </div>
     </div>
