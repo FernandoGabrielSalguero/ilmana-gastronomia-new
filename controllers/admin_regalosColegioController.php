@@ -154,7 +154,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'elimi
 }
 
 $registros = $model->obtenerResumenSemanal($fechaDesde, $fechaHasta);
-$resumenEntregas = $model->obtenerResumenPorEntrega($fechaDesde, $fechaHasta);
 $regalos = $model->obtenerRegalos($fechaDesde, $fechaHasta);
 $regalosIndex = [];
 foreach ($regalos as $regalo) {

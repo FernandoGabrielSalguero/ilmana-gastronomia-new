@@ -45,26 +45,6 @@ class AdminRegalosColegioModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function obtenerResumenPorEntrega(string $fechaDesde, string $fechaHasta)
-    {
-        $sql = "SELECT
-                pc.Fecha_entrega AS Fecha_Entrega,
-                COUNT(pc.Id) AS Total_Viandas,
-                COUNT(DISTINCT pc.Hijo_Id) AS Hijos_Unicos
-            FROM Pedidos_Comida pc
-            WHERE pc.Fecha_entrega BETWEEN :desde AND :hasta
-              AND pc.Estado <> 'Cancelado'
-            GROUP BY pc.Fecha_entrega
-            ORDER BY pc.Fecha_entrega";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([
-            'desde' => $fechaDesde,
-            'hasta' => $fechaHasta
-        ]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
     public function insertarRegalo(array $data): bool
     {
         $sql = "INSERT INTO Regalos_Colegio

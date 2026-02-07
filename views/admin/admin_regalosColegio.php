@@ -262,104 +262,6 @@ $formatDate = function ($value) {
 
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Viandas por fecha de entrega</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="tabla-wrapper">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Fecha de entrega</th>
-                                        <th>Viandas</th>
-                                        <th>Hijos unicos</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if (!empty($resumenEntregas)): ?>
-                                        <?php foreach ($resumenEntregas as $row): ?>
-                                            <tr>
-                                                <td><?= $formatDate($row['Fecha_Entrega'] ?? '') ?></td>
-                                                <td><?= number_format((int) ($row['Total_Viandas'] ?? 0), 0, ',', '.') ?></td>
-                                                <td><?= number_format((int) ($row['Hijos_Unicos'] ?? 0), 0, ',', '.') ?></td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    <?php else: ?>
-                                        <tr>
-                                            <td colspan="3">Sin datos de entrega para el rango seleccionado.</td>
-                                        </tr>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Regalos registrados</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="tabla-wrapper">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Alumno</th>
-                                        <th>Colegio</th>
-                                        <th>Curso</th>
-                                        <th>Nivel</th>
-                                        <th>Fecha entrega</th>
-                                        <th>Menus por dia</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if (!empty($regalos)): ?>
-                                        <?php foreach ($regalos as $regalo): ?>
-                                            <?php
-                                            $menusSemana = [];
-                                            $menusRaw = (string) ($regalo['Menus_Semana'] ?? '');
-                                            $menusDecoded = json_decode($menusRaw, true);
-                                            if (is_array($menusDecoded)) {
-                                                foreach ($menusDecoded as $item) {
-                                                    $fechaMenu = $formatDate($item['fecha'] ?? '');
-                                                    $menuNombre = htmlspecialchars((string) ($item['menu'] ?? '-'));
-                                                    $menusSemana[] = $fechaMenu . ' - ' . $menuNombre;
-                                                }
-                                            }
-                                            $menusLabel = !empty($menusSemana) ? implode('<br>', $menusSemana) : '-';
-                                            ?>
-                                            <tr>
-                                                <td><?= htmlspecialchars($regalo['Alumno_Nombre'] ?? '') ?></td>
-                                                <td><?= htmlspecialchars($regalo['Colegio_Nombre'] ?? '-') ?></td>
-                                                <td><?= htmlspecialchars($regalo['Curso_Nombre'] ?? '-') ?></td>
-                                                <td><?= htmlspecialchars($regalo['Nivel_Educativo'] ?? '-') ?></td>
-                                                <td><?= $formatDate($regalo['Fecha_Entrega_Jueves'] ?? '') ?></td>
-                                                <td><?= $menusLabel ?></td>
-                                                <td>
-                                                    <form method="post" onsubmit="return confirm('Eliminar regalo?');" style="display:inline;">
-                                                        <input type="hidden" name="accion" value="eliminar_regalo" />
-                                                        <input type="hidden" name="regalo_id"
-                                                            value="<?= (int) ($regalo['Id'] ?? 0) ?>" />
-                                                        <button type="submit" class="btn-icon" title="Eliminar">
-                                                            <span class="material-icons">delete</span>
-                                                        </button>
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    <?php else: ?>
-                                        <tr>
-                                            <td colspan="7">Sin regalos registrados en el rango.</td>
-                                        </tr>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
                         <h3 class="card-title">Detalle por hijo</h3>
                     </div>
                     <div class="card-body">
@@ -458,6 +360,70 @@ $formatDate = function ($value) {
                                     <?php else: ?>
                                         <tr>
                                             <td colspan="8">Sin datos para el rango seleccionado.</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Regalos registrados</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="tabla-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Alumno</th>
+                                        <th>Colegio</th>
+                                        <th>Curso</th>
+                                        <th>Nivel</th>
+                                        <th>Fecha entrega</th>
+                                        <th>Menus por dia</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($regalos)): ?>
+                                        <?php foreach ($regalos as $regalo): ?>
+                                            <?php
+                                            $menusSemana = [];
+                                            $menusRaw = (string) ($regalo['Menus_Semana'] ?? '');
+                                            $menusDecoded = json_decode($menusRaw, true);
+                                            if (is_array($menusDecoded)) {
+                                                foreach ($menusDecoded as $item) {
+                                                    $fechaMenu = $formatDate($item['fecha'] ?? '');
+                                                    $menuNombre = htmlspecialchars((string) ($item['menu'] ?? '-'));
+                                                    $menusSemana[] = $fechaMenu . ' - ' . $menuNombre;
+                                                }
+                                            }
+                                            $menusLabel = !empty($menusSemana) ? implode('<br>', $menusSemana) : '-';
+                                            ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($regalo['Alumno_Nombre'] ?? '') ?></td>
+                                                <td><?= htmlspecialchars($regalo['Colegio_Nombre'] ?? '-') ?></td>
+                                                <td><?= htmlspecialchars($regalo['Curso_Nombre'] ?? '-') ?></td>
+                                                <td><?= htmlspecialchars($regalo['Nivel_Educativo'] ?? '-') ?></td>
+                                                <td><?= $formatDate($regalo['Fecha_Entrega_Jueves'] ?? '') ?></td>
+                                                <td><?= $menusLabel ?></td>
+                                                <td>
+                                                    <form method="post" onsubmit="return confirm('Eliminar regalo?');" style="display:inline;">
+                                                        <input type="hidden" name="accion" value="eliminar_regalo" />
+                                                        <input type="hidden" name="regalo_id"
+                                                            value="<?= (int) ($regalo['Id'] ?? 0) ?>" />
+                                                        <button type="submit" class="btn-icon" title="Eliminar">
+                                                            <span class="material-icons">delete</span>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="7">Sin regalos registrados en el rango.</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
