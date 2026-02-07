@@ -15,6 +15,7 @@ class RepresentanteDashboardModel
         $sql = "SELECT DISTINCT
                 c.Id AS Curso_Id,
                 c.Nombre AS Curso_Nombre,
+                col.Nombre AS Colegio_Nombre,
                 h.Id AS Hijo_Id,
                 h.Nombre AS Alumno,
                 pc.Estado,
@@ -22,6 +23,7 @@ class RepresentanteDashboardModel
             FROM Pedidos_Comida pc
             JOIN Hijos h ON h.Id = pc.Hijo_Id
             LEFT JOIN Cursos c ON c.Id = h.Curso_Id
+            LEFT JOIN Colegios col ON col.Id = h.Colegio_Id
             JOIN Representantes_Colegios rc ON rc.Colegio_Id = h.Colegio_Id
             WHERE rc.Representante_Id = :representanteId
                 AND pc.Fecha_entrega = :fechaEntrega
@@ -32,6 +34,24 @@ class RepresentanteDashboardModel
             'representanteId' => $representanteId,
             'fechaEntrega' => $fechaEntrega
         ]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerRegalosPorFechaYColegios(string $fechaEntrega, array $colegios): array
+    {
+        if (empty($colegios)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($colegios), '?'));
+        $sql = "SELECT Alumno_Nombre, Colegio_Nombre
+            FROM Regalos_Colegio
+            WHERE Fecha_Entrega_Jueves = ?
+              AND Colegio_Nombre IN ($placeholders)";
+
+        $stmt = $this->db->prepare($sql);
+        $params = array_merge([$fechaEntrega], array_values($colegios));
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

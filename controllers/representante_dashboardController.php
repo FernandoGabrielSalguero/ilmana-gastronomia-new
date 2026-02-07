@@ -17,6 +17,16 @@ if ($representanteId) {
     $model = new RepresentanteDashboardModel($pdo);
     $cursosDisponibles = $model->obtenerCursosPorRepresentante($representanteId);
     $alumnosCursos = $model->obtenerAlumnosPorRepresentante($representanteId);
+    $colegiosRepresentante = $model->obtenerColegiosPorRepresentante($representanteId);
+    $regalosDia = $model->obtenerRegalosPorFechaYColegios($fechaEntrega, $colegiosRepresentante);
+    $regalosIndex = [];
+    foreach ($regalosDia as $regalo) {
+        $alumnoNombre = strtolower(trim((string) ($regalo['Alumno_Nombre'] ?? '')));
+        $colegioNombre = strtolower(trim((string) ($regalo['Colegio_Nombre'] ?? '')));
+        if ($alumnoNombre !== '' && $colegioNombre !== '') {
+            $regalosIndex[$alumnoNombre . '|' . $colegioNombre] = true;
+        }
+    }
     $cursosAlumnos = $model->obtenerCursosConPedidos($representanteId, $fechaEntrega);
     $resumenCursosRaw = $model->obtenerResumenPedidosPorCurso($representanteId, $fechaEntrega);
     $totalPedidosDia = $model->obtenerTotalPedidosDia($representanteId, $fechaEntrega);
@@ -42,13 +52,17 @@ if ($representanteId) {
         $estado = trim((string) ($row['Estado'] ?? ''));
         $cancelado = ($estado === 'Cancelado');
         $motivoCancelacion = trim((string) ($row['motivo_cancelacion'] ?? ''));
+        $colegioNombre = trim((string) ($row['Colegio_Nombre'] ?? ''));
+        $regaloKey = strtolower($alumnoNombre) . '|' . strtolower($colegioNombre);
+        $tieneRegalo = $alumnoNombre !== '' && $colegioNombre !== '' && !empty($regalosIndex[$regaloKey]);
         if ($alumnoNombre !== '') {
             $idx = $cursoIndex[$cursoId];
             $claveAlumno = $alumnoNombre . '|' . ($cancelado ? '1' : '0') . '|' . $motivoCancelacion;
             $alumnoItem = [
                 'nombre' => $alumnoNombre,
                 'cancelado' => $cancelado,
-                'motivo' => $motivoCancelacion
+                'motivo' => $motivoCancelacion,
+                'tiene_regalo' => $tieneRegalo
             ];
             if (!isset($cursosTarjetas[$idx]['alumnos_map'])) {
                 $cursosTarjetas[$idx]['alumnos_map'] = [];
@@ -255,6 +269,9 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
                         <?php foreach ($curso['alumnos'] as $alumno): ?>
                             <li class="<?= !empty($alumno['cancelado']) ? 'is-cancelado' : '' ?>">
                                 <?= htmlspecialchars($alumno['nombre']) ?>
+                                <?php if (!empty($alumno['tiene_regalo'])): ?>
+                                    <span class="material-icons regalo-icon" title="Recibe regalo">card_giftcard</span>
+                                <?php endif; ?>
                                 <?php if (!empty($alumno['cancelado'])): ?>
                                     <span class="cancelacion-icon material-icons"
                                         title="<?= htmlspecialchars($alumno['motivo'] ?: 'Sin motivo') ?>">help_outline</span>

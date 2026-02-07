@@ -255,6 +255,13 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
             vertical-align: middle;
         }
 
+        .regalo-icon {
+            font-size: 18px;
+            color: #a21caf;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
         .resumen-panel,
         [data-tooltip]::after {
             z-index: 200000 !important;
@@ -452,6 +459,10 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
                                             <?php foreach ($curso['alumnos'] as $alumno): ?>
                                                 <li class="<?= !empty($alumno['cancelado']) ? 'is-cancelado' : '' ?>">
                                                     <?= htmlspecialchars($alumno['nombre']) ?>
+                                                    <?php if (!empty($alumno['tiene_regalo'])): ?>
+                                                        <span class="material-icons regalo-icon"
+                                                            title="Recibe regalo">card_giftcard</span>
+                                                    <?php endif; ?>
                                                     <?php if (!empty($alumno['cancelado'])): ?>
                                                         <span class="cancelacion-icon material-icons"
                                                             title="<?= htmlspecialchars($alumno['motivo'] ?: 'Sin motivo') ?>">help_outline</span>
