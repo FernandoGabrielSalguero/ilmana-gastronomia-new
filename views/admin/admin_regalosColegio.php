@@ -232,6 +232,7 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
                     <div class="card-header">
                         <h3 class="card-title">Detalle de la semana seleccionada</h3>
                     </div>
+                    <br>
                     <div class="summary-grid">
                         <div class="summary-card">
                             <div class="summary-label">Rango</div>
@@ -506,12 +507,27 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
     </div>
 
     <script>
-        const alertMensaje = <?= json_encode($mensajeExito ?? '') ?>;
-        if (alertMensaje && typeof window.showAlert === 'function') {
-            if (window.showAlert.length <= 1) {
-                window.showAlert({ type: 'success', message: alertMensaje });
-            } else {
-                window.showAlert('success', alertMensaje);
+        const alertas = <?= json_encode([
+            'success' => $mensajeExito ?? '',
+            'errors' => $errores ?? []
+        ]) ?>;
+        if (typeof window.showAlert === 'function') {
+            if (alertas.success) {
+                if (window.showAlert.length <= 1) {
+                    window.showAlert({ type: 'success', message: alertas.success });
+                } else {
+                    window.showAlert('success', alertas.success);
+                }
+            }
+            if (Array.isArray(alertas.errors)) {
+                alertas.errors.forEach((msg) => {
+                    if (!msg) return;
+                    if (window.showAlert.length <= 1) {
+                        window.showAlert({ type: 'error', message: msg });
+                    } else {
+                        window.showAlert('error', msg);
+                    }
+                });
             }
         }
 
