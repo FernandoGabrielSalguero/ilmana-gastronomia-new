@@ -1204,7 +1204,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
                     </div>
 
                     <div id="viandas-resumen-body">
-                        <?php renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel, $menusResumenList); ?>
+                        <?php renderViandasResumenBody($nivelesList, $totalPedidosDia, $totalesPorNivel, $menusResumenList, $totalRegalosDia, $regalosPorNivel); ?>
                     </div>
                     <div class="resumen-last-update">
                         Ultima actualizacion <span id="viandas-last-update" class="resumen-last-update-time"></span>
