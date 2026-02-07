@@ -21,14 +21,7 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/models/AuthModel.php';
 
 $error = '';
-/*
 
-// Mensaje si viene por expiración
-if (isset($_GET['expired']) && $_GET['expired'] == 1) {
-    $error = "La sesión expiró por inactividad. Por favor, iniciá sesión nuevamente.";
-}
-
-*/
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usuario = $_POST['usuario'];
     $contrasena = $_POST['contrasena'];
@@ -187,9 +180,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             right: 10px;
             top: 50%;
             transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
             cursor: pointer;
             color: #673ab7;
             user-select: none;
+        }
+
+        .password-container input {
+            padding-right: 44px;
         }
 
         .toggle-password svg {
