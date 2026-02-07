@@ -788,13 +788,17 @@ $telefono = $_SESSION['telefono'] ?? 'Sin teléfono';
 
             cursorY += 110;
 
-            const rows = alumnos.map((alumno) => ([
-                alumno.nombre || '',
+            const rows = alumnos.map((alumno) => {
+                const nombreBase = alumno.nombre || '';
+                const nombreFinal = alumno.tiene_regalo ? `${nombreBase} (Regalo)` : nombreBase;
+                return ([
+                    nombreFinal,
                 alumno.estado || '',
                 alumno.menu || '',
                 alumno.preferencias || '',
                 alumno.estado === 'Cancelado' ? (alumno.motivo || 'Sin motivo') : ''
-            ]));
+                ]);
+            });
 
             if (typeof pdf.autoTable === 'function') {
                 pdf.autoTable({

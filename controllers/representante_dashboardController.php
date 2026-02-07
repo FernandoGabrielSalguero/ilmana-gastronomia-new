@@ -100,6 +100,17 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'curso_detalle') {
         exit;
     }
 
+    $colegiosRepresentante = $model->obtenerColegiosPorRepresentante($representanteId);
+    $regalosDia = $model->obtenerRegalosPorFechaYColegios($fechaEntrega, $colegiosRepresentante);
+    $regalosIndex = [];
+    foreach ($regalosDia as $regalo) {
+        $alumnoNombre = strtolower(trim((string) ($regalo['Alumno_Nombre'] ?? '')));
+        $colegioNombre = strtolower(trim((string) ($regalo['Colegio_Nombre'] ?? '')));
+        if ($alumnoNombre !== '' && $colegioNombre !== '') {
+            $regalosIndex[$alumnoNombre . '|' . $colegioNombre] = true;
+        }
+    }
+
     $detalle = $model->obtenerDetalleCursoPedidos($representanteId, $cursoId, $fechaEntrega);
     $rows = $detalle['rows'] ?? [];
     $cursoNombre = 'Curso';
@@ -112,12 +123,16 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'curso_detalle') {
 
     $alumnos = [];
     foreach ($rows as $row) {
+        $alumnoNombre = (string) ($row['Alumno'] ?? '');
+        $colegioRow = (string) ($row['Colegio'] ?? $colegioNombre);
+        $regaloKey = strtolower(trim($alumnoNombre)) . '|' . strtolower(trim($colegioRow));
         $alumnos[] = [
-            'nombre' => $row['Alumno'] ?? '',
+            'nombre' => $alumnoNombre,
             'estado' => $row['Estado'] ?? '',
             'menu' => $row['Menu'] ?? '',
             'preferencias' => $row['Preferencias'] ?? '',
-            'motivo' => $row['motivo_cancelacion'] ?? ''
+            'motivo' => $row['motivo_cancelacion'] ?? '',
+            'tiene_regalo' => !empty($regalosIndex[$regaloKey])
         ];
     }
 
