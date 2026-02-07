@@ -403,11 +403,15 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
                                                 <td><?= $formatDate($regalo['Fecha_Entrega_Jueves'] ?? '') ?></td>
                                                 <td><?= $menusLabel ?></td>
                                                 <td>
-                                                    <form method="post" onsubmit="return confirm('Eliminar regalo?');" style="display:inline;">
+                                                    <form method="post" id="formEliminarRegalo<?= (int) ($regalo['Id'] ?? 0) ?>" style="display:inline;">
                                                         <input type="hidden" name="accion" value="eliminar_regalo" />
                                                         <input type="hidden" name="regalo_id"
                                                             value="<?= (int) ($regalo['Id'] ?? 0) ?>" />
-                                                        <button type="submit" class="btn-icon" title="Eliminar">
+                                                        <button type="button"
+                                                            class="btn-icon"
+                                                            title="Eliminar"
+                                                            data-action="confirm-eliminar"
+                                                            data-form-id="formEliminarRegalo<?= (int) ($regalo['Id'] ?? 0) ?>">
                                                             <span class="material-icons">delete</span>
                                                         </button>
                                                     </form>
@@ -506,6 +510,17 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
         </div>
     </div>
 
+    <div id="modalConfirmEliminar" class="modal hidden">
+        <div class="modal-content">
+            <h3>Eliminar regalo</h3>
+            <p>¿Querés eliminar este regalo? Esta acción no se puede deshacer.</p>
+            <div class="form-buttons">
+                <button class="btn btn-aceptar" type="button" id="btnConfirmEliminar">Eliminar</button>
+                <button class="btn btn-cancelar" type="button" id="btnCancelarEliminar">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const alertas = <?= json_encode([
             'success' => $mensajeExito ?? '',
@@ -551,6 +566,10 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
         const fechaDesdeInput = document.getElementById('fecha_desde');
         const fechaHastaInput = document.getElementById('fecha_hasta');
         const regalosContenido = document.getElementById('regalosContenido');
+        const modalConfirmEliminar = document.getElementById('modalConfirmEliminar');
+        const btnConfirmEliminar = document.getElementById('btnConfirmEliminar');
+        const btnCancelarEliminar = document.getElementById('btnCancelarEliminar');
+        let formEliminarPendiente = null;
 
         function abrirModalEntregas(nombre, detalles) {
             modalEntregasTitulo.textContent = `Entregas de ${nombre}`;
@@ -616,6 +635,16 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
             modalRegalo.classList.add('hidden');
         }
 
+        function abrirModalConfirmEliminar(form) {
+            formEliminarPendiente = form;
+            modalConfirmEliminar.classList.remove('hidden');
+        }
+
+        function cerrarModalConfirmEliminar() {
+            modalConfirmEliminar.classList.add('hidden');
+            formEliminarPendiente = null;
+        }
+
         document.addEventListener('click', (event) => {
             const target = event.target;
             if (!(target instanceof HTMLElement)) {
@@ -638,7 +667,27 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
                     detalle
                 });
             }
+            if (accion === 'confirm-eliminar') {
+                const formId = target.dataset.formId || '';
+                const form = formId ? document.getElementById(formId) : null;
+                if (form) {
+                    abrirModalConfirmEliminar(form);
+                }
+            }
         });
+
+        if (btnConfirmEliminar) {
+            btnConfirmEliminar.addEventListener('click', () => {
+                if (formEliminarPendiente) {
+                    formEliminarPendiente.submit();
+                }
+                cerrarModalConfirmEliminar();
+            });
+        }
+
+        if (btnCancelarEliminar) {
+            btnCancelarEliminar.addEventListener('click', cerrarModalConfirmEliminar);
+        }
 
         if (filtrosForm && fechaDesdeInput && fechaHastaInput && regalosContenido) {
             let ajaxTimer = null;
