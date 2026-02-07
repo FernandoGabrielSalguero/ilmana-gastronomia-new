@@ -132,7 +132,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'agreg
         ]);
 
         if ($ok) {
-            $mensajeExito = 'Regalo registrado correctamente.';
+            $params = [
+                'fecha_desde' => $fechaDesde,
+                'fecha_hasta' => $fechaHasta,
+                'ok' => 'Regalo registrado correctamente.'
+            ];
+            header('Location: admin_regalosColegio.php?' . http_build_query($params));
+            exit;
         } else {
             $errores[] = 'No se pudo registrar el regalo. Intente nuevamente.';
         }
@@ -146,12 +152,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'elimi
     } else {
         $ok = $model->eliminarRegalo($regaloId);
         if ($ok) {
-            $mensajeExito = 'Regalo eliminado correctamente.';
+            $params = [
+                'fecha_desde' => $fechaDesde,
+                'fecha_hasta' => $fechaHasta,
+                'ok' => 'Regalo eliminado correctamente.'
+            ];
+            header('Location: admin_regalosColegio.php?' . http_build_query($params));
+            exit;
         } else {
             $errores[] = 'No se pudo eliminar el regalo.';
         }
     }
 }
+
+$mensajeExito = trim((string) ($_GET['ok'] ?? ''));
 
 $registros = $model->obtenerResumenSemanal($fechaDesde, $fechaHasta);
 $regalos = $model->obtenerRegalos($fechaDesde, $fechaHasta);
