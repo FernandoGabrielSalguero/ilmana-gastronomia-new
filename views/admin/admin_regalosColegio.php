@@ -229,6 +229,9 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
                 </div>
 
                 <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Detalle de la semana seleccionada</h3>
+                    </div>
                     <div class="summary-grid">
                         <div class="summary-card">
                             <div class="summary-label">Rango</div>
