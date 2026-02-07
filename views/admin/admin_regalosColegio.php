@@ -493,7 +493,7 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
                 </table>
             </div>
 
-            <form method="post" style="margin-top: 16px;">
+            <form method="post" id="formRegistrarRegalo" style="margin-top: 16px;">
                 <input type="hidden" name="accion" value="agregar_regalo" />
                 <input type="hidden" name="alumno_nombre" id="inputAlumnoNombre" />
                 <input type="hidden" name="colegio_nombre" id="inputColegioNombre" />
@@ -586,7 +586,9 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
         const modalConfirmEliminar = document.getElementById('modalConfirmEliminar');
         const btnConfirmEliminar = document.getElementById('btnConfirmEliminar');
         const btnCancelarEliminar = document.getElementById('btnCancelarEliminar');
+        const formRegistrarRegalo = document.getElementById('formRegistrarRegalo');
         let formEliminarPendiente = null;
+        let fetchContenido = null;
 
         function abrirModalEntregas(nombre, detalles) {
             modalEntregasTitulo.textContent = `Entregas de ${nombre}`;
@@ -662,6 +664,15 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
             formEliminarPendiente = null;
         }
 
+        function mostrarMensaje(type, message) {
+            if (!message || typeof window.showAlert !== 'function') return;
+            if (window.showAlert.length <= 1) {
+                window.showAlert({ type, message });
+            } else {
+                window.showAlert(type, message);
+            }
+        }
+
         document.addEventListener('click', (event) => {
             const target = event.target;
             if (!(target instanceof HTMLElement)) {
@@ -699,10 +710,33 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
 
         if (btnConfirmEliminar) {
             btnConfirmEliminar.addEventListener('click', () => {
-                if (formEliminarPendiente) {
-                    formEliminarPendiente.submit();
+                if (!formEliminarPendiente) {
+                    cerrarModalConfirmEliminar();
+                    return;
                 }
-                cerrarModalConfirmEliminar();
+                const data = new FormData(formEliminarPendiente);
+                data.set('ajax', '1');
+                fetch(window.location.pathname, {
+                    method: 'POST',
+                    body: data,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then((res) => res.json())
+                    .then((payload) => {
+                        if (payload && payload.ok) {
+                            cerrarModalConfirmEliminar();
+                            mostrarMensaje('success', payload.message || 'Regalo eliminado correctamente.');
+                            if (typeof fetchContenido === 'function') {
+                                fetchContenido();
+                            }
+                        } else {
+                            const errors = payload && payload.errors ? payload.errors : ['No se pudo eliminar el regalo.'];
+                            errors.forEach((msg) => mostrarMensaje('error', msg));
+                        }
+                    })
+                    .catch(() => {
+                        mostrarMensaje('error', 'No se pudo eliminar el regalo.');
+                    });
             });
         }
 
@@ -713,7 +747,7 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
         if (filtrosForm && fechaDesdeInput && fechaHastaInput && regalosContenido) {
             let ajaxTimer = null;
 
-            const fetchContenido = () => {
+            fetchContenido = () => {
                 const params = new URLSearchParams(new FormData(filtrosForm));
                 params.set('ajax', '1');
                 const url = `${window.location.pathname}?${params.toString()}`;
@@ -744,6 +778,35 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
 
             fechaDesdeInput.addEventListener('change', scheduleFetch);
             fechaHastaInput.addEventListener('change', scheduleFetch);
+        }
+
+        if (formRegistrarRegalo) {
+            formRegistrarRegalo.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const data = new FormData(formRegistrarRegalo);
+                data.set('ajax', '1');
+                fetch(window.location.pathname, {
+                    method: 'POST',
+                    body: data,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then((res) => res.json())
+                    .then((payload) => {
+                        if (payload && payload.ok) {
+                            cerrarModalRegalo();
+                            mostrarMensaje('success', payload.message || 'Regalo registrado correctamente.');
+                            if (typeof fetchContenido === 'function') {
+                                fetchContenido();
+                            }
+                        } else {
+                            const errors = payload && payload.errors ? payload.errors : ['No se pudo registrar el regalo.'];
+                            errors.forEach((msg) => mostrarMensaje('error', msg));
+                        }
+                    })
+                    .catch(() => {
+                        mostrarMensaje('error', 'No se pudo registrar el regalo.');
+                    });
+            });
         }
     </script>
 </body>

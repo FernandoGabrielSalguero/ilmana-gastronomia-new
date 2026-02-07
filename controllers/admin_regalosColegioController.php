@@ -132,16 +132,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'agreg
         ]);
 
         if ($ok) {
+            $mensajeExito = 'Regalo registrado correctamente.';
+            if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
+                header('Content-Type: application/json');
+                echo json_encode(['ok' => true, 'message' => $mensajeExito]);
+                exit;
+            }
             $params = [
                 'fecha_desde' => $fechaDesde,
                 'fecha_hasta' => $fechaHasta,
-                'ok' => 'Regalo registrado correctamente.'
+                'ok' => $mensajeExito
             ];
             header('Location: admin_regalosColegio.php?' . http_build_query($params));
             exit;
         } else {
             $errores[] = 'No se pudo registrar el regalo. Intente nuevamente.';
         }
+    }
+
+    if (!empty($errores) && isset($_POST['ajax']) && $_POST['ajax'] === '1') {
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => false, 'errors' => $errores]);
+        exit;
     }
 }
 
@@ -152,16 +164,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'elimi
     } else {
         $ok = $model->eliminarRegalo($regaloId);
         if ($ok) {
+            $mensajeExito = 'Regalo eliminado correctamente.';
+            if (isset($_POST['ajax']) && $_POST['ajax'] === '1') {
+                header('Content-Type: application/json');
+                echo json_encode(['ok' => true, 'message' => $mensajeExito]);
+                exit;
+            }
             $params = [
                 'fecha_desde' => $fechaDesde,
                 'fecha_hasta' => $fechaHasta,
-                'ok' => 'Regalo eliminado correctamente.'
+                'ok' => $mensajeExito
             ];
             header('Location: admin_regalosColegio.php?' . http_build_query($params));
             exit;
         } else {
             $errores[] = 'No se pudo eliminar el regalo.';
         }
+    }
+
+    if (!empty($errores) && isset($_POST['ajax']) && $_POST['ajax'] === '1') {
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => false, 'errors' => $errores]);
+        exit;
     }
 }
 
