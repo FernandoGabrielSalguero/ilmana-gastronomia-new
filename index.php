@@ -187,11 +187,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             cursor: pointer;
             color: #673ab7;
             user-select: none;
+            line-height: 1;
+            font-size: 20px;
         }
     </style>
 </head>
