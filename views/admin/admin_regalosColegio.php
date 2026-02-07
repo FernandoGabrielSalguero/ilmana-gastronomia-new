@@ -526,7 +526,11 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
             'success' => $mensajeExito ?? '',
             'errors' => $errores ?? []
         ]) ?>;
-        if (typeof window.showAlert === 'function') {
+
+        function mostrarAlertas() {
+            if (typeof window.showAlert !== 'function') {
+                return false;
+            }
             if (alertas.success) {
                 if (window.showAlert.length <= 1) {
                     window.showAlert({ type: 'success', message: alertas.success });
@@ -544,7 +548,20 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
                     }
                 });
             }
+            return true;
         }
+
+        window.addEventListener('load', () => {
+            if (!mostrarAlertas()) {
+                let intentos = 0;
+                const timer = setInterval(() => {
+                    intentos += 1;
+                    if (mostrarAlertas() || intentos >= 6) {
+                        clearInterval(timer);
+                    }
+                }, 200);
+            }
+        });
 
         const modalEntregas = document.getElementById('modalEntregas');
         const modalEntregasTitulo = document.getElementById('modalEntregasTitulo');
@@ -650,25 +667,29 @@ $isAjax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
             if (!(target instanceof HTMLElement)) {
                 return;
             }
-            const accion = target.dataset.action;
+            const actionEl = target.closest('[data-action]');
+            if (!actionEl) {
+                return;
+            }
+            const accion = actionEl.dataset.action;
             if (accion === 'ver-entregas') {
-                const nombre = target.dataset.alumno || 'Alumno';
-                const detalle = target.dataset.detalle ? JSON.parse(target.dataset.detalle) : [];
+                const nombre = actionEl.dataset.alumno || 'Alumno';
+                const detalle = actionEl.dataset.detalle ? JSON.parse(actionEl.dataset.detalle) : [];
                 abrirModalEntregas(nombre, detalle);
             }
             if (accion === 'agregar-regalo') {
-                const detalle = target.dataset.detalle ? JSON.parse(target.dataset.detalle) : [];
+                const detalle = actionEl.dataset.detalle ? JSON.parse(actionEl.dataset.detalle) : [];
                 abrirModalRegalo({
-                    alumno: target.dataset.alumno || '',
-                    colegio: target.dataset.colegio || '',
-                    curso: target.dataset.curso || '',
-                    nivel: target.dataset.nivel || '',
-                    fechaJueves: target.dataset.fechaJueves || '',
+                    alumno: actionEl.dataset.alumno || '',
+                    colegio: actionEl.dataset.colegio || '',
+                    curso: actionEl.dataset.curso || '',
+                    nivel: actionEl.dataset.nivel || '',
+                    fechaJueves: actionEl.dataset.fechaJueves || '',
                     detalle
                 });
             }
             if (accion === 'confirm-eliminar') {
-                const formId = target.dataset.formId || '';
+                const formId = actionEl.dataset.formId || '';
                 const form = formId ? document.getElementById(formId) : null;
                 if (form) {
                     abrirModalConfirmEliminar(form);
