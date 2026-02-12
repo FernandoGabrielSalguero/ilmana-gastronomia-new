@@ -82,6 +82,11 @@ $observacionesLabel = function ($texto) {
             white-space: normal;
             min-width: 180px;
         }
+
+        #saldo-movimientos-modal .modal-content {
+            max-height: 80vh;
+            overflow: auto;
+        }
     </style>
 </head>
 
