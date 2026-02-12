@@ -29,6 +29,7 @@ $cursoId = filter_input(INPUT_GET, 'curso', FILTER_VALIDATE_INT) ?: null;
 $estado = $_GET['estado'] ?? '';
 $fechaDesde = $_GET['fecha_desde'] ?? '';
 $fechaHasta = $_GET['fecha_hasta'] ?? '';
+$movFiltro = trim($_GET['mov_filtro'] ?? '');
 
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaDesde)) {
     $fechaDesde = '';
@@ -111,6 +112,14 @@ if ($action === 'list' && $isAjax) {
     $respondJson([
         'ok' => true,
         'items' => $solicitudes
+    ]);
+}
+
+if ($action === 'movimientos' && $isAjax) {
+    $movimientos = $model->obtenerMovimientosSaldo($movFiltro);
+    $respondJson([
+        'ok' => true,
+        'items' => $movimientos
     ]);
 }
 

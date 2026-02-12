@@ -147,6 +147,55 @@ class AdminSaldoModel
         }
     }
 
+    public function obtenerMovimientosSaldo($filtro = '')
+    {
+        $params = [];
+        $whereFiltro = '';
+        $filtro = trim((string) $filtro);
+        if ($filtro !== '') {
+            $whereFiltro = " AND (u.Nombre LIKE :filtro OR u.Correo LIKE :filtro OR u.Usuario LIKE :filtro)";
+            $params['filtro'] = '%' . $filtro . '%';
+        }
+
+        $sql = "
+            (SELECT
+                CONCAT('recarga-', ps.Id) AS MovimientoId,
+                'Recarga' AS Tipo,
+                u.Nombre AS UsuarioNombre,
+                u.Usuario AS UsuarioLogin,
+                u.Correo AS UsuarioCorreo,
+                ps.Fecha_pedido AS Fecha,
+                ps.Estado AS Estado,
+                ps.Saldo AS Monto,
+                ps.Observaciones AS Observaciones
+            FROM Pedidos_Saldo ps
+            JOIN Usuarios u ON u.Id = ps.Usuario_Id
+            WHERE ps.Estado IN ('Aprobado', 'Cancelado'){$whereFiltro})
+            UNION ALL
+            (SELECT
+                CONCAT('compra-', pc.Id) AS MovimientoId,
+                'Compra' AS Tipo,
+                u.Nombre AS UsuarioNombre,
+                u.Usuario AS UsuarioLogin,
+                u.Correo AS UsuarioCorreo,
+                pc.Fecha_pedido AS Fecha,
+                CASE WHEN pc.Estado = 'Cancelado' THEN 'Cancelado' ELSE 'Aprobado' END AS Estado,
+                CASE WHEN pc.Estado = 'Cancelado' THEN COALESCE(m.Precio, 0) ELSE -COALESCE(m.Precio, 0) END AS Monto,
+                pc.motivo_cancelacion AS Observaciones
+            FROM Pedidos_Comida pc
+            JOIN Menú m ON m.Id = pc.Menú_Id
+            JOIN Hijos h ON h.Id = pc.Hijo_Id
+            JOIN Usuarios_Hijos uh ON uh.Hijo_Id = h.Id
+            JOIN Usuarios u ON u.Id = uh.Usuario_Id
+            WHERE pc.Estado IN ('Cancelado', 'Entregado', 'Procesando'){$whereFiltro})
+            ORDER BY Fecha DESC
+            LIMIT 200";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     private function buildUsuarioFilter($usuarioField, $colegioId, $cursoId, &$params, $prefix)
     {
         $cond = [];

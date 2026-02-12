@@ -56,6 +56,33 @@ $observacionesLabel = function ($texto) {
 
     <!-- Graficos (Chart.js) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        .saldo-gestion-card {
+            position: relative;
+            padding-right: 64px;
+        }
+
+        .saldo-gestion-icon {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            color: #5b21b6;
+            background: #f6f2ff;
+            border-radius: 50%;
+        }
+
+        .saldo-movimientos-table td,
+        .saldo-movimientos-table th {
+            white-space: nowrap;
+        }
+
+        .saldo-movimientos-table td:nth-child(3),
+        .saldo-movimientos-table th:nth-child(3) {
+            white-space: normal;
+            min-width: 180px;
+        }
+    </style>
 </head>
 
 <body>
@@ -122,7 +149,10 @@ $observacionesLabel = function ($texto) {
 
             <!-- CONTENIDO -->
             <section class="content">
-                <div class="card">
+                <div class="card saldo-gestion-card">
+                    <button class="btn-icon saldo-gestion-icon" type="button" id="saldo-movimientos-open" title="Ver movimientos">
+                        <span class="material-icons">receipt_long</span>
+                    </button>
                     <h2>Gestion de saldos</h2>
                     <p>Revisa, aprueba o cancela las solicitudes de saldo enviadas por los usuarios.</p>
                 </div>
@@ -267,6 +297,41 @@ $observacionesLabel = function ($texto) {
         </div>
     </div>
 
+    <div class="modal hidden" id="saldo-movimientos-modal" role="dialog" aria-modal="true" aria-labelledby="saldo-movimientos-title">
+        <div class="modal-content" style="max-width: 980px;">
+            <h3 id="saldo-movimientos-title">Movimientos de saldo</h3>
+            <div class="input-group">
+                <label for="saldo-movimientos-filter">Buscar por nombre o correo</label>
+                <div class="input-icon input-icon-search">
+                    <input type="text" id="saldo-movimientos-filter" placeholder="Ej: Maria, juan@mail.com">
+                </div>
+            </div>
+            <div class="tabla-wrapper" style="margin-top: 16px;">
+                <table class="data-table saldo-movimientos-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Usuario</th>
+                            <th>Correo</th>
+                            <th>Tipo</th>
+                            <th>Estado</th>
+                            <th>Monto</th>
+                            <th>Motivo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="saldo-movimientos-body">
+                        <tr>
+                            <td colspan="7" class="gform-helper">Cargando movimientos...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="form-buttons" style="margin-top: 16px;">
+                <button type="button" class="btn btn-cancelar" id="saldo-movimientos-close">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal hidden" id="saldo-cancel-modal" role="dialog" aria-modal="true" aria-labelledby="saldo-cancel-title">
         <div class="modal-content">
             <h3 id="saldo-cancel-title">Cancelar solicitud</h3>
@@ -313,9 +378,15 @@ $observacionesLabel = function ($texto) {
         const approveFinal = document.getElementById('saldo-approve-final');
         const approveCancelButton = document.getElementById('saldo-approve-cancel');
         const approveConfirmButton = document.getElementById('saldo-approve-confirm');
+        const movimientosModal = document.getElementById('saldo-movimientos-modal');
+        const movimientosOpenButton = document.getElementById('saldo-movimientos-open');
+        const movimientosCloseButton = document.getElementById('saldo-movimientos-close');
+        const movimientosFilterInput = document.getElementById('saldo-movimientos-filter');
+        const movimientosBody = document.getElementById('saldo-movimientos-body');
         let pendingCancelId = null;
         let pendingCancelObservaciones = '';
         let pendingApproveId = null;
+        let movimientosTimer = null;
 
         function escapeHtml(value) {
             return String(value ?? '')
@@ -434,6 +505,40 @@ $observacionesLabel = function ($texto) {
             }).join('');
         }
 
+        function renderMovimientos(items) {
+            if (!movimientosBody) return;
+            if (!items || items.length === 0) {
+                movimientosBody.innerHTML = '<tr><td colspan="7" class="gform-helper">Sin movimientos para mostrar.</td></tr>';
+                return;
+            }
+
+            movimientosBody.innerHTML = items.map((item) => {
+                const fechaRaw = String(item.Fecha || '').trim();
+                const fechaSplit = fechaRaw ? fechaRaw.split(/\s+/, 2) : [];
+                const fechaTexto = fechaSplit[0] || '';
+                const horaTexto = fechaSplit[1] || '';
+                const monto = Number(item.Monto || 0);
+                const montoTexto = `${monto >= 0 ? '+' : '-'}$${Math.abs(monto).toLocaleString('es-AR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })}`;
+
+                return `
+                    <tr>
+                        <td>
+                            <div>${escapeHtml(fechaTexto)}</div>
+                            <div class="gform-helper" style="font-size: 0.85rem;">${escapeHtml(horaTexto)}</div>
+                        </td>
+                        <td>${escapeHtml(item.UsuarioNombre || '')}</td>
+                        <td>${escapeHtml(item.UsuarioCorreo || item.UsuarioLogin || '')}</td>
+                        <td>${escapeHtml(item.Tipo || '')}</td>
+                        <td>${escapeHtml(item.Estado || '')}</td>
+                        <td>${montoTexto}</td>
+                        <td>${escapeHtml(observacionesLabel(item.Observaciones))}</td>
+                    </tr>`;
+            }).join('');
+        }
+
         async function fetchSolicitudes() {
             const params = filterForm ? new URLSearchParams(new FormData(filterForm)) : new URLSearchParams();
             params.set('action', 'list');
@@ -451,11 +556,53 @@ $observacionesLabel = function ($texto) {
             }
         }
 
+        async function fetchMovimientos(filtro) {
+            if (!movimientosBody) return;
+            const params = new URLSearchParams();
+            params.set('action', 'movimientos');
+            params.set('ajax', '1');
+            if (filtro) {
+                params.set('mov_filtro', filtro);
+            }
+
+            const response = await fetch(`${saldoEndpoint}?${params.toString()}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!response.ok) {
+                movimientosBody.innerHTML = '<tr><td colspan="7" class="gform-helper">No se pudo cargar el listado.</td></tr>';
+                return;
+            }
+            const data = await response.json();
+            if (data.ok) {
+                renderMovimientos(data.items || []);
+            }
+        }
+
         function formatMoney(value) {
             return Number(value || 0).toLocaleString('es-AR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
+        }
+
+        function openMovimientosModal() {
+            if (movimientosModal) {
+                movimientosModal.classList.remove('hidden');
+            }
+            if (movimientosFilterInput) {
+                movimientosFilterInput.value = '';
+                movimientosFilterInput.focus();
+            }
+            if (movimientosBody) {
+                movimientosBody.innerHTML = '<tr><td colspan="7" class="gform-helper">Cargando movimientos...</td></tr>';
+            }
+            fetchMovimientos('');
+        }
+
+        function closeMovimientosModal() {
+            if (movimientosModal) {
+                movimientosModal.classList.add('hidden');
+            }
         }
 
         function openCancelDialog(pedidoId, observaciones) {
@@ -598,6 +745,38 @@ $observacionesLabel = function ($texto) {
                     closeApproveModal();
                     resetApproveState();
                 }
+            });
+        }
+
+        if (movimientosOpenButton) {
+            movimientosOpenButton.addEventListener('click', () => {
+                openMovimientosModal();
+            });
+        }
+
+        if (movimientosCloseButton) {
+            movimientosCloseButton.addEventListener('click', () => {
+                closeMovimientosModal();
+            });
+        }
+
+        if (movimientosModal) {
+            movimientosModal.addEventListener('click', (event) => {
+                if (event.target === movimientosModal) {
+                    closeMovimientosModal();
+                }
+            });
+        }
+
+        if (movimientosFilterInput) {
+            movimientosFilterInput.addEventListener('input', () => {
+                const value = movimientosFilterInput.value.trim();
+                if (movimientosTimer) {
+                    clearTimeout(movimientosTimer);
+                }
+                movimientosTimer = setTimeout(() => {
+                    fetchMovimientos(value);
+                }, 400);
             });
         }
 
