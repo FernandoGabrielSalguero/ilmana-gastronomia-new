@@ -129,8 +129,8 @@ class PapaMenuModel
             LEFT JOIN Cursos c ON c.Id = h.Curso_Id
             WHERE h.Id = :hijoId
             LIMIT 1");
-        $stmtInsert = $this->db->prepare("INSERT INTO Pedidos_Comida (Fecha_entrega, Preferencias_alimenticias, Hijo_Id, Fecha_pedido, Estado, Menú_Id)
-            VALUES (:fecha_entrega, :preferencias, :hijo_id, NOW(), 'Procesando', :menu_id)");
+        $stmtInsert = $this->db->prepare("INSERT INTO Pedidos_Comida (Fecha_entrega, Preferencias_alimenticias, Hijo_Id, Fecha_pedido, Estado, Menú_Id, Precio_Sin_Promo, Precio_Con_Promo, Costo_Real_Vianda)
+            VALUES (:fecha_entrega, :preferencias, :hijo_id, NOW(), 'Procesando', :menu_id, :precio_sin_promo, :precio_con_promo, :costo_real)");
 
         $menuCache = [];
         $prefCache = [];
@@ -206,24 +206,29 @@ class PapaMenuModel
         $descuentosActivos = $this->obtenerDescuentosActivos($colegioIds, $niveles);
         $descuentosMap = $this->mapearDescuentos($descuentosActivos);
 
+        $promoPorHijo = [];
         foreach ($totalesPorHijo as $hijoId => $totalHijo) {
             $info = $hijoInfoCache[$hijoId] ?? [];
             $colegioId = isset($info['Colegio_Id']) ? (int)$info['Colegio_Id'] : 0;
             $nivel = $info['Nivel_Educativo'] ?? '';
             if ($colegioId <= 0 || $nivel === '') {
+                $promoPorHijo[$hijoId] = ['aplica' => false, 'porcentaje' => 0.0];
                 continue;
             }
             $promo = $descuentosMap[$colegioId][$nivel] ?? null;
             if (!$promo) {
+                $promoPorHijo[$hijoId] = ['aplica' => false, 'porcentaje' => 0.0];
                 continue;
             }
             $porcentaje = isset($promo['Porcentaje']) ? (float)$promo['Porcentaje'] : 0.0;
             $minPorDia = isset($promo['Viandas_Por_Dia_Min']) ? (int)$promo['Viandas_Por_Dia_Min'] : 0;
             if ($porcentaje <= 0 || $minPorDia <= 0) {
+                $promoPorHijo[$hijoId] = ['aplica' => false, 'porcentaje' => 0.0];
                 continue;
             }
             $diasObligatorios = $this->parseDiasObligatorios($promo['Dias_Obligatorios'] ?? '');
             if (empty($diasObligatorios)) {
+                $promoPorHijo[$hijoId] = ['aplica' => false, 'porcentaje' => 0.0];
                 continue;
             }
             $seleccionesFecha = $seleccionesPorHijoFecha[$hijoId] ?? [];
@@ -235,6 +240,7 @@ class PapaMenuModel
                     break;
                 }
             }
+            $promoPorHijo[$hijoId] = ['aplica' => $cumple, 'porcentaje' => $porcentaje];
             if ($cumple) {
                 $descuento += $totalHijo * ($porcentaje / 100);
             }
@@ -269,11 +275,24 @@ class PapaMenuModel
                     $prefCache[$item['hijoId']] = $prefRow ? $prefRow['Preferencias_Alimenticias'] : null;
                 }
 
+                $precioBase = $menuData['Precio'] !== null ? (float)$menuData['Precio'] : 0.0;
+                $promoInfo = $promoPorHijo[$item['hijoId']] ?? ['aplica' => false, 'porcentaje' => 0.0];
+                $aplicaPromo = (bool)($promoInfo['aplica'] ?? false);
+                $porcentajePromo = (float)($promoInfo['porcentaje'] ?? 0.0);
+                $precioConPromo = null;
+                if ($aplicaPromo && $porcentajePromo > 0) {
+                    $precioConPromo = round($precioBase * (1 - ($porcentajePromo / 100)), 2);
+                }
+                $costoReal = $aplicaPromo && $precioConPromo !== null ? $precioConPromo : $precioBase;
+
                 $stmtInsert->execute([
                     'fecha_entrega' => $menuData['Fecha_entrega'],
                     'preferencias' => $prefCache[$item['hijoId']],
                     'hijo_id' => $item['hijoId'],
-                    'menu_id' => $item['menuId']
+                    'menu_id' => $item['menuId'],
+                    'precio_sin_promo' => $precioBase,
+                    'precio_con_promo' => $precioConPromo,
+                    'costo_real' => $costoReal
                 ]);
 
                 $pedidoIds[] = (int)$this->db->lastInsertId();

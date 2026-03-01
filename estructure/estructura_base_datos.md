@@ -92,6 +92,9 @@ Hijo_Id	int(11)	YES	MUL
 Fecha_pedido	datetime	NO			
 Estado	enum('Procesando','Cancelado','Entregado')	NO			
 Menú_Id	int(11)	NO	MUL		
+Precio_Sin_Promo	decimal(10,2)	YES			
+Precio_Con_Promo	decimal(10,2)	YES			
+Costo_Real_Vianda	decimal(10,2)	YES			
 motivo_cancelacion	varchar(255)	YES			
 
 🔗 Relaciones:
