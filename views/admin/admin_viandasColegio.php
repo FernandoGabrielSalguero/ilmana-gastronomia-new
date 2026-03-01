@@ -168,11 +168,13 @@ $formatDateTime = function ($value) {
         #modal-descuentos .modal-content {
             width: 90%;
             max-width: 1100px;
+            max-height: 85vh;
+            overflow-y: auto;
         }
 
         #descuentosTable .col-terminos {
-            width: 200px;
-            max-width: 200px;
+            width: 800px;
+            max-width: 800px;
             white-space: normal;
             word-break: break-word;
         }
