@@ -122,6 +122,11 @@ if (isset($fechasMap['sin_fecha'])) {
         border-radius: 8px;
         padding: 8px 10px;
         line-height: 1.35;
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+        white-space: normal;
+        overflow-wrap: break-word;
     }
 
     .vianda-descuento-leyenda .vianda-terminos.is-open {
