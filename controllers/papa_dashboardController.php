@@ -72,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $esAjax && ($_POST['accion'] ?? '')
             'estado' => 'ok',
             'datos' => [
                 'motivo' => $motivo,
+                'reintegro' => $resultado['reintegro'] ?? null,
             ],
         ]);
     }

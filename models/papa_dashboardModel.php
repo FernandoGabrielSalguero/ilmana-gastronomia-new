@@ -284,7 +284,9 @@ class PapaDashboardModel
         }
 
         try {
-            $sql = "SELECT pc.Id, pc.Estado, pc.Costo_Real_Vianda, m.Fecha_hora_cancelacion
+            $sql = "SELECT pc.Id, pc.Estado,
+                    COALESCE(pc.Costo_Real_Vianda, pc.Precio_Con_Promo, pc.Precio_Sin_Promo, m.Precio) AS Costo_Real_Vianda,
+                    m.Fecha_hora_cancelacion
                 FROM Pedidos_Comida pc
                 JOIN Usuarios_Hijos uh ON pc.Hijo_Id = uh.Hijo_Id
                 JOIN Menú m ON m.Id = pc.Menú_Id
@@ -337,7 +339,7 @@ class PapaDashboardModel
 
             $this->db->commit();
 
-            return ["ok" => true];
+            return ["ok" => true, "reintegro" => $reintegro];
         } catch (Exception $e) {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
