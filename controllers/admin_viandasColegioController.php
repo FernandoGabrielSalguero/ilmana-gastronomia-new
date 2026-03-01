@@ -45,11 +45,18 @@ if ($action === 'list' && $isAjax) {
 }
 
 if ($action === 'list_descuentos' && $isAjax) {
-    $descuentos = $model->obtenerDescuentos();
-    $respondJson([
-        'ok' => true,
-        'items' => $descuentos
-    ]);
+    try {
+        $descuentos = $model->obtenerDescuentos();
+        $respondJson([
+            'ok' => true,
+            'items' => $descuentos
+        ]);
+    } catch (Exception $e) {
+        $respondJson([
+            'ok' => false,
+            'mensaje' => 'No se pudo cargar descuentos. Verifica la tabla descuentos_colegios.'
+        ]);
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'crear_descuento') {

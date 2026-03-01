@@ -494,7 +494,7 @@ $formatDateTime = function ($value) {
         <div class="modal-content">
             <h3>Descuentos</h3>
             <p>Configura promociones por cantidad de viandas, nivel educativo y días obligatorios.</p>
-            <form class="form-modern" id="descuentosForm">
+            <form class="form-modern" id="descuentosForm" method="post">
                 <div class="form-grid grid-4">
                     <div class="input-group">
                         <label for="descuento_nivel">Nivel educativo</label>
@@ -816,9 +816,15 @@ $formatDateTime = function ($value) {
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     });
+                    const contentType = response.headers.get('content-type') || '';
+                    if (!response.ok || !contentType.includes('application/json')) {
+                        throw new Error('Respuesta no valida del servidor.');
+                    }
                     const data = await response.json();
                     if (data.ok) {
                         renderDescuentos(data.items);
+                    } else if (data.mensaje) {
+                        console.error('Error al cargar descuentos:', data.mensaje);
                     }
                 } catch (error) {
                     console.error('Error al cargar descuentos:', error);
