@@ -169,6 +169,13 @@ $formatDateTime = function ($value) {
             width: 90%;
             max-width: 1100px;
         }
+
+        #descuentosTable .col-terminos {
+            width: 200px;
+            max-width: 200px;
+            white-space: normal;
+            word-break: break-word;
+        }
     </style>
 </head>
 
@@ -573,7 +580,7 @@ $formatDateTime = function ($value) {
                                 <th>Viandas mín/día</th>
                                 <th>Vigencia</th>
                                 <th>Días oblig.</th>
-                                <th>Terminos</th>
+                                <th class="col-terminos">Terminos</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -715,6 +722,21 @@ $formatDateTime = function ($value) {
                 return timePart ? `${datePart} ${timePart}` : datePart;
             };
 
+            const formatTerms = (value, wordsPerLine = 15) => {
+                if (!value) {
+                    return '';
+                }
+                const words = String(value).trim().split(/\s+/).filter(Boolean);
+                if (words.length <= wordsPerLine) {
+                    return words.join(' ');
+                }
+                const lines = [];
+                for (let i = 0; i < words.length; i += wordsPerLine) {
+                    lines.push(words.slice(i, i + wordsPerLine).join(' '));
+                }
+                return lines.join('<br>');
+            };
+
             const renderRows = (items) => {
                 if (!tableBody) {
                     return;
@@ -767,17 +789,18 @@ $formatDateTime = function ($value) {
                 descuentosTableBody.innerHTML = items.map((item) => {
                     const diasRaw = String(item.Dias_Obligatorios || '');
                     const diasList = diasRaw ? diasRaw.split(',').map((fecha) => formatDateOnly(fecha.trim())).filter(Boolean) : [];
-                    const diasTexto = diasList.join(', ');
-                    const vigenciaTexto = `${formatDateOnly(item.Vigencia_Desde)} → ${formatDateTimeDisplay(item.Vigencia_Hasta)}`;
+                    const diasTexto = diasList.map((fecha) => escapeHtml(fecha)).join('<br>');
+                    const vigenciaTexto = `${escapeHtml(formatDateOnly(item.Vigencia_Desde))}<br>${escapeHtml(formatDateTimeDisplay(item.Vigencia_Hasta))}`;
+                    const terminosTexto = formatTerms(item.Terminos || '');
                     return `
                         <tr>
                             <td>${escapeHtml(item.Id)}</td>
                             <td>${escapeHtml(item.Nivel_Educativo)}</td>
                             <td>${escapeHtml(item.Porcentaje)}</td>
                             <td>${escapeHtml(item.Viandas_Por_Dia_Min)}</td>
-                            <td>${escapeHtml(vigenciaTexto)}</td>
-                            <td>${escapeHtml(diasTexto)}</td>
-                            <td>${escapeHtml(item.Terminos || '')}</td>
+                            <td>${vigenciaTexto}</td>
+                            <td>${diasTexto}</td>
+                            <td class="col-terminos">${terminosTexto}</td>
                             <td class="table-actions">
                                 <button type="button" class="icon-action" data-action="editar-descuento" aria-label="Editar promo">
                                     <span class="material-icons">edit</span>

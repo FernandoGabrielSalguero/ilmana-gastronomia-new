@@ -201,6 +201,7 @@ Viandas_Por_Dia_Min	int(11)	NO
 Vigencia_Desde	date	NO			
 Vigencia_Hasta	datetime	NO			
 Dias_Obligatorios	text	NO			
+Terminos	text	YES			
 Estado	enum('activo','inactivo')	NO		activo	
 Creado_En	timestamp	NO		current_timestamp()	
 Actualizado_En	timestamp	YES			on update current_timestamp()
