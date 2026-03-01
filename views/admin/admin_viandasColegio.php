@@ -487,9 +487,98 @@ $formatDateTime = function ($value) {
     <div id="modal-descuentos" class="modal hidden">
         <div class="modal-content">
             <h3>Descuentos</h3>
-            <div class="form-buttons">
-                <button class="btn btn-cancelar" type="button" onclick="closeDescuentosModal()">Cerrar</button>
-            </div>
+            <p>Configura promociones por cantidad de viandas, nivel educativo y días obligatorios.</p>
+            <form class="form-modern" id="descuentosForm">
+                <div class="form-grid grid-4">
+                    <div class="input-group">
+                        <label for="descuento_nivel">Nivel educativo</label>
+                        <div class="input-icon input-icon-globe">
+                            <select id="descuento_nivel" name="nivel_educativo" required>
+                                <option value="">Seleccionar</option>
+                                <option value="Inicial">Inicial</option>
+                                <option value="Primaria">Primaria</option>
+                                <option value="Secundaria">Secundaria</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="descuento_porcentaje">% Descuento</label>
+                        <div class="input-icon">
+                            <span class="material-icons">percent</span>
+                            <input type="number" id="descuento_porcentaje" name="porcentaje" min="0" max="100" step="0.01" required />
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="descuento_por_dia">Viandas por día</label>
+                        <div class="input-icon">
+                            <span class="material-icons">restaurant</span>
+                            <input type="number" id="descuento_por_dia" name="viandas_por_dia" min="1" max="3" required />
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="descuento_por_semana">Viandas por semana</label>
+                        <div class="input-icon">
+                            <span class="material-icons">date_range</span>
+                            <input type="number" id="descuento_por_semana" name="viandas_por_semana" min="1" required />
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="descuento_fecha_inicio">Fecha inicio promo</label>
+                        <div class="input-icon input-icon-date">
+                            <input type="date" id="descuento_fecha_inicio" name="fecha_inicio" required />
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="descuento_fecha_fin">Fecha fin promo</label>
+                        <div class="input-icon input-icon-date">
+                            <input type="date" id="descuento_fecha_fin" name="fecha_fin" required />
+                        </div>
+                    </div>
+
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label for="descuento_compra_hasta">Comprar hasta (fecha y hora)</label>
+                        <div class="input-icon">
+                            <input type="text" id="descuento_compra_hasta" name="compra_hasta" required />
+                        </div>
+                    </div>
+
+                    <div class="input-group" style="grid-column: span 4;">
+                        <label>Días obligatorios</label>
+                        <div class="chip-options">
+                            <label class="chip-option">
+                                <input type="checkbox" name="dias_obligatorios[]" value="Lunes" />
+                                <span>Lunes</span>
+                            </label>
+                            <label class="chip-option">
+                                <input type="checkbox" name="dias_obligatorios[]" value="Martes" />
+                                <span>Martes</span>
+                            </label>
+                            <label class="chip-option">
+                                <input type="checkbox" name="dias_obligatorios[]" value="Miercoles" />
+                                <span>Miercoles</span>
+                            </label>
+                            <label class="chip-option">
+                                <input type="checkbox" name="dias_obligatorios[]" value="Jueves" />
+                                <span>Jueves</span>
+                            </label>
+                            <label class="chip-option">
+                                <input type="checkbox" name="dias_obligatorios[]" value="Viernes" />
+                                <span>Viernes</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-buttons">
+                    <button class="btn btn-aceptar" type="submit">Guardar descuento</button>
+                    <button class="btn btn-cancelar" type="button" onclick="closeDescuentosModal()">Cerrar</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -507,6 +596,7 @@ $formatDateTime = function ($value) {
             const editFechaEntrega = document.getElementById('edit_fecha_entrega');
             const editFechaCompra = document.getElementById('edit_fecha_hora_compra');
             const editFechaCancelacion = document.getElementById('edit_fecha_hora_cancelacion');
+            const descuentoCompraHasta = document.getElementById('descuento_compra_hasta');
 
             const pickerConfig = {
                 enableTime: true,
@@ -520,6 +610,7 @@ $formatDateTime = function ($value) {
             const cancelacionPicker = fechaCancelacion ? flatpickr(fechaCancelacion, pickerConfig) : null;
             const editCompraPicker = editFechaCompra ? flatpickr(editFechaCompra, pickerConfig) : null;
             const editCancelacionPicker = editFechaCancelacion ? flatpickr(editFechaCancelacion, pickerConfig) : null;
+            const descuentoCompraPicker = descuentoCompraHasta ? flatpickr(descuentoCompraHasta, pickerConfig) : null;
 
             const getTimePart = (value) => {
                 if (!value) {
@@ -822,7 +913,6 @@ $formatDateTime = function ($value) {
 </body>
 
 </html>
-
 
 
 
