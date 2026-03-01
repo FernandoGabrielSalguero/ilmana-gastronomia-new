@@ -127,11 +127,23 @@ class AdminViandasColegioModel
 
     public function obtenerDescuentos()
     {
-        $sql = "SELECT Id, Colegio_Id, Nivel_Educativo, Porcentaje, Viandas_Por_Dia_Min,
-                       Vigencia_Desde, Vigencia_Hasta, Dias_Obligatorios, Terminos, Estado
-                FROM descuentos_colegios
+        $sql = "SELECT dc.Id, dc.Colegio_Id, dc.Nivel_Educativo, dc.Porcentaje, dc.Viandas_Por_Dia_Min,
+                       dc.Vigencia_Desde, dc.Vigencia_Hasta, dc.Dias_Obligatorios, dc.Terminos, dc.Estado,
+                       c.Nombre AS Colegio_Nombre
+                FROM descuentos_colegios dc
+                LEFT JOIN Colegios c ON c.Id = dc.Colegio_Id
                 ORDER BY Id DESC
                 LIMIT 100";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerColegios()
+    {
+        $sql = "SELECT Id, Nombre
+                FROM Colegios
+                ORDER BY Nombre";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

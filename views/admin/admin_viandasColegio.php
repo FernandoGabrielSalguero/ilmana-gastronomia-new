@@ -452,6 +452,17 @@ $formatDateTime = function ($value) {
                 <input type="hidden" name="action" value="actualizar" />
                 <input type="hidden" name="id" id="edit_id" />
                 <div class="form-grid grid-4">
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label for="descuento_colegio">Colegio</label>
+                        <div class="input-icon input-icon-globe">
+                            <select id="descuento_colegio" name="colegio_id" required>
+                                <option value="">Seleccionar</option>
+                                <?php foreach ($colegios ?? [] as $colegio): ?>
+                                    <option value="<?= (int)$colegio['Id'] ?>"><?= htmlspecialchars($colegio['Nombre'] ?? '') ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
                     <div class="input-group">
                         <label for="edit_nombre">Nombre</label>
                         <div class="input-icon">
@@ -602,6 +613,7 @@ $formatDateTime = function ($value) {
                         <thead>
                             <tr>
                                 <th>ID</th>
+                                <th>Colegio</th>
                                 <th>Nivel</th>
                                 <th>% Desc.</th>
                                 <th>Viandas mín/día</th>
@@ -613,7 +625,7 @@ $formatDateTime = function ($value) {
                         </thead>
                         <tbody id="descuentosTableBody">
                             <tr>
-                                <td colspan="8">Sin promociones cargadas.</td>
+                                <td colspan="9">Sin promociones cargadas.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -632,6 +644,7 @@ $formatDateTime = function ($value) {
             const descuentosTableBody = document.getElementById('descuentosTableBody');
             const descuentoIdInput = document.getElementById('descuento_id');
             const descuentoSubmit = document.getElementById('descuentoSubmit');
+            const descuentoColegio = document.getElementById('descuento_colegio');
             const descuentoNivel = document.getElementById('descuento_nivel');
             const descuentoPorcentaje = document.getElementById('descuento_porcentaje');
             const descuentoPorDia = document.getElementById('descuento_por_dia');
@@ -817,7 +830,7 @@ $formatDateTime = function ($value) {
                     return;
                 }
                 if (!items || items.length === 0) {
-                    descuentosTableBody.innerHTML = '<tr><td colspan="8">Sin promociones cargadas.</td></tr>';
+                    descuentosTableBody.innerHTML = '<tr><td colspan="9">Sin promociones cargadas.</td></tr>';
                     return;
                 }
                 descuentosTableBody.innerHTML = items.map((item) => {
@@ -828,6 +841,7 @@ $formatDateTime = function ($value) {
                     const terminosTexto = formatTerms(item.Terminos || '');
                     return `
                         <tr data-id="${escapeHtml(item.Id)}"
+                            data-colegio-id="${escapeHtml(item.Colegio_Id)}"
                             data-nivel="${escapeHtml(item.Nivel_Educativo)}"
                             data-porcentaje="${escapeHtml(item.Porcentaje)}"
                             data-viandas="${escapeHtml(item.Viandas_Por_Dia_Min)}"
@@ -836,6 +850,7 @@ $formatDateTime = function ($value) {
                             data-dias="${escapeHtml(item.Dias_Obligatorios)}"
                             data-terminos="${escapeHtml(item.Terminos || '')}">
                             <td>${escapeHtml(item.Id)}</td>
+                            <td>${escapeHtml(item.Colegio_Nombre || '')}</td>
                             <td>${escapeHtml(item.Nivel_Educativo)}</td>
                             <td>${escapeHtml(item.Porcentaje)}</td>
                             <td>${escapeHtml(item.Viandas_Por_Dia_Min)}</td>
@@ -1015,6 +1030,7 @@ $formatDateTime = function ($value) {
 
                     if (action === 'editar-descuento') {
                         if (descuentoIdInput) descuentoIdInput.value = row.dataset.id || '';
+                        if (descuentoColegio) descuentoColegio.value = row.dataset.colegioId || '';
                         if (descuentoNivel) descuentoNivel.value = row.dataset.nivel || '';
                         if (descuentoPorcentaje) descuentoPorcentaje.value = row.dataset.porcentaje || '';
                         if (descuentoPorDia) descuentoPorDia.value = row.dataset.viandas || '';

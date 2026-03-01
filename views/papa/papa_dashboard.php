@@ -1064,6 +1064,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                     const promoTerminos = fila.dataset.promoTerminos || '';
                     const promoHasta = fila.dataset.promoHasta || '';
                     const promoRestante = fila.dataset.promoRestante || '';
+                    const alumnoNombre = fila.querySelector('td')?.innerText?.trim() || 'Alumno';
                     let seleccionados = 0;
                     let totalHijo = 0;
                     const seleccionPorDia = {};
@@ -1093,6 +1094,17 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                         const texto = leyenda.querySelector('.leyenda-text');
                         const icono = leyenda.querySelector('.leyenda-icon');
                         const tiempo = formatearTiempoRestante(promoHasta) || promoRestante;
+                        console.log('[PROMO]', {
+                            alumno: alumnoNombre,
+                            promoPercent,
+                            promoMin,
+                            promoDays,
+                            promoHasta,
+                            promoRestante,
+                            tiempoCalculado: tiempo,
+                            seleccionPorDia,
+                            totalHijo
+                        });
                         if (promoPercent > 0 && tiempo) {
                             const mensaje = `Tenes ${tiempo} tiempo para aprovechar la promo del ${promoPercent}%`;
                             if (texto) {

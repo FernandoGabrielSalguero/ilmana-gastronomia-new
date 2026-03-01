@@ -60,6 +60,7 @@ if ($action === 'list_descuentos' && $isAjax) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'crear_descuento') {
+    $colegioIdInput = $_POST['colegio_id'] ?? '';
     $nivel = $_POST['nivel_educativo'] ?? '';
     $porcentajeInput = $_POST['porcentaje'] ?? '';
     $viandasPorDiaInput = $_POST['viandas_por_dia'] ?? '';
@@ -71,6 +72,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'crear_descuento') {
     $nivelesValidos = ['Inicial', 'Primaria', 'Secundaria', 'Sin Curso Asignado'];
     if ($nivel === '' || !in_array($nivel, $nivelesValidos, true)) {
         $errores[] = 'Selecciona un nivel educativo valido.';
+    }
+
+    $colegioId = null;
+    if ($colegioIdInput === '' || !is_numeric($colegioIdInput)) {
+        $errores[] = 'Selecciona un colegio valido.';
+    } else {
+        $colegioId = (int)$colegioIdInput;
+        if ($colegioId <= 0) {
+            $errores[] = 'Selecciona un colegio valido.';
+        }
     }
 
     $porcentaje = null;
@@ -130,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'crear_descuento') {
 
     if (empty($errores)) {
         $resultado = $model->crearDescuento([
-            'colegio_id' => null,
+            'colegio_id' => $colegioId,
             'nivel_educativo' => $nivel,
             'porcentaje' => $porcentaje,
             'viandas_por_dia' => $viandasPorDia,
@@ -159,6 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'crear_descuento') {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'actualizar_descuento') {
     $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+    $colegioIdInput = $_POST['colegio_id'] ?? '';
     $nivel = $_POST['nivel_educativo'] ?? '';
     $porcentajeInput = $_POST['porcentaje'] ?? '';
     $viandasPorDiaInput = $_POST['viandas_por_dia'] ?? '';
@@ -174,6 +186,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'actualizar_descuento')
     $nivelesValidos = ['Inicial', 'Primaria', 'Secundaria', 'Sin Curso Asignado'];
     if ($nivel === '' || !in_array($nivel, $nivelesValidos, true)) {
         $errores[] = 'Selecciona un nivel educativo valido.';
+    }
+
+    $colegioId = null;
+    if ($colegioIdInput === '' || !is_numeric($colegioIdInput)) {
+        $errores[] = 'Selecciona un colegio valido.';
+    } else {
+        $colegioId = (int)$colegioIdInput;
+        if ($colegioId <= 0) {
+            $errores[] = 'Selecciona un colegio valido.';
+        }
     }
 
     $porcentaje = null;
@@ -233,7 +255,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'actualizar_descuento')
 
     if (empty($errores)) {
         $resultado = $model->actualizarDescuento($id, [
-            'colegio_id' => null,
+            'colegio_id' => $colegioId,
             'nivel_educativo' => $nivel,
             'porcentaje' => $porcentaje,
             'viandas_por_dia' => $viandasPorDia,
@@ -447,3 +469,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'eliminar') {
 }
 
 $menuItems = $model->obtenerMenuActual();
+$colegios = $model->obtenerColegios();
