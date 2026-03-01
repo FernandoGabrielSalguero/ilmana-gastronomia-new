@@ -2,8 +2,17 @@
 require_once __DIR__ . '/../../controllers/admin_alta_colegiosController.php';
 ?>
 
+<style>
+    #modal-alta-colegios .modal-content {
+        width: 80%;
+        max-height: 80vh;
+        overflow-y: auto;
+        max-width: 1000px;
+    }
+</style>
+
 <div id="modal-alta-colegios" class="modal hidden" aria-hidden="true">
-    <div class="modal-content" style="width: 80%; max-height: 80vh; overflow-y: auto;">
+    <div class="modal-content">
         <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
             <div>
                 <h3>Dar de alta colegios</h3>
