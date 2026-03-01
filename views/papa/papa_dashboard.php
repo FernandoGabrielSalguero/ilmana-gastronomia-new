@@ -1038,7 +1038,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                 if (Number.isNaN(fechaHasta.getTime())) return '';
                 const ahora = new Date();
                 const diffMs = fechaHasta.getTime() - ahora.getTime();
-                if (diffMs <= 0) return '0 min';
+                if (diffMs <= 0) return '';
                 const totalMin = Math.ceil(diffMs / 60000);
                 const dias = Math.floor(totalMin / (60 * 24));
                 const horas = Math.floor((totalMin - dias * 60 * 24) / 60);
@@ -1091,8 +1091,8 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                     if (leyenda) {
                         const texto = leyenda.querySelector('.leyenda-text');
                         const icono = leyenda.querySelector('.leyenda-icon');
-                        if (promoPercent > 0 && promoDays.length > 0 && promoMin > 0) {
-                            const tiempo = formatearTiempoRestante(promoHasta);
+                        const tiempo = formatearTiempoRestante(promoHasta);
+                        if (promoPercent > 0 && tiempo) {
                             const mensaje = tiempo
                                 ? `Tenes ${tiempo} tiempo para aprovechar la promo del ${promoPercent}%`
                                 : `Aprovecha la promo del ${promoPercent}%`;
@@ -1102,7 +1102,9 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                 leyenda.textContent = mensaje;
                             }
                             if (icono) {
-                                icono.title = promoTerminos || 'Ver terminos de la promo';
+                                const tooltip = promoTerminos || 'Ver terminos de la promo';
+                                icono.setAttribute('title', tooltip);
+                                icono.setAttribute('data-tooltip', tooltip);
                                 icono.style.display = promoTerminos ? 'inline-block' : 'none';
                             }
                             leyenda.classList.toggle('ok', false);
