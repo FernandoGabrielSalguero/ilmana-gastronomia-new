@@ -452,7 +452,7 @@ $formatDateTime = function ($value) {
                 <input type="hidden" name="action" value="actualizar" />
                 <input type="hidden" name="id" id="edit_id" />
                 <div class="form-grid grid-4">
-                    <div class="input-group" style="grid-column: span 2;">
+                    <div class="input-group">
                         <label for="descuento_colegio">Colegio</label>
                         <div class="input-icon input-icon-globe">
                             <select id="descuento_colegio" name="colegio_id" required>
@@ -591,14 +591,14 @@ $formatDateTime = function ($value) {
                         </div>
                     </div>
 
-                    <div class="input-group" style="grid-column: span 2;">
+                    <div class="input-group">
                         <label for="descuento_vigencia_hasta">Vigencia hasta (fecha y hora)</label>
                         <div class="input-icon">
                             <input type="text" id="descuento_vigencia_hasta" name="vigencia_hasta" required />
                         </div>
                     </div>
 
-                    <div class="input-group" style="grid-column: span 2;">
+                    <div class="input-group" style="grid-column: span 4;">
                         <label for="descuento_terminos">Terminos de la promo</label>
                         <div class="input-icon">
                             <textarea id="descuento_terminos" name="terminos" rows="2" placeholder="Escribi los terminos de la promo..."></textarea>
