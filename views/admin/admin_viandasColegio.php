@@ -528,6 +528,7 @@ $formatDateTime = function ($value) {
             <h3>Descuentos</h3>
             <p>Configura promociones por cantidad de viandas, nivel educativo y días obligatorios.</p>
             <form class="form-modern" id="descuentosForm" method="post">
+                <input type="hidden" id="descuento_id" name="id" />
                 <div class="form-grid grid-4">
                     <div class="input-group">
                         <label for="descuento_nivel">Nivel educativo</label>
@@ -587,7 +588,7 @@ $formatDateTime = function ($value) {
                 </div>
 
                 <div class="form-buttons">
-                    <button class="btn btn-aceptar" type="submit">Guardar descuento</button>
+                    <button class="btn btn-aceptar" type="submit" id="descuentoSubmit">Guardar descuento</button>
                     <button class="btn btn-cancelar" type="button" onclick="closeDescuentosModal()">Cerrar</button>
                 </div>
             </form>
@@ -629,6 +630,15 @@ $formatDateTime = function ($value) {
             const tableBody = document.getElementById('menuTableBody');
             const descuentosForm = document.getElementById('descuentosForm');
             const descuentosTableBody = document.getElementById('descuentosTableBody');
+            const descuentoIdInput = document.getElementById('descuento_id');
+            const descuentoSubmit = document.getElementById('descuentoSubmit');
+            const descuentoNivel = document.getElementById('descuento_nivel');
+            const descuentoPorcentaje = document.getElementById('descuento_porcentaje');
+            const descuentoPorDia = document.getElementById('descuento_por_dia');
+            const descuentoFechaInicio = document.getElementById('descuento_fecha_inicio');
+            const descuentoVigenciaHasta = document.getElementById('descuento_vigencia_hasta');
+            const descuentoTerminos = document.getElementById('descuento_terminos');
+            const descuentoDiasObligatorios = document.getElementById('descuento_dias_obligatorios');
 
             const fechaEntrega = document.getElementById('fecha_entrega');
             const fechaCompra = document.getElementById('fecha_hora_compra');
@@ -637,8 +647,6 @@ $formatDateTime = function ($value) {
             const editFechaEntrega = document.getElementById('edit_fecha_entrega');
             const editFechaCompra = document.getElementById('edit_fecha_hora_compra');
             const editFechaCancelacion = document.getElementById('edit_fecha_hora_cancelacion');
-            const descuentoVigenciaHasta = document.getElementById('descuento_vigencia_hasta');
-            const descuentoDiasObligatorios = document.getElementById('descuento_dias_obligatorios');
 
             const pickerConfig = {
                 enableTime: true,
@@ -819,7 +827,14 @@ $formatDateTime = function ($value) {
                     const vigenciaTexto = `${escapeHtml(formatDateOnly(item.Vigencia_Desde))}<br>${escapeHtml(formatDateTimeDisplay(item.Vigencia_Hasta))}`;
                     const terminosTexto = formatTerms(item.Terminos || '');
                     return `
-                        <tr>
+                        <tr data-id="${escapeHtml(item.Id)}"
+                            data-nivel="${escapeHtml(item.Nivel_Educativo)}"
+                            data-porcentaje="${escapeHtml(item.Porcentaje)}"
+                            data-viandas="${escapeHtml(item.Viandas_Por_Dia_Min)}"
+                            data-vigencia-desde="${escapeHtml(item.Vigencia_Desde)}"
+                            data-vigencia-hasta="${escapeHtml(item.Vigencia_Hasta)}"
+                            data-dias="${escapeHtml(item.Dias_Obligatorios)}"
+                            data-terminos="${escapeHtml(item.Terminos || '')}">
                             <td>${escapeHtml(item.Id)}</td>
                             <td>${escapeHtml(item.Nivel_Educativo)}</td>
                             <td>${escapeHtml(item.Porcentaje)}</td>
@@ -948,7 +963,8 @@ $formatDateTime = function ($value) {
                 descuentosForm.addEventListener('submit', async (event) => {
                     event.preventDefault();
                     const formData = new FormData(descuentosForm);
-                    formData.set('action', 'crear_descuento');
+                    const isEdit = descuentoIdInput && descuentoIdInput.value;
+                    formData.set('action', isEdit ? 'actualizar_descuento' : 'crear_descuento');
                     formData.set('ajax', '1');
 
                     try {
@@ -961,8 +977,14 @@ $formatDateTime = function ($value) {
                         });
                         const data = await response.json();
                         if (data.ok) {
-                            showAlert('success', data.mensaje || 'Descuento guardado correctamente.');
+                            showAlert('success', data.mensaje || (isEdit ? 'Descuento actualizado correctamente.' : 'Descuento guardado correctamente.'));
                             descuentosForm.reset();
+                            if (descuentoIdInput) {
+                                descuentoIdInput.value = '';
+                            }
+                            if (descuentoSubmit) {
+                                descuentoSubmit.textContent = 'Guardar descuento';
+                            }
                             if (descuentoDiasPicker) {
                                 descuentoDiasPicker.clear();
                             }
@@ -975,6 +997,80 @@ $formatDateTime = function ($value) {
                         await fetchDescuentos();
                     } catch (error) {
                         showAlert('error', 'No se pudo guardar el descuento.');
+                    }
+                });
+            }
+
+            if (descuentosTableBody) {
+                descuentosTableBody.addEventListener('click', async (event) => {
+                    const button = event.target.closest('button[data-action]');
+                    if (!button) {
+                        return;
+                    }
+                    const row = button.closest('tr');
+                    if (!row) {
+                        return;
+                    }
+                    const action = button.dataset.action;
+
+                    if (action === 'editar-descuento') {
+                        if (descuentoIdInput) descuentoIdInput.value = row.dataset.id || '';
+                        if (descuentoNivel) descuentoNivel.value = row.dataset.nivel || '';
+                        if (descuentoPorcentaje) descuentoPorcentaje.value = row.dataset.porcentaje || '';
+                        if (descuentoPorDia) descuentoPorDia.value = row.dataset.viandas || '';
+                        if (descuentoFechaInicio) descuentoFechaInicio.value = (row.dataset.vigenciaDesde || '').split(' ')[0];
+                        if (descuentoVigenciaHasta) descuentoVigenciaHasta.value = row.dataset.vigenciaHasta || '';
+                        if (descuentoTerminos) descuentoTerminos.value = row.dataset.terminos || '';
+
+                        const diasRaw = row.dataset.dias || '';
+                        const diasList = diasRaw ? diasRaw.split(',').map((fecha) => fecha.trim()).filter(Boolean) : [];
+                        if (descuentoDiasPicker) {
+                            descuentoDiasPicker.setDate(diasList, true);
+                        } else if (descuentoDiasObligatorios) {
+                            descuentoDiasObligatorios.value = diasList.join(', ');
+                        }
+
+                        if (descuentoVigenciaPicker) {
+                            descuentoVigenciaPicker.setDate(row.dataset.vigenciaHasta || '', true);
+                        }
+
+                        if (descuentoSubmit) {
+                            descuentoSubmit.textContent = 'Guardar cambios';
+                        }
+                        const modalContent = document.querySelector('#modal-descuentos .modal-content');
+                        if (modalContent) {
+                            modalContent.scrollTop = 0;
+                        }
+                    }
+
+                    if (action === 'eliminar-descuento') {
+                        const id = row.dataset.id;
+                        if (!id) {
+                            return;
+                        }
+                        const formData = new FormData();
+                        formData.set('action', 'eliminar_descuento');
+                        formData.set('ajax', '1');
+                        formData.set('id', id);
+
+                        try {
+                            const response = await fetch(menuEndpoint, {
+                                method: 'POST',
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                body: formData
+                            });
+                            const data = await response.json();
+                            if (data.ok) {
+                                showAlert('success', data.mensaje || 'Descuento eliminado correctamente.');
+                            } else {
+                                showErrorAlert(data, 'No se pudo eliminar el descuento.');
+                            }
+                            await fetchDescuentos();
+                        } catch (error) {
+                            showAlert('error', 'No se pudo eliminar el descuento.');
+                        }
                     }
                 });
             }

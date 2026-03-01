@@ -171,4 +171,68 @@ class AdminViandasColegioModel
             'mensaje' => 'Descuento guardado correctamente.'
         ];
     }
+
+    public function actualizarDescuento(int $id, array $data)
+    {
+        $sql = "UPDATE descuentos_colegios
+                SET Colegio_Id = :colegio_id,
+                    Nivel_Educativo = :nivel,
+                    Porcentaje = :porcentaje,
+                    Viandas_Por_Dia_Min = :viandas_por_dia,
+                    Vigencia_Desde = :vigencia_desde,
+                    Vigencia_Hasta = :vigencia_hasta,
+                    Dias_Obligatorios = :dias_obligatorios,
+                    Terminos = :terminos,
+                    Estado = :estado
+                WHERE Id = :id
+                LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+
+        try {
+            $stmt->execute([
+                'colegio_id' => $data['colegio_id'],
+                'nivel' => $data['nivel_educativo'],
+                'porcentaje' => $data['porcentaje'],
+                'viandas_por_dia' => $data['viandas_por_dia'],
+                'vigencia_desde' => $data['vigencia_desde'],
+                'vigencia_hasta' => $data['vigencia_hasta'],
+                'dias_obligatorios' => $data['dias_obligatorios'],
+                'terminos' => $data['terminos'],
+                'estado' => $data['estado'],
+                'id' => $id
+            ]);
+        } catch (Exception $e) {
+            return [
+                'ok' => false,
+                'mensaje' => 'No se pudo actualizar el descuento.'
+            ];
+        }
+
+        return [
+            'ok' => true,
+            'mensaje' => 'Descuento actualizado correctamente.'
+        ];
+    }
+
+    public function eliminarDescuento(int $id)
+    {
+        $sql = "DELETE FROM descuentos_colegios WHERE Id = :id LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+
+        try {
+            $stmt->execute([
+                'id' => $id
+            ]);
+        } catch (Exception $e) {
+            return [
+                'ok' => false,
+                'mensaje' => 'No se pudo eliminar el descuento.'
+            ];
+        }
+
+        return [
+            'ok' => true,
+            'mensaje' => 'Descuento eliminado correctamente.'
+        ];
+    }
 }
