@@ -55,6 +55,10 @@ if (isset($fechasMap['sin_fecha'])) {
         position: relative;
     }
 
+    .vianda-table tr {
+        overflow: visible;
+    }
+
     .vianda-selected-row {
         background-color: #eef2ff;
     }
@@ -189,6 +193,14 @@ if (isset($fechasMap['sin_fecha'])) {
         padding: 8px;
         box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
         z-index: 50;
+    }
+
+    .vianda-dropdown[open] {
+        z-index: 9999;
+    }
+
+    .vianda-dropdown[open] .dropdown-panel {
+        z-index: 10000;
     }
 
     .vianda-option {
