@@ -170,6 +170,27 @@ $formatDateTime = function ($value) {
             max-width: 1100px;
             max-height: 85vh;
             overflow-y: auto;
+            position: relative;
+        }
+
+        #modal-descuentos .modal-close {
+            position: sticky;
+            top: 12px;
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #f3f4f6;
+            border-radius: 999px;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        #modal-descuentos .modal-close .material-icons {
+            font-size: 20px;
         }
 
         #descuentosTable .col-terminos {
@@ -501,6 +522,9 @@ $formatDateTime = function ($value) {
 
     <div id="modal-descuentos" class="modal hidden">
         <div class="modal-content">
+            <button type="button" class="modal-close" aria-label="Cerrar" onclick="closeDescuentosModal()">
+                <span class="material-icons">close</span>
+            </button>
             <h3>Descuentos</h3>
             <p>Configura promociones por cantidad de viandas, nivel educativo y días obligatorios.</p>
             <form class="form-modern" id="descuentosForm" method="post">
