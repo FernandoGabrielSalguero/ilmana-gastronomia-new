@@ -25,8 +25,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $esAjax) {
                 if (!is_array($porFecha)) {
                     continue;
                 }
-                foreach ($porFecha as $menuId) {
-                    if ((int) $menuId > 0) {
+                foreach ($porFecha as $menuIds) {
+                    if (is_array($menuIds)) {
+                        foreach ($menuIds as $menuId) {
+                            if ((int) $menuId > 0) {
+                                $totalItems++;
+                            }
+                        }
+                    } elseif ((int) $menuIds > 0) {
                         $totalItems++;
                     }
                 }

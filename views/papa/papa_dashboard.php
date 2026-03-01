@@ -1073,16 +1073,14 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                     let seleccionados = 0;
                     let totalHijo = 0;
                     const seleccionPorDia = {};
-                    const selects = fila.querySelectorAll('select[name^="menu_por_dia"]');
-                    selects.forEach((select) => {
-                        if (!select.value) return;
+                    const checks = fila.querySelectorAll('input[name^="menu_por_dia"]:checked');
+                    checks.forEach((check) => {
                         seleccionados += 1;
-                        const option = select.options[select.selectedIndex];
-                        const precio = option ? parseFloat(option.dataset.precio || '0') : 0;
+                        const precio = parseFloat(check.dataset.precio || '0') || 0;
                         if (!Number.isNaN(precio)) {
                             totalHijo += precio;
                         }
-                        const fechaKey = select.dataset.fecha || '';
+                        const fechaKey = check.dataset.fecha || '';
                         if (fechaKey) {
                             seleccionPorDia[fechaKey] = (seleccionPorDia[fechaKey] || 0) + 1;
                         }
@@ -1188,7 +1186,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
             };
 
             form.addEventListener('change', (event) => {
-                if (event.target && event.target.matches('select[name^="menu_por_dia"]')) {
+                if (event.target && event.target.matches('input[name^="menu_por_dia"]')) {
                     recalcularTotales();
                 }
             });

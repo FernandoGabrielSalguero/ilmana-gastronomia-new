@@ -99,13 +99,25 @@ class PapaMenuModel
             if (!is_array($porFecha)) {
                 continue;
             }
-            foreach ($porFecha as $menuId) {
-                $menuId = (int)$menuId;
-                if ($menuId > 0) {
-                    $items[] = [
-                        'hijoId' => (int)$hijoId,
-                        'menuId' => $menuId
-                    ];
+            foreach ($porFecha as $fechaKey => $menuIds) {
+                if (is_array($menuIds)) {
+                    foreach ($menuIds as $menuId) {
+                        $menuId = (int)$menuId;
+                        if ($menuId > 0) {
+                            $items[] = [
+                                'hijoId' => (int)$hijoId,
+                                'menuId' => $menuId
+                            ];
+                        }
+                    }
+                } else {
+                    $menuId = (int)$menuIds;
+                    if ($menuId > 0) {
+                        $items[] = [
+                            'hijoId' => (int)$hijoId,
+                            'menuId' => $menuId
+                        ];
+                    }
                 }
             }
         }

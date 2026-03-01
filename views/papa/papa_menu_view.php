@@ -137,6 +137,51 @@ if (isset($fechasMap['sin_fecha'])) {
         vertical-align: top;
     }
 
+    .vianda-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .vianda-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        border: 1px solid #cbd5f5;
+        background: #f8fafc;
+        color: #0f172a;
+        font-size: 12px;
+        line-height: 1.2;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .vianda-chip input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+        width: 1px;
+        height: 1px;
+    }
+
+    .vianda-chip .chip-label {
+        display: inline-block;
+    }
+
+    .vianda-chip .chip-price {
+        color: #475569;
+        font-weight: 600;
+    }
+
+    .vianda-chip:has(input:checked) {
+        background: #dbeafe;
+        border-color: #60a5fa;
+        color: #0f172a;
+    }
+
     .vianda-descuento-leyenda .leyenda-tooltip-wrap {
         position: relative;
         display: inline-flex;
@@ -276,24 +321,24 @@ if (isset($fechasMap['sin_fecha'])) {
                                     <?php if (empty($listaMenus)): ?>
                                         <span class="text-muted">-</span>
                                     <?php else: ?>
-                                        <div class="input-icon">
-                                            <select name="menu_por_dia[<?= (int) $hijo['Id'] ?>][<?= htmlspecialchars($fechaKey) ?>]"
-                                                data-fecha="<?= htmlspecialchars($fechaKey) ?>">
-                                                <option value="">Seleccionar menu</option>
-                                                <?php foreach ($listaMenus as $menu): ?>
-                                                    <?php
-                                                    $precio = $menu['Precio'] !== null
-                                                        ? '$' . number_format((float)$menu['Precio'], 2, ',', '.')
-                                                        : 'Sin precio';
-                                                    $label = $menu['Nombre']
-                                                        ? $menu['Nombre'] . ' (' . $precio . ')'
-                                                        : $precio;
-                                                    ?>
-                                                    <option value="<?= (int) $menu['Id'] ?>" data-precio="<?= htmlspecialchars((string) ($menu['Precio'] ?? 0)) ?>">
-                                                        <?= htmlspecialchars($label) ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            </select>
+                                        <div class="vianda-chips">
+                                            <?php foreach ($listaMenus as $menu): ?>
+                                                <?php
+                                                $precio = $menu['Precio'] !== null
+                                                    ? '$' . number_format((float)$menu['Precio'], 2, ',', '.')
+                                                    : 'Sin precio';
+                                                $label = $menu['Nombre'] ?: 'Menu';
+                                                ?>
+                                                <label class="vianda-chip">
+                                                    <input type="checkbox"
+                                                        name="menu_por_dia[<?= (int) $hijo['Id'] ?>][<?= htmlspecialchars($fechaKey) ?>][]"
+                                                        value="<?= (int) $menu['Id'] ?>"
+                                                        data-precio="<?= htmlspecialchars((string) ($menu['Precio'] ?? 0)) ?>"
+                                                        data-fecha="<?= htmlspecialchars($fechaKey) ?>">
+                                                    <span class="chip-label"><?= htmlspecialchars($label) ?></span>
+                                                    <span class="chip-price">(<?= htmlspecialchars($precio) ?>)</span>
+                                                </label>
+                                            <?php endforeach; ?>
                                         </div>
                                     <?php endif; ?>
                                 </td>
