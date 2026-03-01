@@ -1202,6 +1202,16 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                 }
             });
 
+            if (!form.dataset.dropdownBound) {
+                form.dataset.dropdownBound = '1';
+                document.addEventListener('click', (event) => {
+                    if (event.target.closest('.vianda-dropdown')) return;
+                    form.querySelectorAll('.vianda-dropdown[open]').forEach((dropdown) => {
+                        dropdown.removeAttribute('open');
+                    });
+                });
+            }
+
             form.addEventListener('click', (event) => {
                 const icon = event.target.closest('.leyenda-icon');
                 if (!icon) return;
