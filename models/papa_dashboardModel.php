@@ -284,7 +284,7 @@ class PapaDashboardModel
         }
 
         try {
-            $sql = "SELECT pc.Id, pc.Estado, m.Fecha_hora_cancelacion, m.Precio
+            $sql = "SELECT pc.Id, pc.Estado, pc.Costo_Real_Vianda, m.Fecha_hora_cancelacion
                 FROM Pedidos_Comida pc
                 JOIN Usuarios_Hijos uh ON pc.Hijo_Id = uh.Hijo_Id
                 JOIN Menú m ON m.Id = pc.Menú_Id
@@ -315,7 +315,7 @@ class PapaDashboardModel
                 }
             }
 
-            $reintegro = $pedido["Precio"] !== null ? (float)$pedido["Precio"] : 0.0;
+            $reintegro = $pedido["Costo_Real_Vianda"] !== null ? (float)$pedido["Costo_Real_Vianda"] : 0.0;
 
             $this->db->beginTransaction();
 
