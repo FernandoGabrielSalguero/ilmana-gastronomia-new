@@ -153,7 +153,13 @@ require_once __DIR__ . '/../../controllers/admin_alta_colegiosController.php';
                                         <td><?= htmlspecialchars((string) ($colegio['Direccion'] ?? '')) ?></td>
                                         <td>
                                             <?php if (!empty($colegio['Representantes_Nombres'])): ?>
-                                                <?= htmlspecialchars((string) $colegio['Representantes_Nombres']) ?>
+                                                <?php
+                                                $nombres = (string) $colegio['Representantes_Nombres'];
+                                                $tooltip = trim((string) ($colegio['Representantes_Detalle'] ?? ''));
+                                                ?>
+                                                <span title="<?= htmlspecialchars($tooltip) ?>">
+                                                    <?= nl2br(htmlspecialchars($nombres)) ?>
+                                                </span>
                                             <?php else: ?>
                                                 Sin asignar
                                             <?php endif; ?>
@@ -261,12 +267,13 @@ require_once __DIR__ . '/../../controllers/admin_alta_colegiosController.php';
             }
             colegiosTableBody.innerHTML = items.map((item) => {
                 const representante = item.Representantes_Nombres ? escapeHtml(item.Representantes_Nombres) : 'Sin asignar';
+                const tooltip = item.Representantes_Detalle ? escapeHtml(item.Representantes_Detalle) : '';
                 return `
                     <tr>
                         <td>${escapeHtml(item.Id)}</td>
                         <td>${escapeHtml(item.Nombre)}</td>
                         <td>${escapeHtml(item.Direccion || '')}</td>
-                        <td>${representante}</td>
+                        <td><span title="${tooltip}">${representante.replace(/\n/g, '<br>')}</span></td>
                     </tr>
                 `;
             }).join('');
