@@ -1137,6 +1137,18 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
         .filtros-form .input-group {
             min-width: 220px;
         }
+
+        .resumen-intro {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .resumen-intro p {
+            margin-bottom: 0;
+        }
     </style>
 </head>
 
@@ -1207,8 +1219,13 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
 
                 <!-- Bienvenida -->
                 <div class="card">
-                    <h2>Hola <?= htmlspecialchars($nombre) ?></h2>
-                    <p>Resumen diario de pedidos por colegio.</p>
+                    <div class="resumen-intro">
+                        <div>
+                            <h2>Hola <?= htmlspecialchars($nombre) ?></h2>
+                            <p>Resumen diario de pedidos por colegio.</p>
+                        </div>
+                        <button class="btn btn-info" type="button" data-colegios-modal="open">Dar de alta colegios</button>
+                    </div>
                 </div>
 
                 <div class="card resumen-general">
@@ -1262,6 +1279,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
 
         </div>
     </div>
+
+    <?php require_once __DIR__ . '/admin_alta_colegios.php'; ?>
 
     <!-- Spinner Global -->
     <script src="../../views/partials/spinner-global.js"></script>
