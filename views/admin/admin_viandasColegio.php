@@ -312,7 +312,7 @@ $formatDateTime = function ($value) {
                             <div class="input-group">
                                 <label for="fecha_hora_compra">Fecha y hora compra</label>
                                 <div class="input-icon">
-                                    <input type="text" id="fecha_hora_compra" name="fecha_hora_compra"
+                                    <input type="text" id="fecha_hora_compra" name="fecha_hora_compra" required
                                         value="<?= htmlspecialchars($_POST['fecha_hora_compra'] ?? '') ?>" />
                                 </div>
                             </div>
@@ -321,7 +321,7 @@ $formatDateTime = function ($value) {
                                 <label for="fecha_hora_cancelacion">Fecha y hora cancelacion</label>
                                 <div class="input-icon">
                                     <input type="text" id="fecha_hora_cancelacion"
-                                        name="fecha_hora_cancelacion"
+                                        name="fecha_hora_cancelacion" required
                                         value="<?= htmlspecialchars($_POST['fecha_hora_cancelacion'] ?? '') ?>" />
                                 </div>
                             </div>
@@ -330,7 +330,7 @@ $formatDateTime = function ($value) {
                                 <label for="precio">Precio</label>
                                 <div class="input-icon">
                                     <span class="material-icons">attach_money</span>
-                                    <input type="number" id="precio" name="precio" step="0.01" min="0"
+                                    <input type="number" id="precio" name="precio" step="0.01" min="0" required
                                         value="<?= htmlspecialchars($_POST['precio'] ?? '') ?>" />
                                 </div>
                             </div>
@@ -350,7 +350,7 @@ $formatDateTime = function ($value) {
                                 <label>Nivel educativo</label>
                                 <div class="chip-options">
                                     <label class="chip-option">
-                                        <input type="checkbox" name="nivel_educativo[]" value="Inicial"
+                                        <input type="checkbox" name="nivel_educativo[]" value="Inicial" required
                                             <?= in_array('Inicial', $selectedNiveles, true) ? 'checked' : '' ?> />
                                         <span>Inicial</span>
                                     </label>
