@@ -212,6 +212,7 @@ if (isset($fechasMap['sin_fecha'])) {
         cursor: pointer;
         font-size: 12px;
         color: #0f172a;
+        flex-wrap: wrap;
     }
 
     .vianda-option:hover {
@@ -225,6 +226,13 @@ if (isset($fechasMap['sin_fecha'])) {
     .vianda-option .chip-price {
         color: #475569;
         font-weight: 600;
+    }
+
+    .vianda-option span {
+        white-space: normal;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        flex: 1 1 140px;
     }
 
     .vianda-descuento-leyenda .leyenda-tooltip-wrap {
