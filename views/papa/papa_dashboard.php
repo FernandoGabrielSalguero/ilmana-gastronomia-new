@@ -426,8 +426,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                                 <td><?= $pedido['Fecha_entrega'] ?></td>
                                                 <td class="breakable">
                                                     <div>Sin promo: <?= $pedido['Precio_Sin_Promo'] !== null ? '$' . number_format((float) $pedido['Precio_Sin_Promo'], 2, ',', '.') : '—' ?></div>
-                                                    <div>Con promo: <?= $pedido['Precio_Con_Promo'] !== null ? '$' . number_format((float) $pedido['Precio_Con_Promo'], 2, ',', '.') : '—' ?></div>
-                                                    <div>Costo real: <?= $pedido['Costo_Real_Vianda'] !== null ? '$' . number_format((float) $pedido['Costo_Real_Vianda'], 2, ',', '.') : '—' ?></div>
+                                                    <div>Costo final: <?= $pedido['Costo_Real_Vianda'] !== null ? '$' . number_format((float) $pedido['Costo_Real_Vianda'], 2, ',', '.') : '—' ?></div>
                                                 </td>
                                                 <td>
                                                     <span class="badge <?= $pedido['Estado'] === 'Procesando' ? 'success' : 'danger' ?>">
