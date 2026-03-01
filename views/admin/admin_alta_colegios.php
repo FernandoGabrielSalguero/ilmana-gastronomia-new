@@ -152,8 +152,8 @@ require_once __DIR__ . '/../../controllers/admin_alta_colegiosController.php';
                                         <td><?= htmlspecialchars((string) ($colegio['Nombre'] ?? '')) ?></td>
                                         <td><?= htmlspecialchars((string) ($colegio['Direccion'] ?? '')) ?></td>
                                         <td>
-                                            <?php if (!empty($colegio['Representante_Nombre'])): ?>
-                                                <?= htmlspecialchars((string) $colegio['Representante_Nombre']) ?>
+                                            <?php if (!empty($colegio['Representantes_Nombres'])): ?>
+                                                <?= htmlspecialchars((string) $colegio['Representantes_Nombres']) ?>
                                             <?php else: ?>
                                                 Sin asignar
                                             <?php endif; ?>
@@ -260,7 +260,7 @@ require_once __DIR__ . '/../../controllers/admin_alta_colegiosController.php';
                 return;
             }
             colegiosTableBody.innerHTML = items.map((item) => {
-                const representante = item.Representante_Nombre ? escapeHtml(item.Representante_Nombre) : 'Sin asignar';
+                const representante = item.Representantes_Nombres ? escapeHtml(item.Representantes_Nombres) : 'Sin asignar';
                 return `
                     <tr>
                         <td>${escapeHtml(item.Id)}</td>

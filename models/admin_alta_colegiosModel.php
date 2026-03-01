@@ -30,18 +30,11 @@ class AdminAltaColegiosModel
         $sql = "SELECT c.Id,
                        c.Nombre,
                        c.`Dirección` AS Direccion,
-                       u.Id AS Representante_Id,
-                       u.Nombre AS Representante_Nombre,
-                       u.Usuario AS Representante_Usuario,
-                       u.Correo AS Representante_Correo
+                       GROUP_CONCAT(DISTINCT u.Nombre ORDER BY u.Nombre SEPARATOR ', ') AS Representantes_Nombres
                 FROM Colegios c
-                LEFT JOIN Representantes_Colegios rc
-                    ON rc.Id = (
-                        SELECT MIN(rci.Id)
-                        FROM Representantes_Colegios rci
-                        WHERE rci.Colegio_Id = c.Id
-                    )
+                LEFT JOIN Representantes_Colegios rc ON rc.Colegio_Id = c.Id
                 LEFT JOIN Usuarios u ON u.Id = rc.Representante_Id
+                GROUP BY c.Id, c.Nombre, c.`Dirección`
                 ORDER BY c.Nombre";
 
         try {
