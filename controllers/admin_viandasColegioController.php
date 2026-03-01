@@ -44,6 +44,112 @@ if ($action === 'list' && $isAjax) {
     ]);
 }
 
+if ($action === 'list_descuentos' && $isAjax) {
+    $descuentos = $model->obtenerDescuentos();
+    $respondJson([
+        'ok' => true,
+        'items' => $descuentos
+    ]);
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'crear_descuento') {
+    $nivel = $_POST['nivel_educativo'] ?? '';
+    $porcentajeInput = $_POST['porcentaje'] ?? '';
+    $viandasPorDiaInput = $_POST['viandas_por_dia'] ?? '';
+    $vigenciaDesde = $_POST['vigencia_desde'] ?? '';
+    $vigenciaHasta = $_POST['vigencia_hasta'] ?? '';
+    $diasObligatoriosInput = $_POST['dias_obligatorios'] ?? '';
+    $terminos = trim($_POST['terminos'] ?? '');
+
+    $nivelesValidos = ['Inicial', 'Primaria', 'Secundaria', 'Sin Curso Asignado'];
+    if ($nivel === '' || !in_array($nivel, $nivelesValidos, true)) {
+        $errores[] = 'Selecciona un nivel educativo valido.';
+    }
+
+    $porcentaje = null;
+    if ($porcentajeInput === '' || !is_numeric($porcentajeInput)) {
+        $errores[] = 'El porcentaje debe ser numerico.';
+    } else {
+        $porcentaje = number_format((float)$porcentajeInput, 2, '.', '');
+        if ($porcentaje < 0 || $porcentaje > 100) {
+            $errores[] = 'El porcentaje debe estar entre 0 y 100.';
+        }
+    }
+
+    $viandasPorDia = null;
+    if ($viandasPorDiaInput === '' || !is_numeric($viandasPorDiaInput)) {
+        $errores[] = 'La cantidad de viandas por dia es obligatoria.';
+    } else {
+        $viandasPorDia = (int)$viandasPorDiaInput;
+        if ($viandasPorDia < 1 || $viandasPorDia > 3) {
+            $errores[] = 'La cantidad de viandas por dia debe estar entre 1 y 3.';
+        }
+    }
+
+    $fechaDesdeOk = DateTime::createFromFormat('Y-m-d', $vigenciaDesde) !== false;
+    if ($vigenciaDesde === '' || !$fechaDesdeOk) {
+        $errores[] = 'La vigencia desde es obligatoria.';
+    }
+
+    $fechaHastaOk = DateTime::createFromFormat('Y-m-d H:i:s', $vigenciaHasta) !== false;
+    if ($vigenciaHasta === '' || !$fechaHastaOk) {
+        $errores[] = 'La vigencia hasta debe tener fecha y hora.';
+    }
+
+    if ($fechaDesdeOk && $fechaHastaOk) {
+        $fechaDesdeDt = new DateTime($vigenciaDesde);
+        $fechaHastaDt = new DateTime($vigenciaHasta);
+        if ($fechaHastaDt < $fechaDesdeDt) {
+            $errores[] = 'La vigencia hasta no puede ser anterior a la vigencia desde.';
+        }
+    }
+
+    $diasObligatorios = [];
+    if ($diasObligatoriosInput !== '') {
+        $diasParts = array_filter(array_map('trim', explode(',', $diasObligatoriosInput)));
+        foreach ($diasParts as $fecha) {
+            $fechaOk = DateTime::createFromFormat('Y-m-d', $fecha);
+            if ($fechaOk === false) {
+                $errores[] = 'Los dias obligatorios deben tener formato YYYY-MM-DD.';
+                break;
+            }
+            $diasObligatorios[] = $fecha;
+        }
+    }
+
+    if (empty($diasObligatorios)) {
+        $errores[] = 'Selecciona al menos un dia obligatorio.';
+    }
+
+    if (empty($errores)) {
+        $resultado = $model->crearDescuento([
+            'colegio_id' => null,
+            'nivel_educativo' => $nivel,
+            'porcentaje' => $porcentaje,
+            'viandas_por_dia' => $viandasPorDia,
+            'vigencia_desde' => $vigenciaDesde,
+            'vigencia_hasta' => $vigenciaHasta,
+            'dias_obligatorios' => implode(',', $diasObligatorios),
+            'terminos' => $terminos ?: null,
+            'estado' => 'activo'
+        ]);
+
+        if ($resultado['ok']) {
+            $mensaje = $resultado['mensaje'];
+        } else {
+            $errores[] = $resultado['mensaje'];
+        }
+    }
+
+    if ($isAjax) {
+        $respondJson([
+            'ok' => empty($errores),
+            'mensaje' => $mensaje,
+            'errores' => $errores
+        ]);
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'crear') {
     $nombre = trim($_POST['nombre'] ?? '');
     $fechaEntrega = $_POST['fecha_entrega'] ?? '';

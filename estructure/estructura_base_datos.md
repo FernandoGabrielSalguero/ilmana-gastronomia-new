@@ -1,4 +1,25 @@
 📚 Estructura completa de la base de datos: u437094107_viandas_sch00l
+📄 Tabla: Auditoria_Eventos
+Columna	Tipo	Nulo	Clave	Default	Extra
+Id	bigint(20) unsigned	NO	PRI		auto_increment
+Usuario_Id	int(11)	YES	MUL		
+Usuario_Login	varchar(80)	YES	MUL		
+Rol	varchar(30)	YES			
+Evento	varchar(50)	NO	MUL		
+Modulo	varchar(50)	YES	MUL		
+Url	varchar(255)	YES			
+Metodo	varchar(10)	YES			
+Entidad	varchar(50)	YES			
+Entidad_Id	bigint(20)	YES			
+Estado	varchar(30)	YES			
+Codigo_Http	smallint(6)	YES			
+Ip	varchar(45)	YES			
+User_Agent	varchar(255)	YES			
+Datos	text	YES			
+Creado_En	timestamp	NO		current_timestamp()	
+
+🔗 Relaciones:
+Columna Usuario_Id referencia a Usuarios.Id
 📄 Tabla: Colegios
 Columna	Tipo	Nulo	Clave	Default	Extra
 Id	int(11)	NO	PRI		auto_increment
@@ -102,6 +123,17 @@ Columna	Tipo	Nulo	Clave	Default	Extra
 Id	int(11)	NO	PRI		auto_increment
 Nombre	varchar(100)	YES			
 
+📄 Tabla: Regalos_Colegio
+Columna	Tipo	Nulo	Clave	Default	Extra
+Id	int(11)	NO	PRI		auto_increment
+Alumno_Nombre	varchar(100)	NO			
+Colegio_Nombre	varchar(100)	NO			
+Curso_Nombre	varchar(100)	NO			
+Nivel_Educativo	enum('Inicial','Primaria','Secundaria','Sin Curso Asignado')	NO		Sin Curso Asignado	
+Fecha_Entrega_Jueves	date	NO	MUL		
+Menus_Semana	longtext	NO			
+Creado_En	datetime	NO		current_timestamp()	
+
 📄 Tabla: Representantes_Colegios
 Columna	Tipo	Nulo	Clave	Default	Extra
 Id	int(11)	NO	PRI		auto_increment
@@ -159,6 +191,22 @@ Curso_Nombre	varchar(100)	YES
 Preferencia_Id	int(11)	NO		0	
 Preferencia_Nombre	varchar(100)	YES			
 
+📄 Tabla: descuentos_colegios
+Columna	Tipo	Nulo	Clave	Default	Extra
+Id	int(11)	NO	PRI		auto_increment
+Colegio_Id	int(11)	YES	MUL		
+Nivel_Educativo	enum('Inicial','Primaria','Secundaria','Sin Curso Asignado')	NO			
+Porcentaje	decimal(5,2)	NO			
+Viandas_Por_Dia_Min	int(11)	NO			
+Vigencia_Desde	date	NO			
+Vigencia_Hasta	datetime	NO			
+Dias_Obligatorios	text	NO			
+Estado	enum('activo','inactivo')	NO		activo	
+Creado_En	timestamp	NO		current_timestamp()	
+Actualizado_En	timestamp	YES			on update current_timestamp()
+
+🔗 Relaciones:
+Columna Colegio_Id referencia a Colegios.Id
 📄 Tabla: destinos_hyt
 Columna	Tipo	Nulo	Clave	Default	Extra
 id	int(11)	NO	PRI		auto_increment

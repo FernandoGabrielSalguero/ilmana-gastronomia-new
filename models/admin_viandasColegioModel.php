@@ -124,4 +124,51 @@ class AdminViandasColegioModel
             'mensaje' => 'Menu eliminado correctamente.'
         ];
     }
+
+    public function obtenerDescuentos()
+    {
+        $sql = "SELECT Id, Colegio_Id, Nivel_Educativo, Porcentaje, Viandas_Por_Dia_Min,
+                       Vigencia_Desde, Vigencia_Hasta, Dias_Obligatorios, Terminos, Estado
+                FROM descuentos_colegios
+                ORDER BY Id DESC
+                LIMIT 100";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function crearDescuento(array $data)
+    {
+        $sql = "INSERT INTO descuentos_colegios
+                    (Colegio_Id, Nivel_Educativo, Porcentaje, Viandas_Por_Dia_Min,
+                     Vigencia_Desde, Vigencia_Hasta, Dias_Obligatorios, Terminos, Estado)
+                VALUES
+                    (:colegio_id, :nivel, :porcentaje, :viandas_por_dia,
+                     :vigencia_desde, :vigencia_hasta, :dias_obligatorios, :terminos, :estado)";
+        $stmt = $this->db->prepare($sql);
+
+        try {
+            $stmt->execute([
+                'colegio_id' => $data['colegio_id'],
+                'nivel' => $data['nivel_educativo'],
+                'porcentaje' => $data['porcentaje'],
+                'viandas_por_dia' => $data['viandas_por_dia'],
+                'vigencia_desde' => $data['vigencia_desde'],
+                'vigencia_hasta' => $data['vigencia_hasta'],
+                'dias_obligatorios' => $data['dias_obligatorios'],
+                'terminos' => $data['terminos'],
+                'estado' => $data['estado']
+            ]);
+        } catch (Exception $e) {
+            return [
+                'ok' => false,
+                'mensaje' => 'No se pudo guardar el descuento.'
+            ];
+        }
+
+        return [
+            'ok' => true,
+            'mensaje' => 'Descuento guardado correctamente.'
+        ];
+    }
 }

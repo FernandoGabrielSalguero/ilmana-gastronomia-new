@@ -531,16 +531,23 @@ $formatDateTime = function ($value) {
                         </div>
                     </div>
 
-                    <div class="input-group">
+                    <div class="input-group" style="grid-column: span 2;">
                         <label for="descuento_vigencia_hasta">Vigencia hasta (fecha y hora)</label>
                         <div class="input-icon">
                             <input type="text" id="descuento_vigencia_hasta" name="vigencia_hasta" required />
                         </div>
                     </div>
 
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label for="descuento_terminos">Terminos de la promo</label>
+                        <div class="input-icon">
+                            <textarea id="descuento_terminos" name="terminos" rows="2" placeholder="Escribi los terminos de la promo..."></textarea>
+                        </div>
+                    </div>
+
                     <div class="input-group" style="grid-column: span 4;">
                         <label for="descuento_dias_obligatorios">Días obligatorios (calendario)</label>
-                        <div class="input-icon input-icon-date">
+                        <div class="input-icon">
                             <input type="text" id="descuento_dias_obligatorios" name="dias_obligatorios" placeholder="Seleccioná los días obligatorios" required />
                         </div>
                     </div>
@@ -561,19 +568,18 @@ $formatDateTime = function ($value) {
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Niveles</th>
+                                <th>Nivel</th>
                                 <th>% Desc.</th>
-                                <th>Viandas/día</th>
-                                <th>Viandas/sem</th>
-                                <th>Rango fechas</th>
-                                <th>Compra hasta</th>
+                                <th>Viandas mín/día</th>
+                                <th>Vigencia</th>
                                 <th>Días oblig.</th>
+                                <th>Terminos</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="descuentosTableBody">
                             <tr>
-                                <td colspan="9">Sin promociones cargadas.</td>
+                                <td colspan="8">Sin promociones cargadas.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -588,6 +594,8 @@ $formatDateTime = function ($value) {
             const menuForm = document.getElementById('menuForm');
             const editForm = document.getElementById('editMenuForm');
             const tableBody = document.getElementById('menuTableBody');
+            const descuentosForm = document.getElementById('descuentosForm');
+            const descuentosTableBody = document.getElementById('descuentosTableBody');
 
             const fechaEntrega = document.getElementById('fecha_entrega');
             const fechaCompra = document.getElementById('fecha_hora_compra');
@@ -615,6 +623,7 @@ $formatDateTime = function ($value) {
             const descuentoDiasPicker = descuentoDiasObligatorios ? flatpickr(descuentoDiasObligatorios, {
                 mode: 'multiple',
                 dateFormat: 'Y-m-d',
+                conjunction: ', ',
                 locale: 'es'
             }) : null;
 
@@ -684,6 +693,28 @@ $formatDateTime = function ($value) {
                 return `<span class="cell-date"><span class="cell-date-date">${escapeHtml(formattedDate)}</span><span class="cell-date-time">${escapeHtml(timePart)}</span></span>`;
             };
 
+            const formatDateOnly = (value) => {
+                if (!value) {
+                    return '';
+                }
+                const datePart = String(value).trim().split(' ')[0] || '';
+                const datePieces = datePart.split('-');
+                if (datePieces.length === 3) {
+                    return `${datePieces[2]}-${datePieces[1]}-${datePieces[0]}`;
+                }
+                return datePart;
+            };
+
+            const formatDateTimeDisplay = (value) => {
+                if (!value) {
+                    return '';
+                }
+                const parts = String(value).trim().split(' ');
+                const datePart = formatDateOnly(parts[0] || '');
+                const timePart = parts[1] || '';
+                return timePart ? `${datePart} ${timePart}` : datePart;
+            };
+
             const renderRows = (items) => {
                 if (!tableBody) {
                     return;
@@ -725,6 +756,40 @@ $formatDateTime = function ($value) {
                 }).join('');
             };
 
+            const renderDescuentos = (items) => {
+                if (!descuentosTableBody) {
+                    return;
+                }
+                if (!items || items.length === 0) {
+                    descuentosTableBody.innerHTML = '<tr><td colspan="8">Sin promociones cargadas.</td></tr>';
+                    return;
+                }
+                descuentosTableBody.innerHTML = items.map((item) => {
+                    const diasRaw = String(item.Dias_Obligatorios || '');
+                    const diasList = diasRaw ? diasRaw.split(',').map((fecha) => formatDateOnly(fecha.trim())).filter(Boolean) : [];
+                    const diasTexto = diasList.join(', ');
+                    const vigenciaTexto = `${formatDateOnly(item.Vigencia_Desde)} → ${formatDateTimeDisplay(item.Vigencia_Hasta)}`;
+                    return `
+                        <tr>
+                            <td>${escapeHtml(item.Id)}</td>
+                            <td>${escapeHtml(item.Nivel_Educativo)}</td>
+                            <td>${escapeHtml(item.Porcentaje)}</td>
+                            <td>${escapeHtml(item.Viandas_Por_Dia_Min)}</td>
+                            <td>${escapeHtml(vigenciaTexto)}</td>
+                            <td>${escapeHtml(diasTexto)}</td>
+                            <td>${escapeHtml(item.Terminos || '')}</td>
+                            <td class="table-actions">
+                                <button type="button" class="icon-action" data-action="editar-descuento" aria-label="Editar promo">
+                                    <span class="material-icons">edit</span>
+                                </button>
+                                <button type="button" class="icon-action" data-action="eliminar-descuento" aria-label="Eliminar promo">
+                                    <span class="material-icons">delete</span>
+                                </button>
+                            </td>
+                        </tr>`;
+                }).join('');
+            };
+
             const fetchMenuItems = async () => {
                 try {
                     const response = await fetch(`${menuEndpoint}?action=list&ajax=1`, {
@@ -738,6 +803,25 @@ $formatDateTime = function ($value) {
                     }
                 } catch (error) {
                     console.error('Error al cargar el listado:', error);
+                }
+            };
+
+            const fetchDescuentos = async () => {
+                if (!descuentosTableBody) {
+                    return;
+                }
+                try {
+                    const response = await fetch(`${menuEndpoint}?action=list_descuentos&ajax=1`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const data = await response.json();
+                    if (data.ok) {
+                        renderDescuentos(data.items);
+                    }
+                } catch (error) {
+                    console.error('Error al cargar descuentos:', error);
                 }
             };
 
@@ -805,6 +889,41 @@ $formatDateTime = function ($value) {
                 });
             }
 
+            if (descuentosForm) {
+                descuentosForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    const formData = new FormData(descuentosForm);
+                    formData.set('action', 'crear_descuento');
+                    formData.set('ajax', '1');
+
+                    try {
+                        const response = await fetch(menuEndpoint, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
+                        });
+                        const data = await response.json();
+                        if (data.ok) {
+                            showAlert('success', data.mensaje || 'Descuento guardado correctamente.');
+                            descuentosForm.reset();
+                            if (descuentoDiasPicker) {
+                                descuentoDiasPicker.clear();
+                            }
+                            if (descuentoVigenciaPicker) {
+                                descuentoVigenciaPicker.clear();
+                            }
+                        } else {
+                            showErrorAlert(data, 'No se pudo guardar el descuento.');
+                        }
+                        await fetchDescuentos();
+                    } catch (error) {
+                        showAlert('error', 'No se pudo guardar el descuento.');
+                    }
+                });
+            }
+
             if (tableBody) {
                 tableBody.addEventListener('click', async (event) => {
                     const button = event.target.closest('button[data-action]');
@@ -863,6 +982,7 @@ $formatDateTime = function ($value) {
             }
 
             fetchMenuItems();
+            fetchDescuentos();
             setInterval(fetchMenuItems, 10000);
         });
 
