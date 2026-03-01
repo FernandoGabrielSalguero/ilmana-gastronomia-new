@@ -233,6 +233,9 @@ $formatDateTime = function ($value) {
                 <div class="card">
                     <h2>Menu de comidas</h2>
                     <p>Base lista para empezar a cargar y editar las viandas del colegio.</p>
+                    <div class="form-buttons">
+                        <button class="btn btn-info" type="button" onclick="openDescuentosModal()">Descuentos</button>
+                    </div>
                 </div>
 
                 <div class="card">
@@ -478,6 +481,15 @@ $formatDateTime = function ($value) {
                     <button class="btn btn-cancelar" type="button" onclick="closeMenuModal()">Cerrar</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div id="modal-descuentos" class="modal hidden">
+        <div class="modal-content">
+            <h3>Descuentos</h3>
+            <div class="form-buttons">
+                <button class="btn btn-cancelar" type="button" onclick="closeDescuentosModal()">Cerrar</button>
+            </div>
         </div>
     </div>
 
@@ -792,11 +804,24 @@ $formatDateTime = function ($value) {
                 modal.classList.add('hidden');
             }
         };
+
+        const openDescuentosModal = () => {
+            const modal = document.getElementById('modal-descuentos');
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        };
+
+        const closeDescuentosModal = () => {
+            const modal = document.getElementById('modal-descuentos');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        };
     </script>
 </body>
 
 </html>
-
 
 
 
