@@ -1057,6 +1057,16 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                 return `${mins} min`;
             };
 
+            const actualizarContadoresSeleccion = () => {
+                const dropdowns = form.querySelectorAll('.vianda-dropdown');
+                dropdowns.forEach((dropdown) => {
+                    const countEl = dropdown.querySelector('[data-selected-count]');
+                    if (!countEl) return;
+                    const checked = dropdown.querySelectorAll('input[type="checkbox"]:checked').length;
+                    countEl.textContent = checked;
+                });
+            };
+
             const recalcularTotales = () => {
                 let subtotal = 0;
                 let descuento = 0;
@@ -1166,6 +1176,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                     saldoRestanteEl.textContent = formatearMonto(saldoActual - totalFinal);
                 }
                 actualizarEstadoSubmit(totalFinal);
+                actualizarContadoresSeleccion();
                 return totalFinal;
             };
 

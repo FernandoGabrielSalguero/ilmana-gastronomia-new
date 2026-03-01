@@ -137,49 +137,75 @@ if (isset($fechasMap['sin_fecha'])) {
         vertical-align: top;
     }
 
-    .vianda-chips {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
+    .vianda-dropdown {
+        position: relative;
     }
 
-    .vianda-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 8px;
-        border-radius: 999px;
+    .vianda-dropdown summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 6px 10px;
+        border-radius: 8px;
         border: 1px solid #cbd5f5;
         background: #f8fafc;
         color: #0f172a;
         font-size: 12px;
-        line-height: 1.2;
-        cursor: pointer;
-        user-select: none;
-        transition: background 0.15s ease, border-color 0.15s ease;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
 
-    .vianda-chip input {
+    .vianda-dropdown summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .vianda-dropdown summary::after {
+        content: '▾';
+        font-size: 12px;
+        color: #475569;
+    }
+
+    .vianda-dropdown[open] summary::after {
+        content: '▴';
+    }
+
+    .vianda-dropdown .dropdown-panel {
         position: absolute;
-        opacity: 0;
-        pointer-events: none;
-        width: 1px;
-        height: 1px;
+        top: calc(100% + 6px);
+        left: 0;
+        min-width: 220px;
+        max-width: 320px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 8px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+        z-index: 5;
     }
 
-    .vianda-chip .chip-label {
-        display: inline-block;
+    .vianda-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 6px 8px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 12px;
+        color: #0f172a;
     }
 
-    .vianda-chip .chip-price {
+    .vianda-option:hover {
+        background: #f1f5f9;
+    }
+
+    .vianda-option input {
+        margin-top: 2px;
+    }
+
+    .vianda-option .chip-price {
         color: #475569;
         font-weight: 600;
-    }
-
-    .vianda-chip:has(input:checked) {
-        background: #dbeafe;
-        border-color: #60a5fa;
-        color: #0f172a;
     }
 
     .vianda-descuento-leyenda .leyenda-tooltip-wrap {
@@ -321,25 +347,28 @@ if (isset($fechasMap['sin_fecha'])) {
                                     <?php if (empty($listaMenus)): ?>
                                         <span class="text-muted">-</span>
                                     <?php else: ?>
-                                        <div class="vianda-chips">
-                                            <?php foreach ($listaMenus as $menu): ?>
-                                                <?php
-                                                $precio = $menu['Precio'] !== null
-                                                    ? '$' . number_format((float)$menu['Precio'], 2, ',', '.')
-                                                    : 'Sin precio';
-                                                $label = $menu['Nombre'] ?: 'Menu';
-                                                ?>
-                                                <label class="vianda-chip">
-                                                    <input type="checkbox"
-                                                        name="menu_por_dia[<?= (int) $hijo['Id'] ?>][<?= htmlspecialchars($fechaKey) ?>][]"
-                                                        value="<?= (int) $menu['Id'] ?>"
-                                                        data-precio="<?= htmlspecialchars((string) ($menu['Precio'] ?? 0)) ?>"
-                                                        data-fecha="<?= htmlspecialchars($fechaKey) ?>">
-                                                    <span class="chip-label"><?= htmlspecialchars($label) ?></span>
-                                                    <span class="chip-price">(<?= htmlspecialchars($precio) ?>)</span>
-                                                </label>
-                                            <?php endforeach; ?>
-                                        </div>
+                                        <details class="vianda-dropdown">
+                                            <summary>Seleccionar <span class="vianda-selected-count" data-selected-count>0</span></summary>
+                                            <div class="dropdown-panel">
+                                                <?php foreach ($listaMenus as $menu): ?>
+                                                    <?php
+                                                    $precio = $menu['Precio'] !== null
+                                                        ? '$' . number_format((float)$menu['Precio'], 2, ',', '.')
+                                                        : 'Sin precio';
+                                                    $label = $menu['Nombre'] ?: 'Menu';
+                                                    ?>
+                                                    <label class="vianda-option">
+                                                        <input type="checkbox"
+                                                            name="menu_por_dia[<?= (int) $hijo['Id'] ?>][<?= htmlspecialchars($fechaKey) ?>][]"
+                                                            value="<?= (int) $menu['Id'] ?>"
+                                                            data-precio="<?= htmlspecialchars((string) ($menu['Precio'] ?? 0)) ?>"
+                                                            data-fecha="<?= htmlspecialchars($fechaKey) ?>">
+                                                        <span><?= htmlspecialchars($label) ?></span>
+                                                        <span class="chip-price">(<?= htmlspecialchars($precio) ?>)</span>
+                                                    </label>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        </details>
                                     <?php endif; ?>
                                 </td>
                             <?php endforeach; ?>
