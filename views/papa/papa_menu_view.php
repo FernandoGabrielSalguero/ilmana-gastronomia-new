@@ -93,6 +93,14 @@ if (isset($fechasMap['sin_fecha'])) {
     .vianda-descuento-leyenda.ok {
         color: #16a34a;
     }
+
+    .vianda-descuento-leyenda .leyenda-icon {
+        font-size: 16px;
+        vertical-align: middle;
+        margin-left: 6px;
+        cursor: pointer;
+        color: #0f172a;
+    }
 </style>
 
 <div>
@@ -128,11 +136,29 @@ if (isset($fechasMap['sin_fecha'])) {
                                 $diasDisponibles++;
                             }
                         }
+                        $colegioId = isset($hijo['Colegio_Id']) ? (int)$hijo['Colegio_Id'] : 0;
+                        $promo = ($colegioId > 0 && !empty($descuentosPorColegioNivel[$colegioId][$nivel]))
+                            ? $descuentosPorColegioNivel[$colegioId][$nivel]
+                            : null;
+                        $promoPorcentaje = $promo['Porcentaje'] ?? '';
+                        $promoMin = $promo['Viandas_Por_Dia_Min'] ?? '';
+                        $promoDias = $promo['Dias_Obligatorios'] ?? '';
+                        $promoTerminos = $promo['Terminos'] ?? '';
+                        $promoHasta = $promo['Vigencia_Hasta'] ?? '';
                         ?>
-                        <tr class="<?= $esSeleccionado ? 'vianda-selected-row' : '' ?>" data-required-days="<?= (int) $diasDisponibles ?>">
+                        <tr class="<?= $esSeleccionado ? 'vianda-selected-row' : '' ?>"
+                            data-required-days="<?= (int) $diasDisponibles ?>"
+                            data-promo-percent="<?= htmlspecialchars((string) $promoPorcentaje) ?>"
+                            data-promo-min="<?= htmlspecialchars((string) $promoMin) ?>"
+                            data-promo-days="<?= htmlspecialchars((string) $promoDias) ?>"
+                            data-promo-terminos="<?= htmlspecialchars((string) $promoTerminos) ?>"
+                            data-promo-hasta="<?= htmlspecialchars((string) $promoHasta) ?>">
                             <td>
                                 <div><?= htmlspecialchars($hijo['Nombre']) ?></div>
-                                <div class="vianda-descuento-leyenda" data-vianda-leyenda></div>
+                                <div class="vianda-descuento-leyenda" data-vianda-leyenda>
+                                    <span class="leyenda-text"></span>
+                                    <span class="material-icons leyenda-icon" title="" aria-label="Ver terminos">help_outline</span>
+                                </div>
                             </td>
                             <?php foreach ($fechasOrdenadas as $fechaKey => $fechaLabel): ?>
                                 <?php $listaMenus = $menusPorFecha[$fechaKey] ?? []; ?>
@@ -141,7 +167,8 @@ if (isset($fechasMap['sin_fecha'])) {
                                         <span class="text-muted">-</span>
                                     <?php else: ?>
                                         <div class="input-icon">
-                                            <select name="menu_por_dia[<?= (int) $hijo['Id'] ?>][<?= htmlspecialchars($fechaKey) ?>]">
+                                            <select name="menu_por_dia[<?= (int) $hijo['Id'] ?>][<?= htmlspecialchars($fechaKey) ?>]"
+                                                data-fecha="<?= htmlspecialchars($fechaKey) ?>">
                                                 <option value="">Seleccionar menu</option>
                                                 <?php foreach ($listaMenus as $menu): ?>
                                                     <?php

@@ -1031,14 +1031,41 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                 }
             };
 
+            const formatearTiempoRestante = (hasta) => {
+                if (!hasta) return '';
+                const normalized = hasta.includes('T') ? hasta : hasta.replace(' ', 'T');
+                const fechaHasta = new Date(normalized);
+                if (Number.isNaN(fechaHasta.getTime())) return '';
+                const ahora = new Date();
+                const diffMs = fechaHasta.getTime() - ahora.getTime();
+                if (diffMs <= 0) return '0 min';
+                const totalMin = Math.ceil(diffMs / 60000);
+                const dias = Math.floor(totalMin / (60 * 24));
+                const horas = Math.floor((totalMin - dias * 60 * 24) / 60);
+                const mins = totalMin % 60;
+                if (dias > 0) {
+                    return `${dias} dia${dias === 1 ? '' : 's'}${horas > 0 ? ` y ${horas} hs` : ''}`;
+                }
+                if (horas > 0) {
+                    return `${horas} hs${mins > 0 ? ` y ${mins} min` : ''}`;
+                }
+                return `${mins} min`;
+            };
+
             const recalcularTotales = () => {
                 let subtotal = 0;
                 let descuento = 0;
                 const filas = form.querySelectorAll('tbody tr');
                 filas.forEach((fila) => {
-                    const requiredDays = parseInt(fila.dataset.requiredDays || '0', 10) || 0;
+                    const promoPercent = parseFloat(fila.dataset.promoPercent || '0') || 0;
+                    const promoMin = parseInt(fila.dataset.promoMin || '0', 10) || 0;
+                    const promoDaysRaw = fila.dataset.promoDays || '';
+                    const promoDays = promoDaysRaw.split(',').map((value) => value.trim()).filter(Boolean);
+                    const promoTerminos = fila.dataset.promoTerminos || '';
+                    const promoHasta = fila.dataset.promoHasta || '';
                     let seleccionados = 0;
                     let totalHijo = 0;
+                    const seleccionPorDia = {};
                     const selects = fila.querySelectorAll('select[name^="menu_por_dia"]');
                     selects.forEach((select) => {
                         if (!select.value) return;
@@ -1048,25 +1075,48 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                         if (!Number.isNaN(precio)) {
                             totalHijo += precio;
                         }
+                        const fechaKey = select.dataset.fecha || '';
+                        if (fechaKey) {
+                            seleccionPorDia[fechaKey] = (seleccionPorDia[fechaKey] || 0) + 1;
+                        }
                     });
                     subtotal += totalHijo;
-                    if (requiredDays > 0 && seleccionados === requiredDays) {
-                        descuento += totalHijo * 0.1;
+                    if (promoPercent > 0 && promoMin > 0 && promoDays.length > 0) {
+                        const cumpleDias = promoDays.every((dia) => (seleccionPorDia[dia] || 0) >= promoMin);
+                        if (cumpleDias) {
+                            descuento += totalHijo * (promoPercent / 100);
+                        }
                     }
                     const leyenda = fila.querySelector('[data-vianda-leyenda]');
                     if (leyenda) {
-                        if (requiredDays > 0) {
-                            const faltan = Math.max(requiredDays - seleccionados, 0);
-                            if (faltan > 0) {
-                                leyenda.textContent = `Faltan ${faltan} viandas para 10% off.`;
-                                leyenda.classList.remove('ok');
+                        const texto = leyenda.querySelector('.leyenda-text');
+                        const icono = leyenda.querySelector('.leyenda-icon');
+                        if (promoPercent > 0 && promoDays.length > 0 && promoMin > 0) {
+                            const tiempo = formatearTiempoRestante(promoHasta);
+                            const mensaje = tiempo
+                                ? `Tenes ${tiempo} tiempo para aprovechar la promo del ${promoPercent}%`
+                                : `Aprovecha la promo del ${promoPercent}%`;
+                            if (texto) {
+                                texto.textContent = mensaje;
                             } else {
-                                leyenda.textContent = 'Tenes 10% off aplicado.';
-                                leyenda.classList.add('ok');
+                                leyenda.textContent = mensaje;
                             }
+                            if (icono) {
+                                icono.title = promoTerminos || 'Ver terminos de la promo';
+                                icono.style.display = promoTerminos ? 'inline-block' : 'none';
+                            }
+                            leyenda.classList.toggle('ok', false);
                             leyenda.style.display = 'block';
                         } else {
-                            leyenda.textContent = '';
+                            if (texto) {
+                                texto.textContent = '';
+                            } else {
+                                leyenda.textContent = '';
+                            }
+                            if (icono) {
+                                icono.title = '';
+                                icono.style.display = 'none';
+                            }
                             leyenda.style.display = 'none';
                         }
                     }

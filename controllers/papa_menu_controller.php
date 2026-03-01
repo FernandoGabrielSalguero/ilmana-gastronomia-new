@@ -67,6 +67,45 @@ $hijoSeleccionadoId = isset($_GET['hijo_id']) ? (int) $_GET['hijo_id'] : null;
 $hijos = $usuarioId ? $model->obtenerHijosPorUsuario($usuarioId) : [];
 $hijoSeleccionado = null;
 $menus = [];
+$descuentosPorColegioNivel = [];
+
+if (!empty($hijos)) {
+    $colegioIds = [];
+    $niveles = [];
+    foreach ($hijos as $hijo) {
+        $colegioId = isset($hijo['Colegio_Id']) ? (int)$hijo['Colegio_Id'] : 0;
+        $nivel = $hijo['Nivel_Educativo'] ?? '';
+        if ($colegioId > 0) {
+            $colegioIds[] = $colegioId;
+        }
+        if ($nivel !== '') {
+            $niveles[] = $nivel;
+        }
+    }
+    $colegioIds = array_values(array_unique($colegioIds));
+    $niveles = array_values(array_unique($niveles));
+    $descuentos = $model->obtenerDescuentosActivos($colegioIds, $niveles);
+    foreach ($descuentos as $item) {
+        $colegioId = isset($item['Colegio_Id']) ? (int)$item['Colegio_Id'] : 0;
+        $nivel = $item['Nivel_Educativo'] ?? '';
+        if ($colegioId <= 0 || $nivel === '') {
+            continue;
+        }
+        if (!isset($descuentosPorColegioNivel[$colegioId])) {
+            $descuentosPorColegioNivel[$colegioId] = [];
+        }
+        if (!isset($descuentosPorColegioNivel[$colegioId][$nivel])) {
+            $descuentosPorColegioNivel[$colegioId][$nivel] = $item;
+            continue;
+        }
+        $actual = $descuentosPorColegioNivel[$colegioId][$nivel];
+        $nuevoPorcentaje = isset($item['Porcentaje']) ? (float)$item['Porcentaje'] : 0.0;
+        $actualPorcentaje = isset($actual['Porcentaje']) ? (float)$actual['Porcentaje'] : 0.0;
+        if ($nuevoPorcentaje > $actualPorcentaje) {
+            $descuentosPorColegioNivel[$colegioId][$nivel] = $item;
+        }
+    }
+}
 
 if ($usuarioId && $hijoSeleccionadoId) {
     $hijoSeleccionado = $model->obtenerDetalleHijoPorUsuario($usuarioId, $hijoSeleccionadoId);

@@ -12,7 +12,7 @@ class PapaMenuModel
 
     public function obtenerHijosPorUsuario($usuarioId)
     {
-        $sql = "SELECT h.Id, h.Nombre, h.Curso_Id, c.Nivel_Educativo
+        $sql = "SELECT h.Id, h.Nombre, h.Curso_Id, h.Colegio_Id, c.Nivel_Educativo
                 FROM Usuarios_Hijos uh
                 JOIN Hijos h ON h.Id = uh.Hijo_Id
                 LEFT JOIN Cursos c ON c.Id = h.Curso_Id
@@ -124,24 +124,17 @@ class PapaMenuModel
         $stmtHijo = $this->db->prepare("SELECT 1 FROM Usuarios_Hijos WHERE Usuario_Id = :usuarioId AND Hijo_Id = :hijoId");
         $stmtMenu = $this->db->prepare("SELECT Id, Fecha_entrega, Precio FROM Menú WHERE Id = :menuId AND Estado = 'En venta' AND (Fecha_hora_compra IS NULL OR Fecha_hora_compra >= NOW()) LIMIT 1");
         $stmtPref = $this->db->prepare("SELECT Preferencias_Alimenticias FROM Hijos WHERE Id = :hijoId LIMIT 1");
-        $stmtNivel = $this->db->prepare("SELECT c.Nivel_Educativo
+        $stmtHijoInfo = $this->db->prepare("SELECT h.Colegio_Id, c.Nivel_Educativo
             FROM Hijos h
             LEFT JOIN Cursos c ON c.Id = h.Curso_Id
             WHERE h.Id = :hijoId
             LIMIT 1");
-        $stmtDias = $this->db->prepare("SELECT COUNT(DISTINCT Fecha_entrega) AS con_fecha,
-            SUM(CASE WHEN Fecha_entrega IS NULL THEN 1 ELSE 0 END) AS sin_fecha
-            FROM Menú
-            WHERE Estado = 'En venta'
-            AND Nivel_Educativo = :nivel
-            AND (Fecha_hora_compra IS NULL OR Fecha_hora_compra >= NOW())");
         $stmtInsert = $this->db->prepare("INSERT INTO Pedidos_Comida (Fecha_entrega, Preferencias_alimenticias, Hijo_Id, Fecha_pedido, Estado, Menú_Id)
             VALUES (:fecha_entrega, :preferencias, :hijo_id, NOW(), 'Procesando', :menu_id)");
 
         $menuCache = [];
         $prefCache = [];
-        $nivelCache = [];
-        $diasCache = [];
+        $hijoInfoCache = [];
 
         foreach ($items as $item) {
             $stmtHijo->execute(['usuarioId' => $usuarioId, 'hijoId' => $item['hijoId']]);
@@ -176,34 +169,74 @@ class PapaMenuModel
         }
 
         $seleccionesPorHijo = [];
+        $seleccionesPorHijoFecha = [];
         $totalesPorHijo = [];
         foreach ($items as $item) {
             $menuData = $menuCache[$item['menuId']];
             $seleccionesPorHijo[$item['hijoId']] = ($seleccionesPorHijo[$item['hijoId']] ?? 0) + 1;
             $totalesPorHijo[$item['hijoId']] = ($totalesPorHijo[$item['hijoId']] ?? 0.0)
                 + ($menuData['Precio'] !== null ? (float)$menuData['Precio'] : 0.0);
+            $fechaEntrega = $menuData['Fecha_entrega'] ?? null;
+            if ($fechaEntrega) {
+                if (!isset($seleccionesPorHijoFecha[$item['hijoId']])) {
+                    $seleccionesPorHijoFecha[$item['hijoId']] = [];
+                }
+                $seleccionesPorHijoFecha[$item['hijoId']][$fechaEntrega] = ($seleccionesPorHijoFecha[$item['hijoId']][$fechaEntrega] ?? 0) + 1;
+            }
         }
 
+        $colegioIds = [];
+        $niveles = [];
         foreach ($totalesPorHijo as $hijoId => $totalHijo) {
-            if (!isset($nivelCache[$hijoId])) {
-                $stmtNivel->execute(['hijoId' => $hijoId]);
-                $nivelCache[$hijoId] = $stmtNivel->fetchColumn() ?: null;
+            if (!isset($hijoInfoCache[$hijoId])) {
+                $stmtHijoInfo->execute(['hijoId' => $hijoId]);
+                $hijoInfoCache[$hijoId] = $stmtHijoInfo->fetch(PDO::FETCH_ASSOC) ?: [];
             }
-            $nivel = $nivelCache[$hijoId];
-            if (!$nivel) {
+            $colegioId = isset($hijoInfoCache[$hijoId]['Colegio_Id']) ? (int)$hijoInfoCache[$hijoId]['Colegio_Id'] : 0;
+            $nivel = $hijoInfoCache[$hijoId]['Nivel_Educativo'] ?? null;
+            if ($colegioId > 0) {
+                $colegioIds[] = $colegioId;
+            }
+            if ($nivel) {
+                $niveles[] = $nivel;
+            }
+        }
+        $colegioIds = array_values(array_unique($colegioIds));
+        $niveles = array_values(array_unique($niveles));
+        $descuentosActivos = $this->obtenerDescuentosActivos($colegioIds, $niveles);
+        $descuentosMap = $this->mapearDescuentos($descuentosActivos);
+
+        foreach ($totalesPorHijo as $hijoId => $totalHijo) {
+            $info = $hijoInfoCache[$hijoId] ?? [];
+            $colegioId = isset($info['Colegio_Id']) ? (int)$info['Colegio_Id'] : 0;
+            $nivel = $info['Nivel_Educativo'] ?? '';
+            if ($colegioId <= 0 || $nivel === '') {
                 continue;
             }
-            if (!isset($diasCache[$nivel])) {
-                $stmtDias->execute(['nivel' => $nivel]);
-                $row = $stmtDias->fetch(PDO::FETCH_ASSOC) ?: ['con_fecha' => 0, 'sin_fecha' => 0];
-                $conFecha = (int)($row['con_fecha'] ?? 0);
-                $sinFecha = (int)($row['sin_fecha'] ?? 0);
-                $diasCache[$nivel] = $conFecha + ($sinFecha > 0 ? 1 : 0);
+            $promo = $descuentosMap[$colegioId][$nivel] ?? null;
+            if (!$promo) {
+                continue;
             }
-            $requiredDays = (int)($diasCache[$nivel] ?? 0);
-            $seleccionados = (int)($seleccionesPorHijo[$hijoId] ?? 0);
-            if ($requiredDays > 0 && $seleccionados === $requiredDays) {
-                $descuento += $totalHijo * 0.1;
+            $porcentaje = isset($promo['Porcentaje']) ? (float)$promo['Porcentaje'] : 0.0;
+            $minPorDia = isset($promo['Viandas_Por_Dia_Min']) ? (int)$promo['Viandas_Por_Dia_Min'] : 0;
+            if ($porcentaje <= 0 || $minPorDia <= 0) {
+                continue;
+            }
+            $diasObligatorios = $this->parseDiasObligatorios($promo['Dias_Obligatorios'] ?? '');
+            if (empty($diasObligatorios)) {
+                continue;
+            }
+            $seleccionesFecha = $seleccionesPorHijoFecha[$hijoId] ?? [];
+            $cumple = true;
+            foreach ($diasObligatorios as $dia) {
+                $cantidad = (int)($seleccionesFecha[$dia] ?? 0);
+                if ($cantidad < $minPorDia) {
+                    $cumple = false;
+                    break;
+                }
+            }
+            if ($cumple) {
+                $descuento += $totalHijo * ($porcentaje / 100);
             }
         }
 
@@ -273,5 +306,72 @@ class PapaMenuModel
             'descuento' => $descuento,
             'total_final' => $totalFinal
         ];
+    }
+
+    public function obtenerDescuentosActivos(array $colegioIds, array $niveles)
+    {
+        if (empty($colegioIds) || empty($niveles)) {
+            return [];
+        }
+
+        $placeholdersColegios = implode(',', array_fill(0, count($colegioIds), '?'));
+        $placeholdersNiveles = implode(',', array_fill(0, count($niveles), '?'));
+
+        $sql = "SELECT Id, Colegio_Id, Nivel_Educativo, Porcentaje, Viandas_Por_Dia_Min,
+                       Vigencia_Desde, Vigencia_Hasta, Dias_Obligatorios, Terminos
+                FROM descuentos_colegios
+                WHERE Estado = 'activo'
+                  AND Colegio_Id IN ($placeholdersColegios)
+                  AND Nivel_Educativo IN ($placeholdersNiveles)
+                  AND (Vigencia_Desde IS NULL OR Vigencia_Desde <= CURDATE())
+                  AND (Vigencia_Hasta IS NULL OR Vigencia_Hasta >= NOW())
+                ORDER BY Id DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(array_merge($colegioIds, $niveles));
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function mapearDescuentos(array $items)
+    {
+        $map = [];
+        foreach ($items as $item) {
+            $colegioId = isset($item['Colegio_Id']) ? (int)$item['Colegio_Id'] : 0;
+            $nivel = $item['Nivel_Educativo'] ?? '';
+            if ($colegioId <= 0 || $nivel === '') {
+                continue;
+            }
+            if (!isset($map[$colegioId])) {
+                $map[$colegioId] = [];
+            }
+            if (!isset($map[$colegioId][$nivel])) {
+                $map[$colegioId][$nivel] = $item;
+                continue;
+            }
+            $actual = $map[$colegioId][$nivel];
+            $nuevoPorcentaje = isset($item['Porcentaje']) ? (float)$item['Porcentaje'] : 0.0;
+            $actualPorcentaje = isset($actual['Porcentaje']) ? (float)$actual['Porcentaje'] : 0.0;
+            if ($nuevoPorcentaje > $actualPorcentaje) {
+                $map[$colegioId][$nivel] = $item;
+            }
+        }
+        return $map;
+    }
+
+    private function parseDiasObligatorios($diasRaw)
+    {
+        $diasRaw = trim((string)$diasRaw);
+        if ($diasRaw === '') {
+            return [];
+        }
+        $parts = preg_split('/\s*,\s*/', $diasRaw);
+        $dias = [];
+        foreach ($parts as $part) {
+            $fecha = trim($part);
+            if ($fecha !== '') {
+                $dias[] = $fecha;
+            }
+        }
+        return array_values(array_unique($dias));
     }
 }
