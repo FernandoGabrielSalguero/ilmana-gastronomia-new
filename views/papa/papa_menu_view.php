@@ -39,6 +39,7 @@ if (isset($fechasMap['sin_fecha'])) {
 <style>
     .vianda-table {
         width: 100%;
+        overflow: visible;
     }
 
     .vianda-table .input-icon {
@@ -47,6 +48,11 @@ if (isset($fechasMap['sin_fecha'])) {
 
     .vianda-table .input-icon select {
         width: 100%;
+    }
+
+    .vianda-table td {
+        overflow: visible;
+        position: relative;
     }
 
     .vianda-selected-row {
@@ -139,6 +145,7 @@ if (isset($fechasMap['sin_fecha'])) {
 
     .vianda-dropdown {
         position: relative;
+        z-index: 20;
     }
 
     .vianda-dropdown summary {
@@ -181,7 +188,7 @@ if (isset($fechasMap['sin_fecha'])) {
         border-radius: 10px;
         padding: 8px;
         box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
-        z-index: 5;
+        z-index: 50;
     }
 
     .vianda-option {
