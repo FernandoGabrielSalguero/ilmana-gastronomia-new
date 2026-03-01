@@ -1106,7 +1106,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                             totalHijo
                         });
                         if (promoPercent > 0 && tiempo) {
-                            const mensaje = `Tenes ${tiempo} tiempo para aprovechar la promo del ${promoPercent}%`;
+                            const mensaje = `Promo ${promoPercent}% · ${tiempo}`;
                             if (texto) {
                                 texto.textContent = mensaje;
                             } else {

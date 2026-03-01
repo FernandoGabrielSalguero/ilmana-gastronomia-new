@@ -84,10 +84,14 @@ if (isset($fechasMap['sin_fecha'])) {
 
     .vianda-descuento-leyenda {
         color: #dc2626;
-        font-size: 12px;
+        font-size: 11px;
         margin-top: 4px;
         font-weight: 600;
         display: none;
+        max-width: 170px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .vianda-descuento-leyenda.ok {
