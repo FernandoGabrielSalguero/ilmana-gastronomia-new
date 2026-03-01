@@ -496,15 +496,21 @@ $formatDateTime = function ($value) {
             <p>Configura promociones por cantidad de viandas, nivel educativo y días obligatorios.</p>
             <form class="form-modern" id="descuentosForm">
                 <div class="form-grid grid-4">
-                    <div class="input-group">
-                        <label for="descuento_nivel">Nivel educativo</label>
-                        <div class="input-icon input-icon-globe">
-                            <select id="descuento_nivel" name="nivel_educativo" required>
-                                <option value="">Seleccionar</option>
-                                <option value="Inicial">Inicial</option>
-                                <option value="Primaria">Primaria</option>
-                                <option value="Secundaria">Secundaria</option>
-                            </select>
+                    <div class="input-group" style="grid-column: span 4;">
+                        <label>Nivel educativo</label>
+                        <div class="chip-options">
+                            <label class="chip-option">
+                                <input type="checkbox" name="nivel_educativo[]" value="Inicial" />
+                                <span>Inicial</span>
+                            </label>
+                            <label class="chip-option">
+                                <input type="checkbox" name="nivel_educativo[]" value="Primaria" />
+                                <span>Primaria</span>
+                            </label>
+                            <label class="chip-option">
+                                <input type="checkbox" name="nivel_educativo[]" value="Secundaria" />
+                                <span>Secundaria</span>
+                            </label>
                         </div>
                     </div>
 
@@ -581,6 +587,34 @@ $formatDateTime = function ($value) {
                     <button class="btn btn-cancelar" type="button" onclick="closeDescuentosModal()">Cerrar</button>
                 </div>
             </form>
+
+            <div class="table-section" style="margin-top: 20px;">
+                <div class="card-header">
+                    <h4 class="card-title">Promos realizadas</h4>
+                </div>
+                <div class="tabla-wrapper">
+                    <table class="data-table" id="descuentosTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Niveles</th>
+                                <th>% Desc.</th>
+                                <th>Viandas/día</th>
+                                <th>Viandas/sem</th>
+                                <th>Rango fechas</th>
+                                <th>Compra hasta</th>
+                                <th>Días oblig.</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="descuentosTableBody">
+                            <tr>
+                                <td colspan="9">Sin promociones cargadas.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -915,6 +949,5 @@ $formatDateTime = function ($value) {
 </body>
 
 </html>
-
 
 
