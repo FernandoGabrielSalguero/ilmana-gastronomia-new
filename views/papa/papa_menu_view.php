@@ -145,6 +145,34 @@ if (isset($fechasMap['sin_fecha'])) {
                         $promoDias = $promo['Dias_Obligatorios'] ?? '';
                         $promoTerminos = $promo['Terminos'] ?? '';
                         $promoHasta = $promo['Vigencia_Hasta'] ?? '';
+                        $promoRestante = '';
+                        if ($promoHasta) {
+                            try {
+                                $ahora = new DateTime('now');
+                                $hasta = new DateTime($promoHasta);
+                                if ($hasta > $ahora) {
+                                    $diff = $ahora->diff($hasta);
+                                    $dias = (int)$diff->days;
+                                    $horas = (int)$diff->h;
+                                    $minutos = (int)$diff->i;
+                                    if ($dias > 0) {
+                                        $promoRestante = $dias . ' dia' . ($dias === 1 ? '' : 's');
+                                        if ($horas > 0) {
+                                            $promoRestante .= ' y ' . $horas . ' hs';
+                                        }
+                                    } elseif ($horas > 0) {
+                                        $promoRestante = $horas . ' hs';
+                                        if ($minutos > 0) {
+                                            $promoRestante .= ' y ' . $minutos . ' min';
+                                        }
+                                    } else {
+                                        $promoRestante = max(1, $minutos) . ' min';
+                                    }
+                                }
+                            } catch (Exception $e) {
+                                $promoRestante = '';
+                            }
+                        }
                         ?>
                         <tr class="<?= $esSeleccionado ? 'vianda-selected-row' : '' ?>"
                             data-required-days="<?= (int) $diasDisponibles ?>"
@@ -152,7 +180,8 @@ if (isset($fechasMap['sin_fecha'])) {
                             data-promo-min="<?= htmlspecialchars((string) $promoMin) ?>"
                             data-promo-days="<?= htmlspecialchars((string) $promoDias) ?>"
                             data-promo-terminos="<?= htmlspecialchars((string) $promoTerminos) ?>"
-                            data-promo-hasta="<?= htmlspecialchars((string) $promoHasta) ?>">
+                            data-promo-hasta="<?= htmlspecialchars((string) $promoHasta) ?>"
+                            data-promo-restante="<?= htmlspecialchars((string) $promoRestante) ?>">
                             <td>
                                 <div><?= htmlspecialchars($hijo['Nombre']) ?></div>
                                 <div class="vianda-descuento-leyenda" data-vianda-leyenda>

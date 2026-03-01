@@ -1063,6 +1063,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                     const promoDays = promoDaysRaw.split(',').map((value) => value.trim()).filter(Boolean);
                     const promoTerminos = fila.dataset.promoTerminos || '';
                     const promoHasta = fila.dataset.promoHasta || '';
+                    const promoRestante = fila.dataset.promoRestante || '';
                     let seleccionados = 0;
                     let totalHijo = 0;
                     const seleccionPorDia = {};
@@ -1091,11 +1092,9 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                     if (leyenda) {
                         const texto = leyenda.querySelector('.leyenda-text');
                         const icono = leyenda.querySelector('.leyenda-icon');
-                        const tiempo = formatearTiempoRestante(promoHasta);
+                        const tiempo = formatearTiempoRestante(promoHasta) || promoRestante;
                         if (promoPercent > 0 && tiempo) {
-                            const mensaje = tiempo
-                                ? `Tenes ${tiempo} tiempo para aprovechar la promo del ${promoPercent}%`
-                                : `Aprovecha la promo del ${promoPercent}%`;
+                            const mensaje = `Tenes ${tiempo} tiempo para aprovechar la promo del ${promoPercent}%`;
                             if (texto) {
                                 texto.textContent = mensaje;
                             } else {
