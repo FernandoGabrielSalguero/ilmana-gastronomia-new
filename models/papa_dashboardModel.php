@@ -220,6 +220,9 @@ class PapaDashboardModel
                 m.Nombre AS Menu,
                 pc.Fecha_entrega,
                 pc.Estado,
+                pc.Precio_Sin_Promo,
+                pc.Precio_Con_Promo,
+                pc.Costo_Real_Vianda,
                 m.Fecha_hora_cancelacion,
                 CASE
                     WHEN pc.Estado = 'Procesando'

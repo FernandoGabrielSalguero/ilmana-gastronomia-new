@@ -405,6 +405,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                         <th class="max-150">Alumno</th>
                                         <th class="max-150">Manú</th>
                                         <th>Fecha de entrega</th>
+                                        <th>Costo vianda</th>
                                         <th>Estado</th>
                                     </tr>
                                 </thead>
@@ -423,6 +424,11 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                                 <td class="max-150 breakable"><?= htmlspecialchars($pedido['Alumno']) ?></td>
                                                 <td class="max-150 breakable"><?= htmlspecialchars($pedido['Menu']) ?></td>
                                                 <td><?= $pedido['Fecha_entrega'] ?></td>
+                                                <td class="breakable">
+                                                    <div>Sin promo: <?= $pedido['Precio_Sin_Promo'] !== null ? '$' . number_format((float) $pedido['Precio_Sin_Promo'], 2, ',', '.') : '—' ?></div>
+                                                    <div>Con promo: <?= $pedido['Precio_Con_Promo'] !== null ? '$' . number_format((float) $pedido['Precio_Con_Promo'], 2, ',', '.') : '—' ?></div>
+                                                    <div>Costo real: <?= $pedido['Costo_Real_Vianda'] !== null ? '$' . number_format((float) $pedido['Costo_Real_Vianda'], 2, ',', '.') : '—' ?></div>
+                                                </td>
                                                 <td>
                                                     <span class="badge <?= $pedido['Estado'] === 'Procesando' ? 'success' : 'danger' ?>">
                                                         <?= $pedido['Estado'] ?>
@@ -432,7 +438,7 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                         <?php endforeach; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="6">No hay pedidos de comida.</td>
+                                            <td colspan="7">No hay pedidos de comida.</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>

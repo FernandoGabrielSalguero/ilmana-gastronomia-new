@@ -127,6 +127,11 @@ foreach ($pedidosComida as $pedido): ?>
         <td><?= htmlspecialchars($pedido['Menu']) ?></td>
         <td><?= $pedido['Fecha_entrega'] ?></td>
         <td>
+            <div>Sin promo: <?= $pedido['Precio_Sin_Promo'] !== null ? '$' . number_format((float) $pedido['Precio_Sin_Promo'], 2, ',', '.') : '—' ?></div>
+            <div>Con promo: <?= $pedido['Precio_Con_Promo'] !== null ? '$' . number_format((float) $pedido['Precio_Con_Promo'], 2, ',', '.') : '—' ?></div>
+            <div>Costo real: <?= $pedido['Costo_Real_Vianda'] !== null ? '$' . number_format((float) $pedido['Costo_Real_Vianda'], 2, ',', '.') : '—' ?></div>
+        </td>
+        <td>
             <span class="badge <?= $pedido['Estado'] === 'Procesando' ? 'success' : 'danger' ?>">
                 <?= $pedido['Estado'] ?>
             </span>
@@ -166,7 +171,7 @@ foreach ($pedidosComida as $pedido): ?>
     $tablaSaldo = ob_get_clean();
 
     echo json_encode([
-        'comida' => $tablaComida ?: '<tr><td colspan="6">No hay pedidos de comida.</td></tr>',
+        'comida' => $tablaComida ?: '<tr><td colspan="7">No hay pedidos de comida.</td></tr>',
         'saldo' => $tablaSaldo ?: '<tr><td colspan="6">No hay pedidos de saldo.</td></tr>',
         'saldoActual' => $saldoActual,
         'saldoPendiente' => $saldoPendiente
