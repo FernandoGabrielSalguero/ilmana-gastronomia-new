@@ -34,16 +34,33 @@ $respondJson = function (array $payload) {
     exit;
 };
 
-if ($action === 'list' && $isAjax) {
-    $items = $model->obtenerColegios();
+if ($action === 'list_colegios' && $isAjax) {
+    $items = $model->obtenerColegiosConRepresentante();
     $respondJson([
         'ok' => true,
         'items' => $items
     ]);
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'crear') {
+if ($action === 'list_cursos' && $isAjax) {
+    $items = $model->obtenerCursos();
+    $respondJson([
+        'ok' => true,
+        'items' => $items
+    ]);
+}
+
+if ($action === 'list_representantes' && $isAjax) {
+    $items = $model->obtenerRepresentantes();
+    $respondJson([
+        'ok' => true,
+        'items' => $items
+    ]);
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'crear_colegio') {
     $nombre = trim($_POST['nombre'] ?? '');
+    $direccion = trim($_POST['direccion'] ?? '');
 
     if ($nombre === '') {
         $errores[] = 'El nombre es obligatorio.';
@@ -51,7 +68,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'crear') {
 
     if (empty($errores)) {
         $resultado = $model->crearColegio([
-            'nombre' => $nombre
+            'nombre' => $nombre,
+            'direccion' => $direccion !== '' ? $direccion : null
         ]);
 
         if ($resultado['ok']) {
@@ -70,4 +88,96 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'crear') {
     }
 }
 
-$colegios = $model->obtenerColegios();
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'crear_curso') {
+    $nombre = trim($_POST['nombre'] ?? '');
+    $colegioIdInput = $_POST['colegio_id'] ?? '';
+    $nivel = $_POST['nivel_educativo'] ?? '';
+
+    if ($nombre === '') {
+        $errores[] = 'El nombre del curso es obligatorio.';
+    }
+
+    $colegioId = null;
+    if ($colegioIdInput === '' || !is_numeric($colegioIdInput)) {
+        $errores[] = 'Selecciona un colegio valido.';
+    } else {
+        $colegioId = (int) $colegioIdInput;
+        if ($colegioId <= 0) {
+            $errores[] = 'Selecciona un colegio valido.';
+        }
+    }
+
+    $nivelesValidos = ['Inicial', 'Primaria', 'Secundaria', 'Sin Curso Asignado'];
+    if ($nivel === '' || !in_array($nivel, $nivelesValidos, true)) {
+        $errores[] = 'Selecciona un nivel educativo valido.';
+    }
+
+    if (empty($errores)) {
+        $resultado = $model->crearCurso([
+            'nombre' => $nombre,
+            'colegio_id' => $colegioId,
+            'nivel_educativo' => $nivel
+        ]);
+
+        if ($resultado['ok']) {
+            $mensaje = $resultado['mensaje'];
+        } else {
+            $errores[] = $resultado['mensaje'];
+        }
+    }
+
+    if ($isAjax) {
+        $respondJson([
+            'ok' => empty($errores),
+            'mensaje' => $mensaje,
+            'errores' => $errores
+        ]);
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'asignar_representante') {
+    $colegioIdInput = $_POST['colegio_id'] ?? '';
+    $representanteIdInput = $_POST['representante_id'] ?? '';
+
+    $colegioId = null;
+    if ($colegioIdInput === '' || !is_numeric($colegioIdInput)) {
+        $errores[] = 'Selecciona un colegio valido.';
+    } else {
+        $colegioId = (int) $colegioIdInput;
+        if ($colegioId <= 0) {
+            $errores[] = 'Selecciona un colegio valido.';
+        }
+    }
+
+    $representanteId = null;
+    if ($representanteIdInput === '' || !is_numeric($representanteIdInput)) {
+        $errores[] = 'Selecciona un representante valido.';
+    } else {
+        $representanteId = (int) $representanteIdInput;
+        if ($representanteId <= 0) {
+            $errores[] = 'Selecciona un representante valido.';
+        }
+    }
+
+    if (empty($errores)) {
+        $resultado = $model->asignarRepresentante($colegioId, $representanteId);
+        if ($resultado['ok']) {
+            $mensaje = $resultado['mensaje'];
+        } else {
+            $errores[] = $resultado['mensaje'];
+        }
+    }
+
+    if ($isAjax) {
+        $respondJson([
+            'ok' => empty($errores),
+            'mensaje' => $mensaje,
+            'errores' => $errores
+        ]);
+    }
+}
+
+$colegios = $model->obtenerColegiosConRepresentante();
+$cursos = $model->obtenerCursos();
+$colegiosSelect = $model->obtenerColegios();
+$representantes = $model->obtenerRepresentantes();
