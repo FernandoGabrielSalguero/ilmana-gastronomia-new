@@ -163,6 +163,12 @@ $formatDateTime = function ($value) {
             width: 80%;
             max-width: 1200px;
         }
+
+        /* Ajustar tamaño del modal de descuentos (modificar aquí) */
+        #modal-descuentos .modal-content {
+            width: 90%;
+            max-width: 1100px;
+        }
     </style>
 </head>
 
@@ -566,10 +572,6 @@ $formatDateTime = function ($value) {
                                 <input type="checkbox" name="dias_obligatorios[]" value="Jueves" />
                                 <span>Jueves</span>
                             </label>
-                            <label class="chip-option">
-                                <input type="checkbox" name="dias_obligatorios[]" value="Viernes" />
-                                <span>Viernes</span>
-                            </label>
                         </div>
                     </div>
                 </div>
@@ -913,7 +915,6 @@ $formatDateTime = function ($value) {
 </body>
 
 </html>
-
 
 
 
