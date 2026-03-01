@@ -103,7 +103,52 @@ if (isset($fechasMap['sin_fecha'])) {
         vertical-align: middle;
         margin-left: 6px;
         cursor: pointer;
-        color: #0f172a;
+        color: #2563eb;
+    }
+
+    .vianda-descuento-leyenda .leyenda-tooltip-wrap {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .vianda-descuento-leyenda .leyenda-tooltip {
+        position: absolute;
+        left: 50%;
+        top: 26px;
+        transform: translateX(-50%);
+        min-width: 180px;
+        max-width: 260px;
+        background: #0f172a;
+        color: #f8fafc;
+        padding: 8px 10px;
+        border-radius: 10px;
+        font-size: 12px;
+        line-height: 1.3;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.25);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.15s ease, transform 0.15s ease;
+        transform-origin: top center;
+        z-index: 10;
+        pointer-events: none;
+    }
+
+    .vianda-descuento-leyenda .leyenda-tooltip::after {
+        content: '';
+        position: absolute;
+        top: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 0 6px 6px 6px;
+        border-style: solid;
+        border-color: transparent transparent #0f172a transparent;
+    }
+
+    .vianda-descuento-leyenda .leyenda-tooltip-wrap.tooltip-open .leyenda-tooltip {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(2px);
     }
 </style>
 
@@ -190,7 +235,10 @@ if (isset($fechasMap['sin_fecha'])) {
                                 <div><?= htmlspecialchars($hijo['Nombre']) ?></div>
                                 <div class="vianda-descuento-leyenda" data-vianda-leyenda>
                                     <span class="leyenda-text"></span>
-                                    <span class="material-icons leyenda-icon" title="" aria-label="Ver terminos">help_outline</span>
+                                    <span class="leyenda-tooltip-wrap">
+                                        <span class="material-icons leyenda-icon" title="" aria-label="Ver terminos">help_outline</span>
+                                        <span class="leyenda-tooltip" role="tooltip"></span>
+                                    </span>
                                 </div>
                             </td>
                             <?php foreach ($fechasOrdenadas as $fechaKey => $fechaLabel): ?>

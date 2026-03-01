@@ -1117,6 +1117,10 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                                 icono.setAttribute('title', tooltip);
                                 icono.setAttribute('data-tooltip', tooltip);
                                 icono.style.display = promoTerminos ? 'inline-block' : 'none';
+                                const tooltipEl = icono.closest('.leyenda-tooltip-wrap')?.querySelector('.leyenda-tooltip');
+                                if (tooltipEl) {
+                                    tooltipEl.textContent = tooltip;
+                                }
                             }
                             leyenda.classList.toggle('ok', false);
                             leyenda.style.display = 'block';
@@ -1129,6 +1133,10 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                             if (icono) {
                                 icono.title = '';
                                 icono.style.display = 'none';
+                                const tooltipEl = icono.closest('.leyenda-tooltip-wrap')?.querySelector('.leyenda-tooltip');
+                                if (tooltipEl) {
+                                    tooltipEl.textContent = '';
+                                }
                             }
                             leyenda.style.display = 'none';
                         }
@@ -1171,6 +1179,26 @@ $saldo = $_SESSION['saldo'] ?? '0.00';
                 if (event.target && event.target.matches('select[name^="menu_por_dia"]')) {
                     recalcularTotales();
                 }
+            });
+
+            form.addEventListener('click', (event) => {
+                const icon = event.target.closest('.leyenda-icon');
+                if (!icon) return;
+                const wrap = icon.closest('.leyenda-tooltip-wrap');
+                if (!wrap) return;
+                const tooltipEl = wrap.querySelector('.leyenda-tooltip');
+                if (tooltipEl) {
+                    const texto = icon.getAttribute('data-tooltip') || icon.getAttribute('title') || '';
+                    tooltipEl.textContent = texto;
+                }
+                wrap.classList.toggle('tooltip-open');
+            });
+
+            document.addEventListener('click', (event) => {
+                if (event.target.closest('.leyenda-tooltip-wrap')) return;
+                form.querySelectorAll('.leyenda-tooltip-wrap.tooltip-open').forEach((wrap) => {
+                    wrap.classList.remove('tooltip-open');
+                });
             });
 
             form.addEventListener('submit', (event) => {
