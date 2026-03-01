@@ -457,9 +457,13 @@ $formatDateTime = function ($value) {
                         <div class="input-icon input-icon-globe">
                             <select id="descuento_colegio" name="colegio_id" required>
                                 <option value="">Seleccionar</option>
-                                <?php foreach ($colegios ?? [] as $colegio): ?>
-                                    <option value="<?= (int)$colegio['Id'] ?>"><?= htmlspecialchars($colegio['Nombre'] ?? '') ?></option>
-                                <?php endforeach; ?>
+                                <?php if (empty($colegios)): ?>
+                                    <option value="" disabled>No hay colegios cargados</option>
+                                <?php else: ?>
+                                    <?php foreach ($colegios as $colegio): ?>
+                                        <option value="<?= (int)$colegio['Id'] ?>"><?= htmlspecialchars($colegio['Nombre'] ?? '') ?></option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </select>
                         </div>
                     </div>
@@ -541,6 +545,17 @@ $formatDateTime = function ($value) {
             <form class="form-modern" id="descuentosForm" method="post">
                 <input type="hidden" id="descuento_id" name="id" />
                 <div class="form-grid grid-4">
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label for="descuento_colegio">Colegio</label>
+                        <div class="input-icon input-icon-globe">
+                            <select id="descuento_colegio" name="colegio_id" required>
+                                <option value="">Seleccionar</option>
+                                <?php foreach ($colegios ?? [] as $colegio): ?>
+                                    <option value="<?= (int)$colegio['Id'] ?>"><?= htmlspecialchars($colegio['Nombre'] ?? '') ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
                     <div class="input-group">
                         <label for="descuento_nivel">Nivel educativo</label>
                         <div class="input-icon input-icon-globe">
