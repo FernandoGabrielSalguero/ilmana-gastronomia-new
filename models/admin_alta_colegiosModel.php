@@ -30,8 +30,12 @@ class AdminAltaColegiosModel
         $sql = "SELECT c.Id,
                        c.Nombre,
                        c.`Dirección` AS Direccion,
-                       GROUP_CONCAT(DISTINCT u.Nombre ORDER BY u.Nombre SEPARATOR '\n') AS Representantes_Nombres,
-                       GROUP_CONCAT(DISTINCT CONCAT_WS(' | ', u.Nombre, u.Usuario, u.Correo)
+                       GROUP_CONCAT(DISTINCT CONCAT(u.Nombre, ' (ID: ', u.Id, ')')
+                                    ORDER BY u.Nombre SEPARATOR '\n') AS Representantes_Nombres,
+                       GROUP_CONCAT(DISTINCT CONCAT_WS(' | ',
+                                        CONCAT(u.Nombre, ' (ID: ', u.Id, ')'),
+                                        u.Usuario,
+                                        u.Correo)
                                     ORDER BY u.Nombre SEPARATOR '\n') AS Representantes_Detalle
                 FROM Colegios c
                 LEFT JOIN Representantes_Colegios rc ON rc.Colegio_Id = c.Id
