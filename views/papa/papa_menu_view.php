@@ -112,6 +112,26 @@ if (isset($fechasMap['sin_fecha'])) {
         vertical-align: middle;
     }
 
+    .vianda-descuento-leyenda .vianda-terminos {
+        display: none;
+        margin-top: 6px;
+        font-size: 12px;
+        color: #0f172a;
+        background: #e0f2fe;
+        border: 1px solid #bae6fd;
+        border-radius: 8px;
+        padding: 8px 10px;
+        line-height: 1.35;
+    }
+
+    .vianda-descuento-leyenda .vianda-terminos.is-open {
+        display: block;
+    }
+
+    .vianda-row-expanded td {
+        vertical-align: top;
+    }
+
     .vianda-descuento-leyenda .leyenda-tooltip-wrap {
         position: relative;
         display: inline-flex;
@@ -241,10 +261,8 @@ if (isset($fechasMap['sin_fecha'])) {
                                 <div><?= htmlspecialchars($hijo['Nombre']) ?></div>
                                 <div class="vianda-descuento-leyenda" data-vianda-leyenda>
                                     <span class="leyenda-text"></span>
-                                    <span class="leyenda-tooltip-wrap">
-                                        <span class="material-icons leyenda-icon" title="" aria-label="Ver terminos">help_outline</span>
-                                        <span class="leyenda-tooltip" role="tooltip"></span>
-                                    </span>
+                                    <span class="material-icons leyenda-icon" title="" aria-label="Ver terminos">help_outline</span>
+                                    <div class="vianda-terminos" data-vianda-terminos></div>
                                 </div>
                             </td>
                             <?php foreach ($fechasOrdenadas as $fechaKey => $fechaLabel): ?>
