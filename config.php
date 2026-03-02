@@ -37,6 +37,8 @@ try {
         getenv('DB_PASS')
     );
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // Asegura que NOW() en MySQL use hora local de Argentina.
+    $pdo->exec("SET time_zone = '-03:00'");
 } catch (PDOException $e) {
     die('Error de conexión: ' . $e->getMessage());
 }
