@@ -200,8 +200,8 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
             </div>
         </aside>
 
-            <!-- Spinner Global -->
-    <script src="../../views/partials/spinner-global.js"></script>
+        <!-- Spinner Global -->
+        <script src="../../views/partials/spinner-global.js"></script>
 
         <!-- MAIN -->
         <div class="main">
@@ -316,68 +316,68 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                         </div>
 
                         <div id="hijos-section">
-                        <div class="hijos-wrapper" id="hijos-container">
-                            <?php
-                            $mostrarHijos = $formData['rol'] === 'papas';
-                            if ($mostrarHijos && empty($hijosForm)) {
-                                $hijosForm[] = [
-                                    'nombre' => '',
-                                    'preferencias' => $preferenciaDefaultId ?? '',
-                                    'colegio_id' => '',
-                                    'curso_id' => ''
-                                ];
-                            }
-                            ?>
-                            <?php foreach ($hijosForm as $index => $hijo): ?>
-                                <div class="hijo-card" data-index="<?= (int) $index ?>">
-                                    <div class="hijo-header">
-                                        <p class="hijo-title">Hijo <?= (int) ($index + 1) ?></p>
-                                        <button type="button" class="btn btn-cancelar btn-small btn-remove-hijo">Quitar</button>
+                            <div class="hijos-wrapper" id="hijos-container">
+                                <?php
+                                $mostrarHijos = $formData['rol'] === 'papas';
+                                if ($mostrarHijos && empty($hijosForm)) {
+                                    $hijosForm[] = [
+                                        'nombre' => '',
+                                        'preferencias' => $preferenciaDefaultId ?? '',
+                                        'colegio_id' => '',
+                                        'curso_id' => ''
+                                    ];
+                                }
+                                ?>
+                                <?php foreach ($hijosForm as $index => $hijo): ?>
+                                    <div class="hijo-card" data-index="<?= (int) $index ?>">
+                                        <div class="hijo-header">
+                                            <p class="hijo-title">Hijo <?= (int) ($index + 1) ?></p>
+                                            <button type="button" class="btn btn-cancelar btn-small btn-remove-hijo">Quitar</button>
+                                        </div>
+                                        <div class="form-grid grid-4">
+                                            <div class="input-group">
+                                                <label>Nombre</label>
+                                                <div class="input-icon input-icon-name">
+                                                    <input type="text" name="hijos_nombre[]"
+                                                        value="<?= htmlspecialchars($hijo['nombre'] ?? '') ?>" />
+                                                </div>
+                                            </div>
+
+                                            <div class="input-group">
+                                                <label>Preferencias</label>
+                                                <div class="input-icon input-icon-comment">
+                                                    <select name="hijos_preferencias[]" class="hijo-preferencia" data-selected="<?= htmlspecialchars((string) ($hijo['preferencias'] ?? '')) ?>">
+                                                        <?= $preferenciaOptionsHtml ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="input-group">
+                                                <label>Colegio</label>
+                                                <div class="input-icon input-icon-globe">
+                                                    <select name="hijos_colegio[]" class="hijo-colegio" data-selected="<?= htmlspecialchars((string) ($hijo['colegio_id'] ?? '')) ?>">
+                                                        <?= $colegioOptionsHtml ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="input-group">
+                                                <label>Curso</label>
+                                                <div class="input-icon input-icon-globe">
+                                                    <select name="hijos_curso[]" class="hijo-curso" data-selected="<?= htmlspecialchars((string) ($hijo['curso_id'] ?? '')) ?>">
+                                                        <?= $cursoOptionsHtml ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="form-grid grid-4">
-                                        <div class="input-group">
-                                            <label>Nombre</label>
-                                            <div class="input-icon input-icon-name">
-                                                <input type="text" name="hijos_nombre[]"
-                                                    value="<?= htmlspecialchars($hijo['nombre'] ?? '') ?>" />
-                                            </div>
-                                        </div>
-
-                                        <div class="input-group">
-                                            <label>Preferencias</label>
-                                            <div class="input-icon input-icon-comment">
-                                                <select name="hijos_preferencias[]" class="hijo-preferencia" data-selected="<?= htmlspecialchars((string) ($hijo['preferencias'] ?? '')) ?>">
-                                                    <?= $preferenciaOptionsHtml ?>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div class="input-group">
-                                            <label>Colegio</label>
-                                            <div class="input-icon input-icon-globe">
-                                                <select name="hijos_colegio[]" class="hijo-colegio" data-selected="<?= htmlspecialchars((string) ($hijo['colegio_id'] ?? '')) ?>">
-                                                    <?= $colegioOptionsHtml ?>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div class="input-group">
-                                            <label>Curso</label>
-                                            <div class="input-icon input-icon-globe">
-                                                <select name="hijos_curso[]" class="hijo-curso" data-selected="<?= htmlspecialchars((string) ($hijo['curso_id'] ?? '')) ?>">
-                                                    <?= $cursoOptionsHtml ?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
+                                <?php endforeach; ?>
+                            </div>
+                            <br>
+                            <div class="form-buttons">
+                                <button type="button" class="btn btn-info" id="add-hijo">Agregar hijo</button>
+                            </div>
                         </div>
-                        <br>
-                        <div class="form-buttons">
-                            <button type="button" class="btn btn-info" id="add-hijo">Agregar hijo</button>
-                        </div>
-                    </div>
 
                         <div class="form-buttons">
                             <button class="btn btn-aceptar" type="submit">Guardar</button>
@@ -435,28 +435,28 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                                         $usuarioJson = htmlspecialchars(json_encode($usuarioPayload), ENT_QUOTES, 'UTF-8');
                                         $hijosJson = htmlspecialchars(json_encode($usuario['hijos'] ?? []), ENT_QUOTES, 'UTF-8');
                                         ?>
-                                    <tr data-usuario-id="<?= htmlspecialchars((string) ($usuario['Id'] ?? '')) ?>">
-                                        <td><?= htmlspecialchars((string) ($usuario['Id'] ?? '')) ?></td>
-                                        <td class="wrap-text"><?= $nombreWrapped !== '' ? $nombreWrapped : htmlspecialchars((string) ($usuario['Nombre'] ?? '')) ?></td>
-                                        <td class="wrap-text"><?= $usuarioWrapped !== '' ? $usuarioWrapped : htmlspecialchars((string) ($usuario['Usuario'] ?? '')) ?></td>
-                                        <td><?= htmlspecialchars((string) ($usuario['Telefono'] ?? '')) ?></td>
-                                        <td><?= htmlspecialchars((string) ($usuario['Correo'] ?? '')) ?></td>
-                                        <td><?= htmlspecialchars((string) ($usuario['Rol'] ?? '')) ?></td>
-                                        <td><?= htmlspecialchars($saldoTabla) ?></td>
-                                        <td><span class="badge <?= htmlspecialchars($estadoClass) ?>"><?= htmlspecialchars($estadoLabel) ?></span></td>
-                                        <td>
-                                            <div class="action-buttons">
-                                                <button type="button" class="action-btn action-toggle" data-usuario="<?= $usuarioJson ?>" aria-label="Cambiar estado">
-                                                    <span class="material-icons" style="color: <?= $estadoLabel === 'inactivo' ? '#dc2626' : '#16a34a'; ?>;">
-                                                        <?= $estadoLabel === 'inactivo' ? 'toggle_off' : 'toggle_on'; ?>
-                                                    </span>
-                                                </button>
-                                                <button type="button" class="action-btn action-edit" data-usuario="<?= $usuarioJson ?>" data-hijos="<?= $hijosJson ?>">
-                                                    <span class="material-icons" style="color: #2563eb;">edit</span>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                        <tr data-usuario-id="<?= htmlspecialchars((string) ($usuario['Id'] ?? '')) ?>">
+                                            <td><?= htmlspecialchars((string) ($usuario['Id'] ?? '')) ?></td>
+                                            <td class="wrap-text"><?= $nombreWrapped !== '' ? $nombreWrapped : htmlspecialchars((string) ($usuario['Nombre'] ?? '')) ?></td>
+                                            <td class="wrap-text"><?= $usuarioWrapped !== '' ? $usuarioWrapped : htmlspecialchars((string) ($usuario['Usuario'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars((string) ($usuario['Telefono'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars((string) ($usuario['Correo'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars((string) ($usuario['Rol'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars($saldoTabla) ?></td>
+                                            <td><span class="badge <?= htmlspecialchars($estadoClass) ?>"><?= htmlspecialchars($estadoLabel) ?></span></td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button type="button" class="action-btn action-toggle" data-usuario="<?= $usuarioJson ?>" aria-label="Cambiar estado">
+                                                        <span class="material-icons" style="color: <?= $estadoLabel === 'inactivo' ? '#dc2626' : '#16a34a'; ?>;">
+                                                            <?= $estadoLabel === 'inactivo' ? 'toggle_off' : 'toggle_on'; ?>
+                                                        </span>
+                                                    </button>
+                                                    <button type="button" class="action-btn action-edit" data-usuario="<?= $usuarioJson ?>" data-hijos="<?= $hijosJson ?>">
+                                                        <span class="material-icons" style="color: #2563eb;">edit</span>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>
@@ -552,93 +552,93 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
     </div>
 
     <script>
-        (function () {
-        const rolSelect = document.getElementById('rol');
-        const nombreInput = document.getElementById('nombre');
-        const usuarioInput = document.getElementById('usuario');
-        const telefonoInput = document.getElementById('telefono');
-        const telefonoDisplayInput = document.getElementById('telefono_display');
-        const hijosSection = document.getElementById('hijos-section');
-        const hijosContainer = document.getElementById('hijos-container');
-        const addHijoButton = document.getElementById('add-hijo');
+        (function() {
+            const rolSelect = document.getElementById('rol');
+            const nombreInput = document.getElementById('nombre');
+            const usuarioInput = document.getElementById('usuario');
+            const telefonoInput = document.getElementById('telefono');
+            const telefonoDisplayInput = document.getElementById('telefono_display');
+            const hijosSection = document.getElementById('hijos-section');
+            const hijosContainer = document.getElementById('hijos-container');
+            const addHijoButton = document.getElementById('add-hijo');
 
-        const colegioOptionsHtml = <?= json_encode($colegioOptionsHtml) ?>;
-        const cursoOptionsHtml = <?= json_encode($cursoOptionsHtml) ?>;
-        const preferenciaOptionsHtml = <?= json_encode($preferenciaOptionsHtml) ?>;
-        const defaultPreferenciaId = <?= json_encode($preferenciaDefaultId ?? '') ?>;
+            const colegioOptionsHtml = <?= json_encode($colegioOptionsHtml) ?>;
+            const cursoOptionsHtml = <?= json_encode($cursoOptionsHtml) ?>;
+            const preferenciaOptionsHtml = <?= json_encode($preferenciaOptionsHtml) ?>;
+            const defaultPreferenciaId = <?= json_encode($preferenciaDefaultId ?? '') ?>;
 
-        let autoUsuario = true;
-        let lastAutoUsuario = '';
+            let autoUsuario = true;
+            let lastAutoUsuario = '';
 
-        const toggleHijosSection = () => {
-            if (!hijosSection) return;
-            hijosSection.style.display = rolSelect && rolSelect.value === 'papas' ? 'block' : 'none';
-        };
+            const toggleHijosSection = () => {
+                if (!hijosSection) return;
+                hijosSection.style.display = rolSelect && rolSelect.value === 'papas' ? 'block' : 'none';
+            };
 
-        const syncCursoOptions = (select, colegioId) => {
-            if (!select) return;
-            const selectedValue = select.value;
-            Array.from(select.options).forEach((option) => {
-                if (!option.value) {
-                    option.hidden = false;
-                    return;
+            const syncCursoOptions = (select, colegioId) => {
+                if (!select) return;
+                const selectedValue = select.value;
+                Array.from(select.options).forEach((option) => {
+                    if (!option.value) {
+                        option.hidden = false;
+                        return;
+                    }
+                    const optionColegio = option.dataset.colegio || '';
+                    if (!colegioId || optionColegio === colegioId) {
+                        option.hidden = false;
+                    } else {
+                        option.hidden = true;
+                    }
+                });
+
+                if (selectedValue) {
+                    const selectedOption = Array.from(select.options).find((option) => option.value === selectedValue);
+                    if (selectedOption && selectedOption.hidden) {
+                        select.value = '';
+                    }
                 }
-                const optionColegio = option.dataset.colegio || '';
-                if (!colegioId || optionColegio === colegioId) {
-                    option.hidden = false;
-                } else {
-                    option.hidden = true;
-                }
-            });
+            };
 
-            if (selectedValue) {
-                const selectedOption = Array.from(select.options).find((option) => option.value === selectedValue);
-                if (selectedOption && selectedOption.hidden) {
-                    select.value = '';
-                }
-            }
-        };
+            const bindRow = (row) => {
+                if (!row) return;
+                const colegioSelect = row.querySelector('.hijo-colegio');
+                const cursoSelect = row.querySelector('.hijo-curso');
+                const removeButton = row.querySelector('.btn-remove-hijo');
 
-        const bindRow = (row) => {
-            if (!row) return;
-            const colegioSelect = row.querySelector('.hijo-colegio');
-            const cursoSelect = row.querySelector('.hijo-curso');
-            const removeButton = row.querySelector('.btn-remove-hijo');
-
-            if (colegioSelect && cursoSelect) {
-                if (colegioSelect.dataset.selected) {
-                    colegioSelect.value = colegioSelect.dataset.selected;
-                }
-                if (cursoSelect.dataset.selected) {
-                    cursoSelect.value = cursoSelect.dataset.selected;
-                }
-                syncCursoOptions(cursoSelect, colegioSelect.value);
-                colegioSelect.addEventListener('change', () => {
+                if (colegioSelect && cursoSelect) {
+                    if (colegioSelect.dataset.selected) {
+                        colegioSelect.value = colegioSelect.dataset.selected;
+                    }
+                    if (cursoSelect.dataset.selected) {
+                        cursoSelect.value = cursoSelect.dataset.selected;
+                    }
                     syncCursoOptions(cursoSelect, colegioSelect.value);
-                });
-            }
-
-            const preferenciaSelect = row.querySelector('.hijo-preferencia');
-            if (preferenciaSelect) {
-                if (preferenciaSelect.dataset.selected) {
-                    preferenciaSelect.value = preferenciaSelect.dataset.selected;
-                } else if (defaultPreferenciaId) {
-                    preferenciaSelect.value = defaultPreferenciaId;
+                    colegioSelect.addEventListener('change', () => {
+                        syncCursoOptions(cursoSelect, colegioSelect.value);
+                    });
                 }
-            }
 
-            if (removeButton) {
-                removeButton.addEventListener('click', () => {
-                    row.remove();
-                    updateHijoTitles();
-                });
-            }
-        };
+                const preferenciaSelect = row.querySelector('.hijo-preferencia');
+                if (preferenciaSelect) {
+                    if (preferenciaSelect.dataset.selected) {
+                        preferenciaSelect.value = preferenciaSelect.dataset.selected;
+                    } else if (defaultPreferenciaId) {
+                        preferenciaSelect.value = defaultPreferenciaId;
+                    }
+                }
 
-        const createHijoRow = () => {
-            const row = document.createElement('div');
-            row.className = 'hijo-card';
-            row.innerHTML = `
+                if (removeButton) {
+                    removeButton.addEventListener('click', () => {
+                        row.remove();
+                        updateHijoTitles();
+                    });
+                }
+            };
+
+            const createHijoRow = () => {
+                const row = document.createElement('div');
+                row.className = 'hijo-card';
+                row.innerHTML = `
                 <div class="hijo-header">
                     <p class="hijo-title">Hijo</p>
                     <button type="button" class="btn btn-cancelar btn-small btn-remove-hijo">Quitar</button>
@@ -670,294 +670,294 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                     </div>
                 </div>
             `;
-            return row;
-        };
+                return row;
+            };
 
-        const updateHijoTitles = () => {
-            if (!hijosContainer) return;
-            const rows = Array.from(hijosContainer.querySelectorAll('.hijo-card'));
-            rows.forEach((row, index) => {
-                const title = row.querySelector('.hijo-title');
-                if (title) {
-                    title.textContent = `Hijo ${index + 1}`;
+            const updateHijoTitles = () => {
+                if (!hijosContainer) return;
+                const rows = Array.from(hijosContainer.querySelectorAll('.hijo-card'));
+                rows.forEach((row, index) => {
+                    const title = row.querySelector('.hijo-title');
+                    if (title) {
+                        title.textContent = `Hijo ${index + 1}`;
+                    }
+                });
+                if (addHijoButton) {
+                    addHijoButton.disabled = rows.length >= 20;
                 }
-            });
-            if (addHijoButton) {
-                addHijoButton.disabled = rows.length >= 20;
+            };
+
+            const formatTelefono = (digits) => {
+                if (!digits) return '';
+                const clean = digits.replace(/\D+/g, '');
+                const parts = [];
+                parts.push(clean.slice(0, 3));
+                if (clean.length > 3) parts.push(clean.slice(3, 6));
+                if (clean.length > 6) parts.push(clean.slice(6, 10));
+                if (clean.length > 10) parts.push(clean.slice(10));
+                return parts.filter(Boolean).join('-');
+            };
+
+            const syncTelefono = () => {
+                if (!telefonoInput || !telefonoDisplayInput) return;
+                const digits = telefonoDisplayInput.value.replace(/\D+/g, '');
+                telefonoInput.value = digits;
+                telefonoDisplayInput.value = formatTelefono(digits);
+            };
+
+            if (telefonoDisplayInput) {
+                telefonoDisplayInput.addEventListener('input', syncTelefono);
             }
-        };
 
-        const formatTelefono = (digits) => {
-            if (!digits) return '';
-            const clean = digits.replace(/\D+/g, '');
-            const parts = [];
-            parts.push(clean.slice(0, 3));
-            if (clean.length > 3) parts.push(clean.slice(3, 6));
-            if (clean.length > 6) parts.push(clean.slice(6, 10));
-            if (clean.length > 10) parts.push(clean.slice(10));
-            return parts.filter(Boolean).join('-');
-        };
+            const usuarioForm = document.getElementById('usuarioForm');
+            if (usuarioForm) {
+                usuarioForm.addEventListener('submit', () => {
+                    syncTelefono();
+                });
+            }
 
-        const syncTelefono = () => {
-            if (!telefonoInput || !telefonoDisplayInput) return;
-            const digits = telefonoDisplayInput.value.replace(/\D+/g, '');
-            telefonoInput.value = digits;
-            telefonoDisplayInput.value = formatTelefono(digits);
-        };
+            if (nombreInput && usuarioInput) {
+                nombreInput.addEventListener('input', () => {
+                    if (autoUsuario) {
+                        usuarioInput.value = nombreInput.value;
+                        lastAutoUsuario = nombreInput.value;
+                    }
+                });
+                usuarioInput.addEventListener('input', () => {
+                    if (usuarioInput.value.trim() === '' || usuarioInput.value === nombreInput.value || usuarioInput.value === lastAutoUsuario) {
+                        autoUsuario = true;
+                    } else {
+                        autoUsuario = false;
+                    }
+                });
+            }
 
-        if (telefonoDisplayInput) {
-            telefonoDisplayInput.addEventListener('input', syncTelefono);
-        }
+            if (rolSelect) {
+                rolSelect.addEventListener('change', toggleHijosSection);
+            }
 
-        const usuarioForm = document.getElementById('usuarioForm');
-        if (usuarioForm) {
-            usuarioForm.addEventListener('submit', () => {
+            if (addHijoButton && hijosContainer) {
+                addHijoButton.addEventListener('click', () => {
+                    const row = createHijoRow();
+                    hijosContainer.appendChild(row);
+                    bindRow(row);
+                    updateHijoTitles();
+                });
+            }
+
+            if (hijosContainer) {
+                Array.from(hijosContainer.children).forEach((row) => {
+                    bindRow(row);
+                });
+            }
+
+            if (telefonoDisplayInput) {
                 syncTelefono();
-            });
-        }
+            }
 
-        if (nombreInput && usuarioInput) {
-            nombreInput.addEventListener('input', () => {
-                if (autoUsuario) {
-                    usuarioInput.value = nombreInput.value;
-                    lastAutoUsuario = nombreInput.value;
+            toggleHijosSection();
+            updateHijoTitles();
+
+            const editModal = document.getElementById('modal-editar');
+            const editForm = document.getElementById('editUsuarioForm');
+            const editIdInput = document.getElementById('edit_id');
+            const editNombreInput = document.getElementById('edit_nombre');
+            const editUsuarioInput = document.getElementById('edit_usuario');
+            const editContrasenaInput = document.getElementById('edit_contrasena');
+            const editTelefonoInput = document.getElementById('edit_telefono');
+            const editCorreoInput = document.getElementById('edit_correo');
+            const editSaldoInput = document.getElementById('edit_saldo');
+            const editRolSelect = document.getElementById('edit_rol');
+            const editHijosSection = document.getElementById('edit-hijos-section');
+            const editHijosContainer = document.getElementById('edit-hijos-container');
+            const editAddHijoButton = document.getElementById('edit-add-hijo');
+            const usuariosTableBody = document.getElementById('usuarios-table-body');
+            const feedbackContainer = document.getElementById('usuarios-feedback');
+            const usuariosSearchInput = document.getElementById('usuarios-search');
+
+            const toggleEditHijosSection = () => {
+                if (!editHijosSection) return;
+                editHijosSection.style.display = editRolSelect && editRolSelect.value === 'papas' ? 'block' : 'none';
+            };
+
+            const openAdminModal = (modal) => {
+                if (!modal) return;
+                modal.classList.remove('hidden');
+            };
+
+            const closeAdminModal = (modal) => {
+                if (!modal) return;
+                modal.classList.add('hidden');
+            };
+
+            document.querySelectorAll('[data-close-modal]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    closeAdminModal(editModal);
+                });
+            });
+
+            const parseJson = (raw) => {
+                if (!raw) return null;
+                try {
+                    return JSON.parse(raw);
+                } catch (error) {
+                    return null;
                 }
-            });
-            usuarioInput.addEventListener('input', () => {
-                if (usuarioInput.value.trim() === '' || usuarioInput.value === nombreInput.value || usuarioInput.value === lastAutoUsuario) {
-                    autoUsuario = true;
-                } else {
-                    autoUsuario = false;
+            };
+
+            const escapeHtml = (value) => {
+                if (value === null || value === undefined) return '';
+                return String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            };
+
+            const renderFeedback = (type, messages) => {
+                const messageArray = Array.isArray(messages) ? messages : [messages];
+                const messageText = messageArray.filter(Boolean).join(' ');
+
+                if (typeof window.showAlert === 'function' && messageText) {
+                    window.showAlert(type, messageText);
+                    return;
                 }
-            });
-        }
 
-        if (rolSelect) {
-            rolSelect.addEventListener('change', toggleHijosSection);
-        }
-
-        if (addHijoButton && hijosContainer) {
-            addHijoButton.addEventListener('click', () => {
-                const row = createHijoRow();
-                hijosContainer.appendChild(row);
-                bindRow(row);
-                updateHijoTitles();
-            });
-        }
-
-        if (hijosContainer) {
-            Array.from(hijosContainer.children).forEach((row) => {
-                bindRow(row);
-            });
-        }
-
-        if (telefonoDisplayInput) {
-            syncTelefono();
-        }
-
-        toggleHijosSection();
-        updateHijoTitles();
-
-        const editModal = document.getElementById('modal-editar');
-        const editForm = document.getElementById('editUsuarioForm');
-        const editIdInput = document.getElementById('edit_id');
-        const editNombreInput = document.getElementById('edit_nombre');
-        const editUsuarioInput = document.getElementById('edit_usuario');
-        const editContrasenaInput = document.getElementById('edit_contrasena');
-        const editTelefonoInput = document.getElementById('edit_telefono');
-        const editCorreoInput = document.getElementById('edit_correo');
-        const editSaldoInput = document.getElementById('edit_saldo');
-        const editRolSelect = document.getElementById('edit_rol');
-        const editHijosSection = document.getElementById('edit-hijos-section');
-        const editHijosContainer = document.getElementById('edit-hijos-container');
-        const editAddHijoButton = document.getElementById('edit-add-hijo');
-        const usuariosTableBody = document.getElementById('usuarios-table-body');
-        const feedbackContainer = document.getElementById('usuarios-feedback');
-        const usuariosSearchInput = document.getElementById('usuarios-search');
-
-        const toggleEditHijosSection = () => {
-            if (!editHijosSection) return;
-            editHijosSection.style.display = editRolSelect && editRolSelect.value === 'papas' ? 'block' : 'none';
-        };
-
-        const openAdminModal = (modal) => {
-            if (!modal) return;
-            modal.classList.remove('hidden');
-        };
-
-        const closeAdminModal = (modal) => {
-            if (!modal) return;
-            modal.classList.add('hidden');
-        };
-
-        document.querySelectorAll('[data-close-modal]').forEach((button) => {
-            button.addEventListener('click', () => {
-                closeAdminModal(editModal);
-            });
-        });
-
-        const parseJson = (raw) => {
-            if (!raw) return null;
-            try {
-                return JSON.parse(raw);
-            } catch (error) {
-                return null;
-            }
-        };
-
-        const escapeHtml = (value) => {
-            if (value === null || value === undefined) return '';
-            return String(value)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-        };
-
-        const renderFeedback = (type, messages) => {
-            const messageArray = Array.isArray(messages) ? messages : [messages];
-            const messageText = messageArray.filter(Boolean).join(' ');
-
-            if (typeof window.showAlert === 'function' && messageText) {
-                window.showAlert(type, messageText);
-                return;
-            }
-
-            if (!feedbackContainer) return;
-            if (!messageText) {
-                feedbackContainer.innerHTML = '';
-                return;
-            }
-            const borderColor = type === 'success' ? '#16a34a' : '#dc2626';
-            const title = type === 'success' ? 'Listo:' : 'Hubo un problema:';
-            const listHtml = messageArray.length > 1
-                ? `<ul>${messageArray.map((msg) => `<li>${escapeHtml(msg)}</li>`).join('')}</ul>`
-                : `<p>${escapeHtml(messageArray[0])}</p>`;
-            feedbackContainer.innerHTML = `
+                if (!feedbackContainer) return;
+                if (!messageText) {
+                    feedbackContainer.innerHTML = '';
+                    return;
+                }
+                const borderColor = type === 'success' ? '#16a34a' : '#dc2626';
+                const title = type === 'success' ? 'Listo:' : 'Hubo un problema:';
+                const listHtml = messageArray.length > 1 ?
+                    `<ul>${messageArray.map((msg) => `<li>${escapeHtml(msg)}</li>`).join('')}</ul>` :
+                    `<p>${escapeHtml(messageArray[0])}</p>`;
+                feedbackContainer.innerHTML = `
                 <div class="card" style="border-left: 4px solid ${borderColor};">
                     <p><strong>${title}</strong></p>
                     ${listHtml}
                 </div>
             `;
-        };
+            };
 
-        const appendWrappedWords = (cell, text) => {
-            const words = String(text || '').trim().split(/\s+/).filter(Boolean);
-            if (words.length === 0) {
-                cell.textContent = '';
-                return;
-            }
-            words.forEach((word, index) => {
-                if (index > 0) {
-                    cell.appendChild(document.createElement('br'));
+            const appendWrappedWords = (cell, text) => {
+                const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+                if (words.length === 0) {
+                    cell.textContent = '';
+                    return;
                 }
-                cell.appendChild(document.createTextNode(word));
-            });
-        };
-
-        const updateEstadoUI = (row, usuarioData) => {
-            if (!row || !usuarioData) return;
-            const estadoLabel = usuarioData.estado === 'inactivo' ? 'inactivo' : 'activo';
-            const estadoClass = estadoLabel === 'inactivo' ? 'danger' : 'success';
-            const badge = row.querySelector('.badge');
-            if (badge) {
-                badge.classList.remove('success', 'danger');
-                badge.classList.add(estadoClass);
-                badge.textContent = estadoLabel;
-            }
-
-            const toggleButton = row.querySelector('.action-toggle');
-            if (toggleButton) {
-                const icon = toggleButton.querySelector('.material-icons');
-                if (icon) {
-                    icon.textContent = estadoLabel === 'inactivo' ? 'toggle_off' : 'toggle_on';
-                    icon.style.color = estadoLabel === 'inactivo' ? '#dc2626' : '#16a34a';
-                }
-                toggleButton.dataset.usuario = JSON.stringify(usuarioData);
-            }
-
-            const editButton = row.querySelector('.action-edit');
-            if (editButton) {
-                editButton.dataset.usuario = JSON.stringify(usuarioData);
-            }
-        };
-
-        const bindToggleButton = (button, row) => {
-            if (!button) return;
-            button.addEventListener('click', () => {
-                const usuario = parseJson(button.dataset.usuario);
-                if (!usuario || !usuario.id) return;
-
-                const estadoActual = usuario.estado === 'inactivo' ? 'inactivo' : 'activo';
-                const nuevoEstado = estadoActual === 'inactivo' ? 'activo' : 'inactivo';
-
-                const formData = new FormData();
-                formData.append('action', 'toggle_estado');
-                formData.append('usuario_id', String(usuario.id));
-                formData.append('estado', nuevoEstado);
-                formData.append('ajax', '1');
-
-                button.disabled = true;
-                fetch(window.location.href, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                words.forEach((word, index) => {
+                    if (index > 0) {
+                        cell.appendChild(document.createElement('br'));
                     }
-                })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        if (data.ok) {
-                            usuario.estado = data.estado || nuevoEstado;
-                            updateEstadoUI(row, usuario);
-                            renderFeedback('success', data.mensaje || 'Usuario actualizado correctamente.');
-                        } else {
-                            renderFeedback('error', data.errores || 'No se pudo actualizar el usuario.');
-                        }
-                    })
-                    .catch(() => {
-                        renderFeedback('error', 'No se pudo actualizar el usuario.');
-                    })
-                    .finally(() => {
-                        button.disabled = false;
-                    });
-            });
-        };
+                    cell.appendChild(document.createTextNode(word));
+                });
+            };
 
-        const bindEditButton = (button) => {
-            if (!button) return;
-            button.addEventListener('click', () => {
-                const usuario = parseJson(button.dataset.usuario) || {};
-                const hijos = parseJson(button.dataset.hijos) || [];
-
-                if (editIdInput) editIdInput.value = usuario.id || '';
-                if (editNombreInput) editNombreInput.value = usuario.nombre || '';
-                if (editUsuarioInput) editUsuarioInput.value = usuario.usuario || '';
-                if (editContrasenaInput) editContrasenaInput.value = '';
-                if (editTelefonoInput) editTelefonoInput.value = usuario.telefono || '';
-                if (editCorreoInput) editCorreoInput.value = usuario.correo || '';
-                if (editSaldoInput) editSaldoInput.value = usuario.saldo || '0.00';
-                if (editRolSelect) editRolSelect.value = usuario.rol || '';
-
-                toggleEditHijosSection();
-                if (editRolSelect && editRolSelect.value === 'papas') {
-                    renderEditHijos(hijos);
-                } else if (editHijosContainer) {
-                    editHijosContainer.innerHTML = '';
+            const updateEstadoUI = (row, usuarioData) => {
+                if (!row || !usuarioData) return;
+                const estadoLabel = usuarioData.estado === 'inactivo' ? 'inactivo' : 'activo';
+                const estadoClass = estadoLabel === 'inactivo' ? 'danger' : 'success';
+                const badge = row.querySelector('.badge');
+                if (badge) {
+                    badge.classList.remove('success', 'danger');
+                    badge.classList.add(estadoClass);
+                    badge.textContent = estadoLabel;
                 }
 
-                openAdminModal(editModal);
-            });
-        };
+                const toggleButton = row.querySelector('.action-toggle');
+                if (toggleButton) {
+                    const icon = toggleButton.querySelector('.material-icons');
+                    if (icon) {
+                        icon.textContent = estadoLabel === 'inactivo' ? 'toggle_off' : 'toggle_on';
+                        icon.style.color = estadoLabel === 'inactivo' ? '#dc2626' : '#16a34a';
+                    }
+                    toggleButton.dataset.usuario = JSON.stringify(usuarioData);
+                }
 
-        const buildUsuarioRow = (usuarioData, hijosData) => {
-            if (!usuariosTableBody || !usuarioData) return null;
-            const row = document.createElement('tr');
-            row.dataset.usuarioId = usuarioData.id || '';
-            const estadoLabel = usuarioData.estado === 'inactivo' ? 'inactivo' : 'activo';
-            const estadoClass = estadoLabel === 'inactivo' ? 'danger' : 'success';
-            row.innerHTML = `
+                const editButton = row.querySelector('.action-edit');
+                if (editButton) {
+                    editButton.dataset.usuario = JSON.stringify(usuarioData);
+                }
+            };
+
+            const bindToggleButton = (button, row) => {
+                if (!button) return;
+                button.addEventListener('click', () => {
+                    const usuario = parseJson(button.dataset.usuario);
+                    if (!usuario || !usuario.id) return;
+
+                    const estadoActual = usuario.estado === 'inactivo' ? 'inactivo' : 'activo';
+                    const nuevoEstado = estadoActual === 'inactivo' ? 'activo' : 'inactivo';
+
+                    const formData = new FormData();
+                    formData.append('action', 'toggle_estado');
+                    formData.append('usuario_id', String(usuario.id));
+                    formData.append('estado', nuevoEstado);
+                    formData.append('ajax', '1');
+
+                    button.disabled = true;
+                    fetch(window.location.href, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            if (data.ok) {
+                                usuario.estado = data.estado || nuevoEstado;
+                                updateEstadoUI(row, usuario);
+                                renderFeedback('success', data.mensaje || 'Usuario actualizado correctamente.');
+                            } else {
+                                renderFeedback('error', data.errores || 'No se pudo actualizar el usuario.');
+                            }
+                        })
+                        .catch(() => {
+                            renderFeedback('error', 'No se pudo actualizar el usuario.');
+                        })
+                        .finally(() => {
+                            button.disabled = false;
+                        });
+                });
+            };
+
+            const bindEditButton = (button) => {
+                if (!button) return;
+                button.addEventListener('click', () => {
+                    const usuario = parseJson(button.dataset.usuario) || {};
+                    const hijos = parseJson(button.dataset.hijos) || [];
+
+                    if (editIdInput) editIdInput.value = usuario.id || '';
+                    if (editNombreInput) editNombreInput.value = usuario.nombre || '';
+                    if (editUsuarioInput) editUsuarioInput.value = usuario.usuario || '';
+                    if (editContrasenaInput) editContrasenaInput.value = '';
+                    if (editTelefonoInput) editTelefonoInput.value = usuario.telefono || '';
+                    if (editCorreoInput) editCorreoInput.value = usuario.correo || '';
+                    if (editSaldoInput) editSaldoInput.value = usuario.saldo || '0.00';
+                    if (editRolSelect) editRolSelect.value = usuario.rol || '';
+
+                    toggleEditHijosSection();
+                    if (editRolSelect && editRolSelect.value === 'papas') {
+                        renderEditHijos(hijos);
+                    } else if (editHijosContainer) {
+                        editHijosContainer.innerHTML = '';
+                    }
+
+                    openAdminModal(editModal);
+                });
+            };
+
+            const buildUsuarioRow = (usuarioData, hijosData) => {
+                if (!usuariosTableBody || !usuarioData) return null;
+                const row = document.createElement('tr');
+                row.dataset.usuarioId = usuarioData.id || '';
+                const estadoLabel = usuarioData.estado === 'inactivo' ? 'inactivo' : 'activo';
+                const estadoClass = estadoLabel === 'inactivo' ? 'danger' : 'success';
+                row.innerHTML = `
                 <td></td>
                 <td class="wrap-text"></td>
                 <td class="wrap-text"></td>
@@ -980,76 +980,76 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                 </td>
             `;
 
-            const cells = row.querySelectorAll('td');
-            if (cells[0]) cells[0].textContent = usuarioData.id || '';
-            if (cells[1]) appendWrappedWords(cells[1], usuarioData.nombre || '');
-            if (cells[2]) appendWrappedWords(cells[2], usuarioData.usuario || '');
+                const cells = row.querySelectorAll('td');
+                if (cells[0]) cells[0].textContent = usuarioData.id || '';
+                if (cells[1]) appendWrappedWords(cells[1], usuarioData.nombre || '');
+                if (cells[2]) appendWrappedWords(cells[2], usuarioData.usuario || '');
 
-            const toggleButton = row.querySelector('.action-toggle');
-            const editButton = row.querySelector('.action-edit');
-            if (toggleButton) {
-                toggleButton.dataset.usuario = JSON.stringify(usuarioData);
-                bindToggleButton(toggleButton, row);
-            }
-            if (editButton) {
-                editButton.dataset.usuario = JSON.stringify(usuarioData);
-                editButton.dataset.hijos = JSON.stringify(hijosData || []);
-                bindEditButton(editButton);
-            }
-            return row;
-        };
-
-        const renderUsuariosTable = (usuarios) => {
-            if (!usuariosTableBody) return;
-            usuariosTableBody.innerHTML = '';
-            if (!Array.isArray(usuarios) || usuarios.length === 0) {
-                const emptyRow = document.createElement('tr');
-                emptyRow.innerHTML = '<td colspan="9">No hay usuarios cargados.</td>';
-                usuariosTableBody.appendChild(emptyRow);
-                return;
-            }
-            usuarios.forEach((item) => {
-                const row = buildUsuarioRow(item.usuario, item.hijos);
-                if (row) {
-                    usuariosTableBody.appendChild(row);
+                const toggleButton = row.querySelector('.action-toggle');
+                const editButton = row.querySelector('.action-edit');
+                if (toggleButton) {
+                    toggleButton.dataset.usuario = JSON.stringify(usuarioData);
+                    bindToggleButton(toggleButton, row);
                 }
-            });
-        };
-
-        const replaceUsuarioRow = (usuarioData, hijosData) => {
-            if (!usuariosTableBody || !usuarioData) return;
-            const newRow = buildUsuarioRow(usuarioData, hijosData);
-            if (!newRow) return;
-            const existingRow = usuariosTableBody.querySelector(`tr[data-usuario-id="${usuarioData.id}"]`);
-            if (existingRow) {
-                existingRow.replaceWith(newRow);
-                return;
-            }
-            const emptyRow = usuariosTableBody.querySelector('tr td[colspan]');
-            if (emptyRow) {
-                emptyRow.closest('tr').remove();
-            }
-            usuariosTableBody.prepend(newRow);
-        };
-
-        const updateEditHijoTitles = () => {
-            if (!editHijosContainer) return;
-            const rows = Array.from(editHijosContainer.querySelectorAll('.hijo-card'));
-            rows.forEach((row, index) => {
-                const title = row.querySelector('.hijo-title');
-                if (title) {
-                    title.textContent = `Hijo ${index + 1}`;
+                if (editButton) {
+                    editButton.dataset.usuario = JSON.stringify(usuarioData);
+                    editButton.dataset.hijos = JSON.stringify(hijosData || []);
+                    bindEditButton(editButton);
                 }
-            });
-            if (editAddHijoButton) {
-                editAddHijoButton.disabled = rows.length >= 20;
-            }
-        };
+                return row;
+            };
 
-        const createEditHijoRow = (hijo = {}) => {
-            const row = document.createElement('div');
-            row.className = 'hijo-card';
-            row.innerHTML = `
+            const renderUsuariosTable = (usuarios) => {
+                if (!usuariosTableBody) return;
+                usuariosTableBody.innerHTML = '';
+                if (!Array.isArray(usuarios) || usuarios.length === 0) {
+                    const emptyRow = document.createElement('tr');
+                    emptyRow.innerHTML = '<td colspan="9">No hay usuarios cargados.</td>';
+                    usuariosTableBody.appendChild(emptyRow);
+                    return;
+                }
+                usuarios.forEach((item) => {
+                    const row = buildUsuarioRow(item.usuario, item.hijos);
+                    if (row) {
+                        usuariosTableBody.appendChild(row);
+                    }
+                });
+            };
+
+            const replaceUsuarioRow = (usuarioData, hijosData) => {
+                if (!usuariosTableBody || !usuarioData) return;
+                const newRow = buildUsuarioRow(usuarioData, hijosData);
+                if (!newRow) return;
+                const existingRow = usuariosTableBody.querySelector(`tr[data-usuario-id="${usuarioData.id}"]`);
+                if (existingRow) {
+                    existingRow.replaceWith(newRow);
+                    return;
+                }
+                const emptyRow = usuariosTableBody.querySelector('tr td[colspan]');
+                if (emptyRow) {
+                    emptyRow.closest('tr').remove();
+                }
+                usuariosTableBody.prepend(newRow);
+            };
+
+            const updateEditHijoTitles = () => {
+                if (!editHijosContainer) return;
+                const rows = Array.from(editHijosContainer.querySelectorAll('.hijo-card'));
+                rows.forEach((row, index) => {
+                    const title = row.querySelector('.hijo-title');
+                    if (title) {
+                        title.textContent = `Hijo ${index + 1}`;
+                    }
+                });
+                if (editAddHijoButton) {
+                    editAddHijoButton.disabled = rows.length >= 20;
+                }
+            };
+
+            const createEditHijoRow = (hijo = {}) => {
+                const row = document.createElement('div');
+                row.className = 'hijo-card';
+                row.innerHTML = `
                 <div class="hijo-header">
                     <p class="hijo-title">Hijo</p>
                     <button type="button" class="btn btn-cancelar btn-small btn-remove-hijo">Quitar</button>
@@ -1082,217 +1082,217 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                 </div>
             `;
 
-            const nombreInput = row.querySelector('input[name="edit_hijos_nombre[]"]');
-            if (nombreInput) {
-                nombreInput.value = hijo.nombre || '';
-            }
-
-            const preferenciaSelect = row.querySelector('.edit-hijo-preferencia');
-            if (preferenciaSelect) {
-                if (hijo.preferencias) {
-                    preferenciaSelect.value = String(hijo.preferencias);
-                } else if (defaultPreferenciaId) {
-                    preferenciaSelect.value = defaultPreferenciaId;
+                const nombreInput = row.querySelector('input[name="edit_hijos_nombre[]"]');
+                if (nombreInput) {
+                    nombreInput.value = hijo.nombre || '';
                 }
-            }
 
-            const colegioSelect = row.querySelector('.edit-hijo-colegio');
-            const cursoSelect = row.querySelector('.edit-hijo-curso');
-            if (colegioSelect) {
-                colegioSelect.value = hijo.colegio_id ? String(hijo.colegio_id) : '';
-            }
-            if (cursoSelect) {
-                cursoSelect.value = hijo.curso_id ? String(hijo.curso_id) : '';
-            }
-            if (colegioSelect && cursoSelect) {
-                syncCursoOptions(cursoSelect, colegioSelect.value);
-                colegioSelect.addEventListener('change', () => {
+                const preferenciaSelect = row.querySelector('.edit-hijo-preferencia');
+                if (preferenciaSelect) {
+                    if (hijo.preferencias) {
+                        preferenciaSelect.value = String(hijo.preferencias);
+                    } else if (defaultPreferenciaId) {
+                        preferenciaSelect.value = defaultPreferenciaId;
+                    }
+                }
+
+                const colegioSelect = row.querySelector('.edit-hijo-colegio');
+                const cursoSelect = row.querySelector('.edit-hijo-curso');
+                if (colegioSelect) {
+                    colegioSelect.value = hijo.colegio_id ? String(hijo.colegio_id) : '';
+                }
+                if (cursoSelect) {
+                    cursoSelect.value = hijo.curso_id ? String(hijo.curso_id) : '';
+                }
+                if (colegioSelect && cursoSelect) {
                     syncCursoOptions(cursoSelect, colegioSelect.value);
-                });
-            }
+                    colegioSelect.addEventListener('change', () => {
+                        syncCursoOptions(cursoSelect, colegioSelect.value);
+                    });
+                }
 
-            const removeButton = row.querySelector('.btn-remove-hijo');
-            if (removeButton) {
-                removeButton.addEventListener('click', () => {
-                    row.remove();
+                const removeButton = row.querySelector('.btn-remove-hijo');
+                if (removeButton) {
+                    removeButton.addEventListener('click', () => {
+                        row.remove();
+                        updateEditHijoTitles();
+                    });
+                }
+
+                return row;
+            };
+
+            const renderEditHijos = (hijos = []) => {
+                if (!editHijosContainer) return;
+                editHijosContainer.innerHTML = '';
+                if (!Array.isArray(hijos) || hijos.length === 0) {
+                    editHijosContainer.appendChild(createEditHijoRow({}));
+                    updateEditHijoTitles();
+                    return;
+                }
+                hijos.forEach((hijo) => {
+                    editHijosContainer.appendChild(createEditHijoRow(hijo));
+                });
+                updateEditHijoTitles();
+            };
+
+            if (editAddHijoButton && editHijosContainer) {
+                editAddHijoButton.addEventListener('click', () => {
+                    editHijosContainer.appendChild(createEditHijoRow({}));
                     updateEditHijoTitles();
                 });
             }
 
-            return row;
-        };
-
-        const renderEditHijos = (hijos = []) => {
-            if (!editHijosContainer) return;
-            editHijosContainer.innerHTML = '';
-            if (!Array.isArray(hijos) || hijos.length === 0) {
-                editHijosContainer.appendChild(createEditHijoRow({}));
-                updateEditHijoTitles();
-                return;
+            if (editRolSelect) {
+                editRolSelect.addEventListener('change', () => {
+                    toggleEditHijosSection();
+                });
             }
-            hijos.forEach((hijo) => {
-                editHijosContainer.appendChild(createEditHijoRow(hijo));
+
+            document.querySelectorAll('.action-toggle').forEach((button) => {
+                bindToggleButton(button, button.closest('tr'));
             });
-            updateEditHijoTitles();
-        };
 
-        if (editAddHijoButton && editHijosContainer) {
-            editAddHijoButton.addEventListener('click', () => {
-                editHijosContainer.appendChild(createEditHijoRow({}));
-                updateEditHijoTitles();
+            document.querySelectorAll('.action-edit').forEach((button) => {
+                bindEditButton(button);
             });
-        }
 
-        if (editRolSelect) {
-            editRolSelect.addEventListener('change', () => {
-                toggleEditHijosSection();
-            });
-        }
-
-        document.querySelectorAll('.action-toggle').forEach((button) => {
-            bindToggleButton(button, button.closest('tr'));
-        });
-
-        document.querySelectorAll('.action-edit').forEach((button) => {
-            bindEditButton(button);
-        });
-
-        if (editForm) {
-            editForm.addEventListener('reset', () => {
-                if (editHijosContainer) {
-                    editHijosContainer.innerHTML = '';
-                }
-                toggleEditHijosSection();
-            });
-        }
-
-        if (editForm) {
-            editForm.addEventListener('submit', (event) => {
-                event.preventDefault();
-                const formData = new FormData(editForm);
-                formData.append('action', 'editar');
-                formData.append('ajax', '1');
-                if (editIdInput && !formData.get('edit_id')) {
-                    formData.append('edit_id', editIdInput.value);
-                }
-
-                fetch(window.location.href, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+            if (editForm) {
+                editForm.addEventListener('reset', () => {
+                    if (editHijosContainer) {
+                        editHijosContainer.innerHTML = '';
                     }
-                })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        if (data.ok && data.usuario) {
-                            replaceUsuarioRow(data.usuario, data.hijos || []);
-                            closeAdminModal(editModal);
-                            renderFeedback('success', data.mensaje || 'Usuario actualizado correctamente.');
-                        } else {
-                            renderFeedback('error', data.errores || 'No se pudo actualizar el usuario.');
-                        }
-                    })
-                    .catch(() => {
-                        renderFeedback('error', 'No se pudo actualizar el usuario.');
-                    });
-            });
-        }
+                    toggleEditHijosSection();
+                });
+            }
 
-        if (usuarioForm && usuariosTableBody) {
-            usuarioForm.addEventListener('submit', (event) => {
-                event.preventDefault();
-                const formData = new FormData(usuarioForm);
-                formData.append('ajax', '1');
-
-                fetch(window.location.href, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+            if (editForm) {
+                editForm.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    const formData = new FormData(editForm);
+                    formData.append('action', 'editar');
+                    formData.append('ajax', '1');
+                    if (editIdInput && !formData.get('edit_id')) {
+                        formData.append('edit_id', editIdInput.value);
                     }
-                })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        if (data.ok && data.usuario) {
-                            const row = buildUsuarioRow(data.usuario, data.hijos);
-                            if (row) {
-                                const emptyRow = usuariosTableBody.querySelector('tr td[colspan]');
-                                if (emptyRow) {
-                                    emptyRow.closest('tr').remove();
+
+                    fetch(window.location.href, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            if (data.ok && data.usuario) {
+                                replaceUsuarioRow(data.usuario, data.hijos || []);
+                                closeAdminModal(editModal);
+                                renderFeedback('success', data.mensaje || 'Usuario actualizado correctamente.');
+                            } else {
+                                renderFeedback('error', data.errores || 'No se pudo actualizar el usuario.');
+                            }
+                        })
+                        .catch(() => {
+                            renderFeedback('error', 'No se pudo actualizar el usuario.');
+                        });
+                });
+            }
+
+            if (usuarioForm && usuariosTableBody) {
+                usuarioForm.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    const formData = new FormData(usuarioForm);
+                    formData.append('ajax', '1');
+
+                    fetch(window.location.href, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            if (data.ok && data.usuario) {
+                                const row = buildUsuarioRow(data.usuario, data.hijos);
+                                if (row) {
+                                    const emptyRow = usuariosTableBody.querySelector('tr td[colspan]');
+                                    if (emptyRow) {
+                                        emptyRow.closest('tr').remove();
+                                    }
+                                    usuariosTableBody.prepend(row);
                                 }
-                                usuariosTableBody.prepend(row);
+                                usuarioForm.reset();
+                                if (hijosContainer) {
+                                    hijosContainer.innerHTML = '';
+                                }
+                                toggleHijosSection();
+                                updateHijoTitles();
+                                renderFeedback('success', data.mensaje || 'Usuario creado correctamente.');
+                                if (data.mail_error) {
+                                    console.error('Error envio correo bienvenida:', data.mail_error);
+                                }
+                                if (data.mensaje) {
+                                    console.error('Mensaje servidor (alta usuario):', data.mensaje);
+                                }
+                            } else {
+                                renderFeedback('error', data.errores || 'No se pudo crear el usuario.');
                             }
-                            usuarioForm.reset();
-                            if (hijosContainer) {
-                                hijosContainer.innerHTML = '';
-                            }
-                            toggleHijosSection();
-                            updateHijoTitles();
-                            renderFeedback('success', data.mensaje || 'Usuario creado correctamente.');
-                            if (data.mail_error) {
-                                console.error('Error envio correo bienvenida:', data.mail_error);
-                            }
-                            if (data.mensaje) {
-                                console.error('Mensaje servidor (alta usuario):', data.mensaje);
-                            }
-                        } else {
-                            renderFeedback('error', data.errores || 'No se pudo crear el usuario.');
-                        }
-                    })
-                    .catch(() => {
-                        renderFeedback('error', 'No se pudo crear el usuario.');
-                    });
-            });
-        }
+                        })
+                        .catch(() => {
+                            renderFeedback('error', 'No se pudo crear el usuario.');
+                        });
+                });
+            }
 
-        if (usuariosSearchInput) {
-            let searchTimeout = null;
-            let lastSearchValue = '';
+            if (usuariosSearchInput) {
+                let searchTimeout = null;
+                let lastSearchValue = '';
 
-            const fetchUsuarios = (termino) => {
-                const formData = new FormData();
-                formData.append('action', 'buscar');
-                formData.append('termino', termino);
-                formData.append('ajax', '1');
+                const fetchUsuarios = (termino) => {
+                    const formData = new FormData();
+                    formData.append('action', 'buscar');
+                    formData.append('termino', termino);
+                    formData.append('ajax', '1');
 
-                fetch(window.location.href, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                    fetch(window.location.href, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            if (data.ok) {
+                                renderUsuariosTable(data.usuarios || []);
+                            } else {
+                                renderFeedback('error', data.errores || 'No se pudo filtrar los usuarios.');
+                            }
+                        })
+                        .catch(() => {
+                            renderFeedback('error', 'No se pudo filtrar los usuarios.');
+                        });
+                };
+
+                usuariosSearchInput.addEventListener('input', () => {
+                    const termino = usuariosSearchInput.value.trim();
+                    if (searchTimeout) {
+                        clearTimeout(searchTimeout);
                     }
-                })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        if (data.ok) {
-                            renderUsuariosTable(data.usuarios || []);
-                        } else {
-                            renderFeedback('error', data.errores || 'No se pudo filtrar los usuarios.');
-                        }
-                    })
-                    .catch(() => {
-                        renderFeedback('error', 'No se pudo filtrar los usuarios.');
-                    });
-            };
-
-            usuariosSearchInput.addEventListener('input', () => {
-                const termino = usuariosSearchInput.value.trim();
-                if (searchTimeout) {
-                    clearTimeout(searchTimeout);
-                }
-                if (termino.length >= 3 || (termino.length === 0 && lastSearchValue.length >= 3)) {
-                    searchTimeout = setTimeout(() => {
-                        fetchUsuarios(termino);
-                        lastSearchValue = termino;
-                    }, 300);
-                    return;
-                }
-                if (termino.length === 0) {
-                    lastSearchValue = '';
-                }
-            });
-        }
+                    if (termino.length >= 3 || (termino.length === 0 && lastSearchValue.length >= 3)) {
+                        searchTimeout = setTimeout(() => {
+                            fetchUsuarios(termino);
+                            lastSearchValue = termino;
+                        }, 300);
+                        return;
+                    }
+                    if (termino.length === 0) {
+                        lastSearchValue = '';
+                    }
+                });
+            }
         })();
     </script>
 </body>
