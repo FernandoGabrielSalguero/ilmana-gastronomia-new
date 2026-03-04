@@ -199,10 +199,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'edita
         $errores[] = 'El usuario ya existe.';
     }
 
-    $telefonoNormalizado = preg_replace('/\D+/', '', $telefono);
-    if ($telefonoNormalizado !== '' && (strlen($telefonoNormalizado) < 8 || strlen($telefonoNormalizado) > 15)) {
-        $errores[] = 'El telefono debe tener entre 8 y 15 digitos.';
-    }
+    $telefonoNormalizado = $telefono;
 
     $saldo = 0;
     if ($saldoInput !== '') {
@@ -427,10 +424,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'crear
         $errores[] = 'El correo no es valido.';
     }
 
-    $telefonoNormalizado = preg_replace('/\D+/', '', $telefono);
-    if ($telefonoNormalizado !== '' && (strlen($telefonoNormalizado) < 8 || strlen($telefonoNormalizado) > 15)) {
-        $errores[] = 'El telefono debe tener entre 8 y 15 digitos.';
-    }
+    $telefonoNormalizado = $telefono;
 
     $saldo = null;
     if ($saldoInput !== '') {

@@ -687,22 +687,9 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                 }
             };
 
-            const formatTelefono = (digits) => {
-                if (!digits) return '';
-                const clean = digits.replace(/\D+/g, '');
-                const parts = [];
-                parts.push(clean.slice(0, 3));
-                if (clean.length > 3) parts.push(clean.slice(3, 6));
-                if (clean.length > 6) parts.push(clean.slice(6, 10));
-                if (clean.length > 10) parts.push(clean.slice(10));
-                return parts.filter(Boolean).join('-');
-            };
-
             const syncTelefono = () => {
                 if (!telefonoInput || !telefonoDisplayInput) return;
-                const digits = telefonoDisplayInput.value.replace(/\D+/g, '');
-                telefonoInput.value = digits;
-                telefonoDisplayInput.value = formatTelefono(digits);
+                telefonoInput.value = telefonoDisplayInput.value;
             };
 
             if (telefonoDisplayInput) {
