@@ -362,6 +362,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'edita
             }
         } else {
             $errores[] = $resultado['mensaje'];
+            if (!empty($resultado['detalle'])) {
+                $errores[] = $resultado['detalle'];
+            }
         }
     }
 

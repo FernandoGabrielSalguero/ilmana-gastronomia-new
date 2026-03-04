@@ -244,7 +244,8 @@ class AdminUsuariosModel
             }
             return [
                 'ok' => false,
-                'mensaje' => 'No se pudo actualizar el usuario.'
+                'mensaje' => 'No se pudo actualizar el usuario.',
+                'detalle' => $e->getMessage()
             ];
         }
 
