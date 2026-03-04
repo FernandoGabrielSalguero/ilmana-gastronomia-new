@@ -1055,6 +1055,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                     <button type="button" class="btn btn-cancelar btn-small btn-remove-hijo">Quitar</button>
                 </div>
                 <div class="form-grid grid-4">
+                    <input type="hidden" name="edit_hijos_id[]" class="edit-hijo-id" />
                     <div class="input-group">
                         <label>Nombre</label>
                         <div class="input-icon input-icon-name">
@@ -1081,6 +1082,11 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                     </div>
                 </div>
             `;
+
+                const idInput = row.querySelector('input[name="edit_hijos_id[]"]');
+                if (idInput) {
+                    idInput.value = hijo.id ? String(hijo.id) : '';
+                }
 
                 const nombreInput = row.querySelector('input[name="edit_hijos_nombre[]"]');
                 if (nombreInput) {

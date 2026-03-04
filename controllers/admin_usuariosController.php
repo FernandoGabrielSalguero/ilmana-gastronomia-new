@@ -215,12 +215,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'edita
 
     $hijos = [];
     if ($rol === 'papas') {
+        $hijosIds = $_POST['edit_hijos_id'] ?? [];
         $hijosNombres = $_POST['edit_hijos_nombre'] ?? [];
         $hijosPreferencias = $_POST['edit_hijos_preferencias'] ?? [];
         $hijosColegios = $_POST['edit_hijos_colegio'] ?? [];
         $hijosCursos = $_POST['edit_hijos_curso'] ?? [];
 
         $max = max(
+            count($hijosIds),
             count($hijosNombres),
             count($hijosPreferencias),
             count($hijosColegios),
@@ -232,6 +234,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'edita
         }
 
         for ($i = 0; $i < $max; $i++) {
+            $hijoIdRaw = trim($hijosIds[$i] ?? '');
+            $hijoId = $hijoIdRaw !== '' ? (int) $hijoIdRaw : null;
             $nombreHijo = trim($hijosNombres[$i] ?? '');
             $prefIdRaw = trim($hijosPreferencias[$i] ?? '');
             $prefId = $prefIdRaw;
@@ -241,7 +245,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'edita
             $colegioRaw = $hijosColegios[$i] ?? '';
             $cursoRaw = $hijosCursos[$i] ?? '';
 
-            $hasAny = $nombreHijo !== '' || $prefIdRaw !== '' || $colegioRaw !== '' || $cursoRaw !== '';
+            $hasAny = $hijoId !== null || $nombreHijo !== '' || $prefIdRaw !== '' || $colegioRaw !== '' || $cursoRaw !== '';
             if (!$hasAny) {
                 continue;
             }
@@ -270,6 +274,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'edita
             }
 
             $hijos[] = [
+                'id' => $hijoId,
                 'nombre' => $nombreHijo,
                 'preferencias_id' => $prefId !== '' ? (int) $prefId : null,
                 'colegio_id' => $colegioId ?: null,

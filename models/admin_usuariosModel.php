@@ -203,37 +203,95 @@ class AdminUsuariosModel
 
             $stmtHijos = $this->db->prepare("SELECT Hijo_Id FROM Usuarios_Hijos WHERE Usuario_Id = :usuarioId");
             $stmtHijos->execute(['usuarioId' => $usuarioId]);
-            $hijosIds = $stmtHijos->fetchAll(PDO::FETCH_COLUMN);
+            $hijosIdsActuales = array_map('intval', $stmtHijos->fetchAll(PDO::FETCH_COLUMN));
 
-            $stmtDeleteLinks = $this->db->prepare("DELETE FROM Usuarios_Hijos WHERE Usuario_Id = :usuarioId");
-            $stmtDeleteLinks->execute(['usuarioId' => $usuarioId]);
-
-            if (!empty($hijosIds)) {
-                $placeholders = implode(',', array_fill(0, count($hijosIds), '?'));
-                $stmtDeleteHijos = $this->db->prepare("DELETE FROM Hijos WHERE Id IN ($placeholders)");
-                $stmtDeleteHijos->execute(array_map('intval', $hijosIds));
-            }
-
-            if ($data['rol'] === 'papas' && !empty($hijos)) {
-                $stmtHijo = $this->db->prepare("INSERT INTO Hijos
+            if ($data['rol'] === 'papas') {
+                $stmtUpdateHijo = $this->db->prepare("UPDATE Hijos
+                    SET Nombre = :nombre,
+                        Preferencias_Alimenticias = :preferencias,
+                        Colegio_Id = :colegio_id,
+                        Curso_Id = :curso_id
+                    WHERE Id = :id");
+                $stmtInsertHijo = $this->db->prepare("INSERT INTO Hijos
                     (Nombre, Preferencias_Alimenticias, Colegio_Id, Curso_Id)
                     VALUES (:nombre, :preferencias, :colegio_id, :curso_id)");
                 $stmtLink = $this->db->prepare("INSERT INTO Usuarios_Hijos (Usuario_Id, Hijo_Id)
                     VALUES (:usuario_id, :hijo_id)");
+                $stmtCheckLink = $this->db->prepare("SELECT 1 FROM Usuarios_Hijos WHERE Usuario_Id = :usuario_id AND Hijo_Id = :hijo_id LIMIT 1");
 
+                $hijosIdsEnviados = [];
                 foreach ($hijos as $hijo) {
-                    $stmtHijo->execute([
+                    $hijoId = isset($hijo['id']) && $hijo['id'] ? (int) $hijo['id'] : 0;
+                    if ($hijoId > 0) {
+                        $stmtUpdateHijo->execute([
+                            'nombre' => $hijo['nombre'],
+                            'preferencias' => $hijo['preferencias_id'],
+                            'colegio_id' => $hijo['colegio_id'],
+                            'curso_id' => $hijo['curso_id'],
+                            'id' => $hijoId
+                        ]);
+                        $stmtCheckLink->execute([
+                            'usuario_id' => $usuarioId,
+                            'hijo_id' => $hijoId
+                        ]);
+                        if (!$stmtCheckLink->fetchColumn()) {
+                            $stmtLink->execute([
+                                'usuario_id' => $usuarioId,
+                                'hijo_id' => $hijoId
+                            ]);
+                        }
+                        $hijosIdsEnviados[] = $hijoId;
+                        continue;
+                    }
+
+                    $stmtInsertHijo->execute([
                         'nombre' => $hijo['nombre'],
                         'preferencias' => $hijo['preferencias_id'],
                         'colegio_id' => $hijo['colegio_id'],
                         'curso_id' => $hijo['curso_id']
                     ]);
-
-                    $hijoId = (int) $this->db->lastInsertId();
+                    $nuevoId = (int) $this->db->lastInsertId();
                     $stmtLink->execute([
                         'usuario_id' => $usuarioId,
-                        'hijo_id' => $hijoId
+                        'hijo_id' => $nuevoId
                     ]);
+                    $hijosIdsEnviados[] = $nuevoId;
+                }
+
+                $hijosIdsEnviados = array_values(array_unique(array_filter($hijosIdsEnviados)));
+                $idsParaEliminar = array_diff($hijosIdsActuales, $hijosIdsEnviados);
+
+                if (!empty($idsParaEliminar)) {
+                    $placeholders = implode(',', array_fill(0, count($idsParaEliminar), '?'));
+                    $stmtPedidos = $this->db->prepare("SELECT Hijo_Id FROM Pedidos_Comida WHERE Hijo_Id IN ($placeholders)");
+                    $stmtPedidos->execute(array_values($idsParaEliminar));
+                    $idsConPedidos = array_map('intval', $stmtPedidos->fetchAll(PDO::FETCH_COLUMN));
+
+                    if (!empty($idsConPedidos)) {
+                        throw new Exception('No se pueden eliminar hijos con pedidos asociados.');
+                    }
+
+                    $stmtDeleteLinks = $this->db->prepare("DELETE FROM Usuarios_Hijos WHERE Usuario_Id = ? AND Hijo_Id IN ($placeholders)");
+                    $stmtDeleteLinks->execute(array_merge([$usuarioId], array_values($idsParaEliminar)));
+
+                    $stmtDeleteHijos = $this->db->prepare("DELETE FROM Hijos WHERE Id IN ($placeholders)");
+                    $stmtDeleteHijos->execute(array_values($idsParaEliminar));
+                }
+            } else {
+                if (!empty($hijosIdsActuales)) {
+                    $placeholders = implode(',', array_fill(0, count($hijosIdsActuales), '?'));
+                    $stmtPedidos = $this->db->prepare("SELECT Hijo_Id FROM Pedidos_Comida WHERE Hijo_Id IN ($placeholders)");
+                    $stmtPedidos->execute(array_values($hijosIdsActuales));
+                    $idsConPedidos = array_map('intval', $stmtPedidos->fetchAll(PDO::FETCH_COLUMN));
+                    if (!empty($idsConPedidos)) {
+                        throw new Exception('No se puede quitar rol papas mientras existan pedidos asociados a hijos.');
+                    }
+
+                    $stmtDeleteLinks = $this->db->prepare("DELETE FROM Usuarios_Hijos WHERE Usuario_Id = :usuarioId");
+                    $stmtDeleteLinks->execute(['usuarioId' => $usuarioId]);
+
+                    $stmtDeleteHijos = $this->db->prepare("DELETE FROM Hijos WHERE Id IN ($placeholders)");
+                    $stmtDeleteHijos->execute(array_values($hijosIdsActuales));
                 }
             }
 
