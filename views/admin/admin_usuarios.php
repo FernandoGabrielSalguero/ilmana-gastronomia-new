@@ -200,6 +200,9 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
             </div>
         </aside>
 
+            <!-- Spinner Global -->
+    <script src="../../views/partials/spinner-global.js"></script>
+
         <!-- MAIN -->
         <div class="main">
 
@@ -549,6 +552,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
     </div>
 
     <script>
+        (function () {
         const rolSelect = document.getElementById('rol');
         const nombreInput = document.getElementById('nombre');
         const usuarioInput = document.getElementById('usuario');
@@ -1289,6 +1293,7 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                 }
             });
         }
+        })();
     </script>
 </body>
 
