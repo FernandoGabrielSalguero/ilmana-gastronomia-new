@@ -1185,15 +1185,17 @@ $saldoValue = $formData['saldo'] !== '' ? $formData['saldo'] : '0';
                         })
                         .then((response) => response.json())
                         .then((data) => {
-                            if (data.ok && data.usuario) {
+                            if (data && data.ok && data.usuario) {
                                 replaceUsuarioRow(data.usuario, data.hijos || []);
                                 closeAdminModal(editModal);
                                 renderFeedback('success', data.mensaje || 'Usuario actualizado correctamente.');
                             } else {
+                                console.error('Error actualizar usuario:', data);
                                 renderFeedback('error', data.errores || 'No se pudo actualizar el usuario.');
                             }
                         })
-                        .catch(() => {
+                        .catch((error) => {
+                            console.error('Error actualizar usuario (fetch):', error);
                             renderFeedback('error', 'No se pudo actualizar el usuario.');
                         });
                 });
