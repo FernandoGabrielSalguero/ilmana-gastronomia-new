@@ -350,7 +350,7 @@ $formatDateTime = function ($value) {
                                 <label>Nivel educativo</label>
                                 <div class="chip-options">
                                     <label class="chip-option">
-                                        <input type="checkbox" name="nivel_educativo[]" value="Inicial" required
+                                        <input type="checkbox" name="nivel_educativo[]" value="Inicial"
                                             <?= in_array('Inicial', $selectedNiveles, true) ? 'checked' : '' ?> />
                                         <span>Inicial</span>
                                     </label>
@@ -934,6 +934,12 @@ $formatDateTime = function ($value) {
             if (menuForm) {
                 menuForm.addEventListener('submit', async (event) => {
                     event.preventDefault();
+                    const nivelChecks = menuForm.querySelectorAll('input[name="nivel_educativo[]"]');
+                    const hasNivel = Array.from(nivelChecks).some((checkbox) => checkbox.checked);
+                    if (!hasNivel) {
+                        showAlert('error', 'Seleccioná al menos un nivel educativo.');
+                        return;
+                    }
                     const formData = new FormData(menuForm);
                     formData.set('action', 'crear');
                     formData.set('ajax', '1');
